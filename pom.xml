@@ -1,0 +1,56 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>cloud-servant</groupId>
+	<artifactId>cloud-servant</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+
+	<properties>
+		<jdk.version>1.8</jdk.version>
+	</properties>
+
+	<build>
+		<sourceDirectory>src</sourceDirectory>
+		<plugins>
+
+			<!-- download source code in Eclipse, best practice -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-eclipse-plugin</artifactId>
+				<version>2.9</version>
+				<configuration>
+					<downloadSources>true</downloadSources>
+					<downloadJavadocs>false</downloadJavadocs>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.5.1</version>
+				<configuration>
+					<source>${jdk.version}</source>
+					<target>${jdk.version}</target>
+				</configuration>
+			</plugin>
+
+			<!-- Make this jar executable -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<configuration>
+					<!-- DO NOT include log4j.properties file in your Jar -->
+<!-- 					<excludes> -->
+<!-- 						<exclude>**/log4j.properties</exclude> -->
+<!-- 					</excludes> -->
+					<archive>
+						<manifest>
+							<!-- Jar file entry point -->
+							<mainClass>main.Main</mainClass>
+						</manifest>
+					</archive>
+				</configuration>
+			</plugin>
+
+		</plugins>
+	</build>
+</project>
