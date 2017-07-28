@@ -19,6 +19,7 @@ public class FrameProcessor {
 	//Don't want to touch sign bit to avoid negative long
 	private long SEVENTH_BYTE = SIXTH_BYTE << BYTE_IN_BITS - 1;
 
+	//TODO: rename both methods 
 	public long extractSize(byte[] disassembledSize) {
 		long size = 0;
 		

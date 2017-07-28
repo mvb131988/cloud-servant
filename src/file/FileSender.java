@@ -18,6 +18,8 @@ public class FileSender {
 	private Path p;
 	private long size;
 	private String relativeName;
+	// in milliseconds
+	private long creationDateTime;
 	
 	// Move to properties
 	private Path repositoryRoot = Paths.get("D:\\temp");
@@ -28,6 +30,7 @@ public class FileSender {
 		p = Paths.get(fullName);
 		size = Files.readAttributes(p, BasicFileAttributes.class).size();
 		relativeName = repositoryRoot.relativize(p).toString();
+		creationDateTime = Files.readAttributes(p, BasicFileAttributes.class).creationTime().toMillis();
 	}
 	
 	//TODO: Move out
@@ -61,6 +64,15 @@ public class FileSender {
 			
 			//Only 7 bits of the byte are used for size of the name representation
 			assert(length < 128);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	public void sendCreationDate(OutputStream os) {
+		try {
+			os.write(fp.packSize(creationDateTime));
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

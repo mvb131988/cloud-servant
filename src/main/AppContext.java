@@ -58,7 +58,8 @@ public class AppContext {
 			fr.receiveActionType(is);
 			long size = fr.receiveSize(is);
 			Path p = fr.receiveRelativeName(is);
-			fr.receive(is, size, p);
+			long creationDateTime = fr.receiveCreationDate(is);
+			fr.receive(is, size, p, creationDateTime);
 			
 			is.close();
 			echoSocket.close();
