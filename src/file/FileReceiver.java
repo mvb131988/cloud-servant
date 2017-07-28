@@ -93,6 +93,8 @@ public class FileReceiver {
 		
 		try {
 			Files.setAttribute(p, "creationTime", FileTime.fromMillis(creationDateTime));
+			Files.setAttribute(p, "lastModifiedTime", FileTime.fromMillis(creationDateTime));
+			Files.setAttribute(p, "lastAccessTime", FileTime.fromMillis(creationDateTime));
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

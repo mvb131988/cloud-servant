@@ -37,6 +37,7 @@ public class AppContext {
 			fs.sendActionType(os);
 			fs.sendSize(os);
 			fs.sendRelativeName(os);
+			fs.sendCreationDate(os);
 			fs.send(os);
 			
 			os.close();
