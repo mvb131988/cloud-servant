@@ -39,6 +39,23 @@ public class FileReceiver {
 		return assembledSize;
 	}
 
+	public Path receiveRelativeName(InputStream is) {
+		Path p = null;
+		try {
+			// relativeNameSize
+			int rns = is.read();
+			// relativeName
+			byte[] rn = new byte[rns];
+			is.read(rn, 0, rns);
+			
+			p = Paths.get(new String(rn, "UTF-8"));
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return p;
+	}
+	
 	//TODO: while for receive
 	public void receive(InputStream is, long size) {
 		byte[] buffer = new byte[1024];

@@ -1,5 +1,9 @@
 package main;
 
+import java.io.IOException;
+
+import file.FileSender;
+
 public class Main {
 
 	@SuppressWarnings("resource")

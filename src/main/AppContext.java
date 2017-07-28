@@ -5,13 +5,15 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import file.FileReceiver;
 import file.FileSender;
 import protocol.file.FrameProcessor;
 
 public class AppContext {
-
+	
 	private FrameProcessor fp = new FrameProcessor();
 	
 	private boolean isMaster = true;
@@ -30,9 +32,11 @@ public class AppContext {
 			Socket clientSocket = serverSocket.accept();
 			OutputStream os = clientSocket.getOutputStream();
 			
-			FileSender fs = new FileSender("D:\\temp\\raft.pdf");
+			String cyrilicName = "\u043c\u0430\u043a\u0441\u0438\u043c\u0430\u043b\u044c\u043d\u043e\u005f\u0434\u043e\u043f\u0443\u0441\u0442\u0438\u043c\u043e\u0435\u005f\u043f\u043e\u005f\u0434\u043b\u0438\u043d\u0435\u005f\u0438\u043c\u044f";
+			FileSender fs = new FileSender("D:\\temp\\" + cyrilicName + ".jpg");
 			fs.sendActionType(os);
 			fs.sendSize(os);
+			fs.sendRelativeName(os);
 			fs.send(os);
 			
 			os.close();
