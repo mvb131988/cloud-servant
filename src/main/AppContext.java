@@ -57,7 +57,8 @@ public class AppContext {
 			FileReceiver fr = new FileReceiver();
 			fr.receiveActionType(is);
 			long size = fr.receiveSize(is);
-			fr.receive(is, size);
+			Path p = fr.receiveRelativeName(is);
+			fr.receive(is, size, p);
 			
 			is.close();
 			echoSocket.close();

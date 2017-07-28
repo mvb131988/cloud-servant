@@ -13,6 +13,9 @@ public class FileReceiver {
 
 	private FrameProcessor fp = new FrameProcessor();
 	
+	// Move to properties
+	private Path repositoryRoot = Paths.get("D:\\temp");
+	
 	// TODO: Move out
 	public int receiveActionType(InputStream is) {
 		int actionType = -1;
@@ -57,13 +60,13 @@ public class FileReceiver {
 	}
 	
 	//TODO: while for receive
-	public void receive(InputStream is, long size) {
+	public void receive(InputStream is, long size, Path relativeFilePath) {
 		byte[] buffer = new byte[1024];
 		int readBufferSize = -1;
 		
 		long remainigSize = size;
 		
-		Path p = Paths.get("C:\\temp\\raft.pdf");
+		Path p = repositoryRoot.resolve(relativeFilePath);
 		try (OutputStream os = Files.newOutputStream(p);) {
 			while(remainigSize != 0) {
 				readBufferSize = remainigSize >= 1024 ? is.read(buffer, 0, 1024) : is.read(buffer, 0, (int) remainigSize);
