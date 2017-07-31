@@ -2,27 +2,52 @@ package file.repository;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 
 import protocol.file.FrameProcessor;
 
+// See MappedByteBuffer to improve performance
 public class RepositoryManager {
 
-	private Path repositoryRoot = Paths.get("C:\\temp");
+	private Path repositoryRoot = Paths.get("D:\\temp");
 
 	private FrameProcessor frameProcessor = new FrameProcessor();
 
 	public static void main(String[] args) {
 		RepositoryManager repositoryManager = new RepositoryManager();
-		repositoryManager.init();
-		repositoryManager.read();
+		List<String> fileNames = repositoryManager.scanRepository();
+		
+		int base = 0;
+		int recordSize = 8+8+200+1;
+		int id = 0;
+		for(String name: fileNames) {
+			repositoryManager.write(base, ++id, name, (byte)10);
+			base += recordSize;
+		}
+		
+		RepositoryRecord repoRecord = repositoryManager.read(113*recordSize);
+		
+		System.out.println("Done");
+		
+//		repositoryManager.read(base2);
 	}
 
+	public List<String> scanRepository() {
+		RepositoryVisitor repoVisitor = new RepositoryVisitor();
+		try {
+			Files.walkFileTree(repositoryRoot, repoVisitor);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return repoVisitor.getFilesList();
+	}
+	
 	public void init() {
 		Path configPath = repositoryRoot.resolve("master.repo");
 		try (OutputStream os = Files.newOutputStream(configPath);) {
@@ -31,17 +56,17 @@ public class RepositoryManager {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-
+	}
+	
+	public void write(int baseAddr, int id, String name, byte status) {
+		Path configPath = repositoryRoot.resolve("master.repo");
 		try (RandomAccessFile file = new RandomAccessFile(configPath.toString(), "rw")) {
-			long id = 12345;
-			String name = "C:\\temp\\file.txt";
-			byte status = 10;
-
+			
 			// offset = cursor pos
-			int offset = 0;
+			int offset = baseAddr;
 
 			// file id
-			file.seek(0);
+			file.seek(offset);
 			file.write(frameProcessor.packSize(id));
 			offset += 8;
 
@@ -57,6 +82,7 @@ public class RepositoryManager {
 			file.seek(offset);
 			file.write(status);
 			offset += 1;
+			
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -67,17 +93,17 @@ public class RepositoryManager {
 
 	}
 
-	public RepositoryRecord read() {
-		RepositoryRecord r = new RepositoryRecord();
+	public RepositoryRecord read(int baseAddr) {
+		RepositoryRecord repositoryRecord = new RepositoryRecord();
 
-		int offset = 0;
+		int offset = baseAddr;
 
-		Path configPath = Paths.get("C:\\temp\\master.repo");
+		Path configPath = Paths.get("D:\\temp\\master.repo");
 		try (RandomAccessFile file = new RandomAccessFile(configPath.toString(), "r")) {
 			// file id
-			file.seek(0);
+			file.seek(offset);
 			byte[] bId = new byte[8];
-			file.read(bId, offset, 8);
+			file.read(bId, 0, 8);
 			long id = frameProcessor.extractSize(bId);
 			offset += 8;
 
@@ -94,13 +120,18 @@ public class RepositoryManager {
 			
 			int status = file.read();
 			offset++;
+			
+			repositoryRecord.setId(id);
+			repositoryRecord.setFileName(name);
+			repositoryRecord.setFileameSize(length);
+			repositoryRecord.setStatus((byte)status);
 
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
-		return null;
+		return repositoryRecord;
 	}
 
 }
