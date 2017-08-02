@@ -53,6 +53,7 @@ public class FileSender {
 		}
 	}
 	
+	//TODO: Extend relative name size to int
 	public void sendRelativeName(OutputStream os) {
 		int length = 0;
 		byte[] b;

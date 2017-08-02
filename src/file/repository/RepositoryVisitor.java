@@ -10,8 +10,8 @@ import java.util.List;
 
 public class RepositoryVisitor implements FileVisitor<Path> {
 
-	private List<String> filesList = new ArrayList<String>(); 
-	
+	private List<String> filesList = new ArrayList<String>();
+
 	@Override
 	public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
 		return FileVisitResult.CONTINUE;

@@ -7,34 +7,88 @@ import java.io.RandomAccessFile;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import protocol.file.FrameProcessor;
 
 // See MappedByteBuffer to improve performance
 public class RepositoryManager {
 
-	private Path repositoryRoot = Paths.get("D:\\temp");
+	private Path repositoryRoot = Paths.get("D:\\Programs");
 
 	private FrameProcessor frameProcessor = new FrameProcessor();
 
+	private int recordSize = 8+8+200+1;
+	
 	public static void main(String[] args) {
 		RepositoryManager repositoryManager = new RepositoryManager();
-		List<String> fileNames = repositoryManager.scanRepository();
 		
-		int base = 0;
-		int recordSize = 8+8+200+1;
-		int id = 0;
-		for(String name: fileNames) {
-			repositoryManager.write(base, ++id, name, (byte)10);
-			base += recordSize;
-		}
+		repositoryManager.initRepositorySet(repositoryManager.countRecords());
 		
-		RepositoryRecord repoRecord = repositoryManager.read(113*recordSize);
-		
+//		repositoryManager.init();
+//		
+//		List<String> fileNames = repositoryManager.scanRepository();
+//		
+//		int base = 0;
+//		int recordSize = 8+8+200+1;
+//		int id = 0;
+//		for(String name: fileNames) {
+//			repositoryManager.write(base, ++id, name, (byte)10);
+//			base += recordSize;
+//		}
+//		
+//		RepositoryRecord repoRecord = repositoryManager.read(100113*recordSize);
+//		
 		System.out.println("Done");
 		
 //		repositoryManager.read(base2);
+	}
+	
+	public long countRecords() {
+		long counter = -1;
+		
+		Path configPath = repositoryRoot.resolve("master.repo");
+		try {
+			long size = Files.readAttributes(configPath, BasicFileAttributes.class).size();
+			int recordSize = 8+8+200+1;
+			counter = size / recordSize;
+			long remainder = size % recordSize;
+			
+			//File is corrupted
+			if(remainder != 0) {
+				throw new Exception("File is corrupted");
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return counter;
+	}
+	
+	public Map<String, RepositoryRecord> initRepositorySet(long recordsCount) {
+		Map<String, RepositoryRecord> names = new HashMap<>();
+
+		int baseAddr = 0;
+		int recordSize = 8+8+200+1;
+		for(int i=0; i<recordsCount; i++) {
+			RepositoryRecord rr = this.read(baseAddr);
+			if(names.containsKey(rr.getFileName())) {
+				System.out.println("duplicate");
+			}
+			names.put(rr.getFileName(), rr);
+			baseAddr += recordSize;
+		}
+		
+		return names;
 	}
 
 	public List<String> scanRepository() {
@@ -98,7 +152,7 @@ public class RepositoryManager {
 
 		int offset = baseAddr;
 
-		Path configPath = Paths.get("D:\\temp\\master.repo");
+		Path configPath = repositoryRoot.resolve("master.repo");
 		try (RandomAccessFile file = new RandomAccessFile(configPath.toString(), "r")) {
 			// file id
 			file.seek(offset);
