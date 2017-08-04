@@ -12,9 +12,11 @@ import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
+import java.util.Set;
 
 import protocol.file.FrameProcessor;
 
@@ -35,6 +37,8 @@ public class RepositoryManager {
 	private FrameProcessor frameProcessor = new FrameProcessor();
 
 	private final static int BATCH_SIZE = 10000;
+	
+	private byte[] internalBuffer = new byte[RecordConstants.FULL_SIZE * BATCH_SIZE];
 
 	public static void main(String[] args) {
 		RepositoryManager repositoryManager = new RepositoryManager();
@@ -195,6 +199,14 @@ public class RepositoryManager {
 
 	}
 
+	public Set<String> readNames() {
+		Set<String> names = new HashSet<>();
+		for(RepositoryRecord rr: readAll()) {
+			names.add(rr.getFileName());
+		}
+		return names;
+	}
+	
 	public List<RepositoryRecord> readAll() {
 		List<RepositoryRecord> records = new ArrayList<>();
 		byte[] buffer = new byte[RecordConstants.FULL_SIZE * BATCH_SIZE];
