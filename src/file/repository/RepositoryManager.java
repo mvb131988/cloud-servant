@@ -2,6 +2,7 @@ package file.repository;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.io.UnsupportedEncodingException;
@@ -9,9 +10,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.ResourceBundle;
 
 import protocol.file.FrameProcessor;
 
@@ -36,12 +39,14 @@ public class RepositoryManager {
 	public static void main(String[] args) {
 		RepositoryManager repositoryManager = new RepositoryManager();
 
-//		repositoryManager.loadRepositoryRecords(repositoryManager.countRecords());
+//		List<RepositoryRecord> records = repositoryManager.readAll();
 
-//		repositoryManager.init();
+		// repositoryManager.loadRepositoryRecords(repositoryManager.countRecords());
 
-		List<String> fileNames = repositoryManager.synchronizeRepository();
-		repositoryManager.write(fileNames, 0);
+		// repositoryManager.init();
+
+		 List<String> fileNames = repositoryManager.synchronizeRepository();
+		 repositoryManager.write(fileNames, 0);
 		//
 		// int base = 0;
 		// int recordSize = 8+8+200+1;
@@ -52,7 +57,7 @@ public class RepositoryManager {
 		// }
 		//
 		// RepositoryRecord repoRecord =
-		RepositoryRecord rr = repositoryManager.read(100003*RecordConstants.FULL_SIZE);
+		RepositoryRecord rr = repositoryManager.read(100003 * RecordConstants.FULL_SIZE);
 		//
 		System.out.println("Done");
 
@@ -129,7 +134,7 @@ public class RepositoryManager {
 	}
 
 	/**
-	 *  Much more faster than random access file 
+	 * Much more faster than random access file
 	 */
 	public void write(List<String> fileNames, int startId) {
 		byte[] buffer = new byte[RecordConstants.FULL_SIZE * BATCH_SIZE];
@@ -138,7 +143,7 @@ public class RepositoryManager {
 		int id = startId;
 
 		Path configPath = repositoryRoot.resolve("data.repo");
-		
+
 		try (OutputStream os = Files.newOutputStream(configPath);) {
 
 			// write record
@@ -146,41 +151,38 @@ public class RepositoryManager {
 
 				// file id
 				byte[] bSize = frameProcessor.packSize(++id);
-				System.arraycopy(bSize, 0, buffer, offset, RecordConstants.ID_SIZE );
+				System.arraycopy(bSize, 0, buffer, offset, RecordConstants.ID_SIZE);
 				offset += RecordConstants.ID_SIZE;
 
 				// file name length
 				long length = fileName.getBytes("UTF-8").length;
 				bSize = frameProcessor.packSize(length);
-				System.arraycopy(bSize, 0, buffer, offset, RecordConstants.NAME_LENGTH_SIZE );
+				System.arraycopy(bSize, 0, buffer, offset, RecordConstants.NAME_LENGTH_SIZE);
 				offset += RecordConstants.NAME_LENGTH_SIZE;
-				
-				// Set maximum number of bytes for file name (200 bytes as an example)
+
+				// Set maximum number of bytes for file name (200 bytes as an
+				// example)
 				byte[] bFileName = fileName.getBytes("UTF-8");
-				System.arraycopy(bFileName, 0, buffer, offset, (int)length );
+				System.arraycopy(bFileName, 0, buffer, offset, (int) length);
 				offset += RecordConstants.NAME_SIZE;
-				
+
 				// Set record status code
 				byte status = 1;
 				buffer[offset] = status;
 				offset += RecordConstants.STATUS_SIZE;
-				
-				if(offset == 217000) {
-					System.out.println(offset);
-				}
-				
-				if(offset == buffer.length) {
-					
-					//flush from 0 to buffer.length = offset - 1
+
+				if (offset == buffer.length) {
+
+					// flush full buffer
 					os.write(buffer, 0, offset);
 					os.flush();
-					
+
 					buffer = new byte[RecordConstants.FULL_SIZE * BATCH_SIZE];
 					offset = 0;
 				}
 			}
-			
-			//final flush
+
+			// final flush
 			// from 0 to offset - 1
 			os.write(buffer, 0, offset);
 			os.flush();
@@ -191,6 +193,55 @@ public class RepositoryManager {
 			e.printStackTrace();
 		}
 
+	}
+
+	public List<RepositoryRecord> readAll() {
+		List<RepositoryRecord> records = new ArrayList<>();
+		byte[] buffer = new byte[RecordConstants.FULL_SIZE * BATCH_SIZE];
+
+		Path configPath = repositoryRoot.resolve("data.repo");
+
+		int bufSize = 0;
+		try (InputStream is = Files.newInputStream(configPath);) {
+			while ((bufSize = is.read(buffer)) != -1) {
+
+				// build RepositoryRecord
+				int offset = 0;
+				while (offset != bufSize) {
+
+					byte[] bId = new byte[RecordConstants.ID_SIZE];
+					System.arraycopy(buffer, offset, bId, 0, RecordConstants.ID_SIZE);
+					long id = frameProcessor.extractSize(bId);
+					offset += RecordConstants.ID_SIZE;
+
+					byte[] bSize = new byte[RecordConstants.NAME_LENGTH_SIZE];
+					System.arraycopy(buffer, offset, bSize, 0, RecordConstants.NAME_LENGTH_SIZE);
+					long length = frameProcessor.extractSize(bSize);
+					offset += RecordConstants.NAME_LENGTH_SIZE;
+
+					byte[] bFileName = new byte[(int) RecordConstants.NAME_SIZE];
+					System.arraycopy(buffer, offset, bFileName, 0, (int) length);
+					String fileName = new String(bFileName, 0, (int) length, "UTF-8");
+					offset += RecordConstants.NAME_SIZE;
+
+					byte status = buffer[offset];
+					offset += RecordConstants.STATUS_SIZE;
+
+					RepositoryRecord rr = new RepositoryRecord();
+					rr.setId(id);
+					rr.setFileameSize(length);
+					rr.setFileName(fileName);
+					rr.setStatus(status);
+					records.add(rr);
+				}
+
+				buffer = new byte[RecordConstants.FULL_SIZE * BATCH_SIZE];
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		return records;
 	}
 
 	@Deprecated
