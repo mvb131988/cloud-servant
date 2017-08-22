@@ -27,7 +27,7 @@ public class SlaveTransferManager {
 	private void connect() {
 		Socket master = null;
 		try {
-			master = new Socket("192.168.47.132", 22222);
+			master = new Socket("172.16.42.210", 22222);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

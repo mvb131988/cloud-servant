@@ -30,26 +30,6 @@ public class AppContext {
 
 	private void startAsClient() {
 		getSlaveTransferManager().init(getFileReceiver());
-		
-//		Socket echoSocket;
-//
-//		try {
-//			echoSocket = new Socket("192.168.47.132", 22222);
-//			InputStream is = echoSocket.getInputStream();
-//
-//			FileReceiver fr = new FileReceiver();
-//			fr.receiveActionType(is);
-//			long size = fr.receiveSize(is);
-//			Path p = fr.receiveRelativeName(is);
-//			long creationDateTime = fr.receiveCreationDate(is);
-//			fr.receive(is, size, p, creationDateTime);
-//
-//			is.close();
-//			echoSocket.close();
-//		} catch (IOException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
 	}
 
 	// prototype scope
@@ -79,7 +59,7 @@ public class AppContext {
 	private FileSender fileSender;
 
 	private FileSender getFileSender() {
-		if (fileSender != null) {
+		if (fileSender == null) {
 			String cyrilicName = "\u043c\u0430\u043a\u0441\u0438\u043c\u0430\u043b\u044c\u043d\u043e\u005f\u0434\u043e\u043f\u0443\u0441\u0442\u0438\u043c\u043e\u0435\u005f\u043f\u043e\u005f\u0434\u043b\u0438\u043d\u0435\u005f\u0438\u043c\u044f";
 			try {
 				fileSender = new FileSender("D:\\temp\\" + cyrilicName + ".jpg");
