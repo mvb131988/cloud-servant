@@ -1,4 +1,4 @@
-package file.repository;
+package file.repository.metadata;
 
 public enum FileStatusEnum {
 

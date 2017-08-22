@@ -1,4 +1,4 @@
-package file.repository;
+package file.repository.metadata;
 
 /**
  *	Size of file record frame in bytes

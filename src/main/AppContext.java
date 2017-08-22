@@ -1,21 +1,19 @@
 package main;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
 import file.FileReceiver;
 import file.FileSender;
+import file.repository.metadata.RepositoryManager;
+import file.repository.metadata.RepositoryVisitor;
+import protocol.MasterTransferManager;
+import protocol.SlaveTransferManager;
 import protocol.file.FrameProcessor;
 
 public class AppContext {
-	
+
 	private FrameProcessor fp = new FrameProcessor();
-	
+
 	private boolean isMaster = true;
 
 	public void start() {
@@ -27,47 +25,76 @@ public class AppContext {
 	}
 
 	private void startAsServer() {
-		int v;
-		try (ServerSocket serverSocket = new ServerSocket(22222)) {
-			Socket clientSocket = serverSocket.accept();
-			OutputStream os = clientSocket.getOutputStream();
-			
-			String cyrilicName = "\u043c\u0430\u043a\u0441\u0438\u043c\u0430\u043b\u044c\u043d\u043e\u005f\u0434\u043e\u043f\u0443\u0441\u0442\u0438\u043c\u043e\u0435\u005f\u043f\u043e\u005f\u0434\u043b\u0438\u043d\u0435\u005f\u0438\u043c\u044f";
-			FileSender fs = new FileSender("D:\\temp\\" + cyrilicName + ".jpg");
-			fs.sendActionType(os);
-			fs.sendSize(os);
-			fs.sendRelativeName(os);
-			fs.sendCreationDate(os);
-			fs.send(os);
-			
-			os.close();
-			clientSocket.close();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		getMasterTransferManager().init(getFileSender());
 	}
 
 	private void startAsClient() {
-		Socket echoSocket;
+		getSlaveTransferManager().init(getFileReceiver());
 		
-		try {
-			echoSocket = new Socket("192.168.47.132", 22222);
-			InputStream is = echoSocket.getInputStream();
-			
-			FileReceiver fr = new FileReceiver();
-			fr.receiveActionType(is);
-			long size = fr.receiveSize(is);
-			Path p = fr.receiveRelativeName(is);
-			long creationDateTime = fr.receiveCreationDate(is);
-			fr.receive(is, size, p, creationDateTime);
-			
-			is.close();
-			echoSocket.close();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+//		Socket echoSocket;
+//
+//		try {
+//			echoSocket = new Socket("192.168.47.132", 22222);
+//			InputStream is = echoSocket.getInputStream();
+//
+//			FileReceiver fr = new FileReceiver();
+//			fr.receiveActionType(is);
+//			long size = fr.receiveSize(is);
+//			Path p = fr.receiveRelativeName(is);
+//			long creationDateTime = fr.receiveCreationDate(is);
+//			fr.receive(is, size, p, creationDateTime);
+//
+//			is.close();
+//			echoSocket.close();
+//		} catch (IOException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+	}
+
+	// prototype scope
+	public RepositoryManager getRepositoryManager() {
+		return new RepositoryManager();
+	}
+
+	// singleton scope
+	private RepositoryVisitor repositoryVisitor = new RepositoryVisitor();
+
+	public RepositoryVisitor getRepositoryVisitor() {
+		return repositoryVisitor;
+	}
+
+	private MasterTransferManager masterTransferManager = new MasterTransferManager();
+
+	public MasterTransferManager getMasterTransferManager() {
+		return masterTransferManager;
+	}
+
+	private SlaveTransferManager slaveTransferManager = new SlaveTransferManager();
+
+	public SlaveTransferManager getSlaveTransferManager() {
+		return slaveTransferManager;
+	}
+
+	private FileSender fileSender;
+
+	private FileSender getFileSender() {
+		if (fileSender != null) {
+			String cyrilicName = "\u043c\u0430\u043a\u0441\u0438\u043c\u0430\u043b\u044c\u043d\u043e\u005f\u0434\u043e\u043f\u0443\u0441\u0442\u0438\u043c\u043e\u0435\u005f\u043f\u043e\u005f\u0434\u043b\u0438\u043d\u0435\u005f\u0438\u043c\u044f";
+			try {
+				fileSender = new FileSender("D:\\temp\\" + cyrilicName + ".jpg");
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
+		return fileSender;
+	}
+	
+	private FileReceiver fileReceiver = new FileReceiver();
+	
+	private FileReceiver getFileReceiver() {
+		return fileReceiver;
 	}
 
 }

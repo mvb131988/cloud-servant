@@ -23,7 +23,7 @@ public class FrameProcessor {
 	public long extractSize(byte[] disassembledSize) {
 		long size = 0;
 		
-		size = ((long) disassembledSize[0]) + 
+		size = ((long) disassembledSize[0] & INT_EXTENSION) + 
 			   ((long) (disassembledSize[1] & INT_EXTENSION) << BYTE_IN_BITS) +
 			   ((long) (disassembledSize[2] & INT_EXTENSION) << 2*BYTE_IN_BITS) +
 			   ((long) (disassembledSize[3] & INT_EXTENSION) << 3*BYTE_IN_BITS) +

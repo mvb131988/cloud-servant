@@ -1,4 +1,4 @@
-package file.repository;
+package file.repository.metadata;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
