@@ -30,6 +30,7 @@ public class FileTransferOperation {
 		bfo1.sendRelativeName(os);
 		bfo1.sendCreationDate(os);
 		bfo1.send(os);
+		bfo1.sendActionType(os);
 	}
 
 	public void executeAsSlave(OutputStream os, InputStream is, FileTransferOperationContext ftoc){
