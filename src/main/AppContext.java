@@ -13,7 +13,7 @@ import protocol.file.FrameProcessor;
 public class AppContext {
 
 	private FrameProcessor fp = new FrameProcessor();
-	
+
 	private boolean isMaster = true;
 
 	public void start() {
@@ -25,15 +25,17 @@ public class AppContext {
 	}
 
 	private void startAsServer() {
-		//scan repository and create data.repository
-		Thread masterRepositoryThread = getRepositoryManager().getMasterRepositoryThread();
-		masterRepositoryThread.start();
+		// scan repository and create data.repository
+		Thread repositoryScaner = getRepositoryManager().getScaner();
+		repositoryScaner.start();
 		try {
-			masterRepositoryThread.join();
+			repositoryScaner.join();
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-		//only after scan repository thread is finished start master file transferring component
+
+		// only after scan repository thread is finished start master file
+		// transferring component
 		getMasterTransferManager().init(getFileSender());
 	}
 
@@ -41,11 +43,10 @@ public class AppContext {
 		getSlaveTransferManager().init(getFileReceiver());
 	}
 
-	
-	private RepositoryManager repositoryManager = new RepositoryManager();
-	public RepositoryManager getRepositoryManager() {
-		return new RepositoryManager();
-	}
+	// // prototype scope
+	// public RepositoryManager getRepositoryManager() {
+	// return new RepositoryManager();
+	// }
 
 	// singleton scope
 	private RepositoryVisitor repositoryVisitor = new RepositoryVisitor();
@@ -80,11 +81,21 @@ public class AppContext {
 		}
 		return fileSender;
 	}
-	
+
 	private FileReceiver fileReceiver = new FileReceiver();
-	
+
 	private FileReceiver getFileReceiver() {
 		return fileReceiver;
+	}
+
+	/**
+	 * repository.metadata
+	 */
+
+	private RepositoryManager repositoryManager = new RepositoryManager();
+
+	public RepositoryManager getRepositoryManager() {
+		return repositoryManager;
 	}
 
 }

@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
-import java.io.UnsupportedEncodingException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -15,11 +14,15 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.ResourceBundle;
 import java.util.Set;
 
 import protocol.file.FrameProcessor;
 
+/**
+ * Main class that scans the repository and creates data.repo
+ * 
+ * data.repo file - file with the list of all files saved in the repository. 
+ */
 // See MappedByteBuffer to improve performance
 /**
  * 
@@ -32,13 +35,41 @@ import protocol.file.FrameProcessor;
  */
 public class RepositoryManager {
 
-	private Path repositoryRoot = Paths.get("D:\\Programs");
+	private Path repositoryRoot = Paths.get("D:\\temp");
 
 	private FrameProcessor frameProcessor = new FrameProcessor();
 
 	private final static int BATCH_SIZE = 10000;
-	
+
 	private byte[] internalBuffer = new byte[RecordConstants.FULL_SIZE * BATCH_SIZE];
+
+	public static void main(String[] args) {
+		RepositoryManager repositoryManager = new RepositoryManager();
+
+		// List<RepositoryRecord> records = repositoryManager.readAll();
+
+		// repositoryManager.loadRepositoryRecords(repositoryManager.countRecords());
+
+		// repositoryManager.init();
+
+		List<String> fileNames = repositoryManager.scan();
+		repositoryManager.writeAll(fileNames, 0);
+		//
+		// int base = 0;
+		// int recordSize = 8+8+200+1;
+		// int id = 0;
+		// for(String name: fileNames) {
+		// repositoryManager.write(base, ++id, name, (byte)10);
+		// base += recordSize;
+		// }
+		//
+		// RepositoryRecord repoRecord =
+		RepositoryRecord rr = repositoryManager.read(100003 * RecordConstants.FULL_SIZE);
+		//
+		System.out.println("Done");
+
+		// repositoryManager.read(base2);
+	}
 
 	@SuppressWarnings("unused")
 	public long countRecords() {
@@ -82,10 +113,10 @@ public class RepositoryManager {
 	}
 
 	/**
-	 * Rescans the whole repository and recreate repository data.repo where the
+	 * Rescans the whole repository and recreates repository data.repo where the
 	 * records corresponding to all files are.
 	 */
-	public List<String> synchronizeRepository() {
+	private List<String> scan() {
 		RepositoryVisitor repoVisitor = new RepositoryVisitor();
 		try {
 			Files.walkFileTree(repositoryRoot, repoVisitor);
@@ -97,10 +128,11 @@ public class RepositoryManager {
 	}
 
 	/**
-	 * Recreates data.repo file. Existed file is replaced by an empty one.
+	 * Initializes Recreates data.repo file. Existed file is replaced by an
+	 * empty one.
 	 */
-	public void init() {
-		Path configPath = repositoryRoot.resolve("master.repo");
+	private void init() {
+		Path configPath = repositoryRoot.resolve("data.repo");
 		try (OutputStream os = Files.newOutputStream(configPath);) {
 
 		} catch (IOException e) {
@@ -110,9 +142,26 @@ public class RepositoryManager {
 	}
 
 	/**
-	 * Much more faster than random access file
+	 * Writes the list of files into data.repo
+	 * 
+	 * @param fileNames
+	 *            - list of files(relative names) to be written into data.repo
 	 */
-	public void write(List<String> fileNames, int startId) {
+	private void writeAll(List<String> fileNames) {
+		writeAll(fileNames, 0);
+	}
+
+	/**
+	 * Writes the list of files into data.repo Much more faster than random
+	 * access file
+	 *
+	 * @param fileNames
+	 *            - list of files(relative names) to be written into data.repo
+	 * @param startId
+	 *            - number used as starting to generate(increment sequence)
+	 *            unique ids for all files from fileNames
+	 */
+	public void writeAll(List<String> fileNames, int startId) {
 		byte[] buffer = new byte[RecordConstants.FULL_SIZE * BATCH_SIZE];
 		int offset = 0;
 
@@ -173,12 +222,12 @@ public class RepositoryManager {
 
 	public Set<String> readNames() {
 		Set<String> names = new HashSet<>();
-		for(RepositoryRecord rr: readAll()) {
+		for (RepositoryRecord rr : readAll()) {
 			names.add(rr.getFileName());
 		}
 		return names;
 	}
-	
+
 	public List<RepositoryRecord> readAll() {
 		List<RepositoryRecord> records = new ArrayList<>();
 		byte[] buffer = new byte[RecordConstants.FULL_SIZE * BATCH_SIZE];
@@ -306,41 +355,18 @@ public class RepositoryManager {
 		return repositoryRecord;
 	}
 	
-	public Thread getMasterRepositoryThread() {
-		return new Thread(new MasterRepositoryThread());
+	public Thread getScaner() {
+		return new Thread(new RepositoryScaner());
 	}
 	
-	private class MasterRepositoryThread implements Runnable {
+	private class RepositoryScaner implements Runnable {
 
 		@Override
 		public void run() {
-			RepositoryManager repositoryManager = new RepositoryManager();
-
-//			List<RepositoryRecord> records = repositoryManager.readAll();
-
-			// repositoryManager.loadRepositoryRecords(repositoryManager.countRecords());
-
-			// repositoryManager.init();
-
-			List<String> fileNames = repositoryManager.synchronizeRepository();
-			repositoryManager.write(fileNames, 0);
-			//
-			// int base = 0;
-			// int recordSize = 8+8+200+1;
-			// int id = 0;
-			// for(String name: fileNames) {
-			// repositoryManager.write(base, ++id, name, (byte)10);
-			// base += recordSize;
-			// }
-			//
-			// RepositoryRecord repoRecord =
-			RepositoryRecord rr = repositoryManager.read(100003 * RecordConstants.FULL_SIZE);
-			//
-			System.out.println("Done");
-
-			// repositoryManager.read(base2);
+			init();
+			writeAll(scan());
 		}
 		
 	}
-
+	
 }
