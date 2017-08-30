@@ -19,6 +19,8 @@ import file.FileSender;
  */
 public class MasterTransferManager {
 
+	private FileTransferOperation fto;
+	
 	// Server socket of the master
 	private ServerSocket master;
 
@@ -28,8 +30,9 @@ public class MasterTransferManager {
 	//TransferMetadata operation must be here
 	private FileSender fileSender;
 	
-	public void init(FileSender fileSender) {
+	public void init(FileSender fileSender, FileTransferOperation fto) {
 		this.fileSender = fileSender;
+		this.fto = fto;
 		
 		try {
 			master = new ServerSocket(22222);
@@ -71,11 +74,13 @@ public class MasterTransferManager {
 	// (2) metadata message
 	// (3) data message (repeats one or more times) 
 	private void transfer(OutputStream os, InputStream is) {
-		fileSender.sendActionType(os);
-		fileSender.sendSize(os);
-		fileSender.sendRelativeName(os);
-		fileSender.sendCreationDate(os);
-		fileSender.send(os);
+//		fileSender.sendActionType(os);
+//		fileSender.sendSize(os);
+//		fileSender.sendRelativeName(os);
+//		fileSender.sendCreationDate(os);
+//		fileSender.send(os);
+		
+		fto.executeAsMaster(os, is, new FileTransferOperationContext());
 	}
 	
 	private class MasterTransferThread implements Runnable {

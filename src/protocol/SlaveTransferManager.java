@@ -7,16 +7,18 @@ import java.net.Socket;
 import java.nio.file.Path;
 
 import file.FileReceiver;
+import file.FileSender;
 
 public class SlaveTransferManager {
-
+	
+	private FileTransferOperation fto;
+	
 	//HealthCheck, TransferData, TransferMetadata operation must be here
 	private FileReceiver fileReceiver;
 	
-	public void init(FileReceiver fileReceiver) {
+	public void init(FileReceiver fileReceiver, FileTransferOperation fto) {
 		this.fileReceiver = fileReceiver;
-		
-		new Thread(new SlaveTransferThread()).start();
+		this.fto = fto;
 	}
 
 	public void destroy() {
@@ -41,13 +43,19 @@ public class SlaveTransferManager {
 	// (2) metadata message
 	// (3) data message (repeats one or more times) 
 	private void transfer(OutputStream os, InputStream is) {
-		fileReceiver.receiveActionType(is);
-		long size = fileReceiver.receiveSize(is);
-		Path p = fileReceiver.receiveRelativeName(is);
-		long creationDateTime = fileReceiver.receiveCreationDate(is);
-		fileReceiver.receive(is, size, p, creationDateTime);
+		fto.executeAsSlave(os, is, new FileTransferOperationContext());
+		
+//		fileReceiver.receiveActionType(is);
+//		long size = fileReceiver.receiveSize(is);
+//		Path p = fileReceiver.receiveRelativeName(is);
+//		long creationDateTime = fileReceiver.receiveCreationDate(is);
+//		fileReceiver.receive(is, size, p, creationDateTime);
 	}
 
+	public Thread getSlaveTransferThread() {
+		return new Thread(new SlaveTransferThread());
+	}
+	
 	private class SlaveTransferThread implements Runnable {
 
 		@Override

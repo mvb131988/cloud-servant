@@ -6,6 +6,7 @@ import file.FileReceiver;
 import file.FileSender;
 import file.repository.metadata.RepositoryManager;
 import file.repository.metadata.RepositoryVisitor;
+import protocol.FileTransferOperation;
 import protocol.MasterTransferManager;
 import protocol.SlaveTransferManager;
 import protocol.file.FrameProcessor;
@@ -36,11 +37,13 @@ public class AppContext {
 
 		// only after scan repository thread is finished start master file
 		// transferring component
-		getMasterTransferManager().init(getFileSender());
+		getMasterTransferManager().init(getFileSender(), getFileTransferOperation());
 	}
 
 	private void startAsClient() {
-		getSlaveTransferManager().init(getFileReceiver());
+		SlaveTransferManager stm = getSlaveTransferManager();
+		stm.init(getFileReceiver(), getFileTransferOperation());
+		stm.getSlaveTransferThread().start();
 	}
 
 	// // prototype scope
@@ -96,6 +99,12 @@ public class AppContext {
 
 	public RepositoryManager getRepositoryManager() {
 		return repositoryManager;
+	}
+	
+	private FileTransferOperation fileTransferOperation = new FileTransferOperation(getFileSender(), getFileReceiver());
+	
+	private FileTransferOperation getFileTransferOperation() {
+		return fileTransferOperation;
 	}
 
 }

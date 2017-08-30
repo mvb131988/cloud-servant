@@ -10,6 +10,8 @@ import java.nio.file.attribute.BasicFileAttributes;
 
 import protocol.file.FrameProcessor;
 
+//TODO:
+//Rename to BaseTransferOperations
 public class FileSender {
 
 	private Path p;
