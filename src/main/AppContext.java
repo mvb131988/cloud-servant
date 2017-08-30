@@ -13,7 +13,7 @@ import protocol.file.FrameProcessor;
 public class AppContext {
 
 	private FrameProcessor fp = new FrameProcessor();
-
+	
 	private boolean isMaster = true;
 
 	public void start() {
@@ -25,6 +25,15 @@ public class AppContext {
 	}
 
 	private void startAsServer() {
+		//scan repository and create data.repository
+		Thread masterRepositoryThread = getRepositoryManager().getMasterRepositoryThread();
+		masterRepositoryThread.start();
+		try {
+			masterRepositoryThread.join();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		//only after scan repository thread is finished start master file transferring component
 		getMasterTransferManager().init(getFileSender());
 	}
 
@@ -32,7 +41,8 @@ public class AppContext {
 		getSlaveTransferManager().init(getFileReceiver());
 	}
 
-	// prototype scope
+	
+	private RepositoryManager repositoryManager = new RepositoryManager();
 	public RepositoryManager getRepositoryManager() {
 		return new RepositoryManager();
 	}

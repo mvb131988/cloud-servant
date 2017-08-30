@@ -40,34 +40,6 @@ public class RepositoryManager {
 	
 	private byte[] internalBuffer = new byte[RecordConstants.FULL_SIZE * BATCH_SIZE];
 
-	public static void main(String[] args) {
-		RepositoryManager repositoryManager = new RepositoryManager();
-
-//		List<RepositoryRecord> records = repositoryManager.readAll();
-
-		// repositoryManager.loadRepositoryRecords(repositoryManager.countRecords());
-
-		// repositoryManager.init();
-
-		 List<String> fileNames = repositoryManager.synchronizeRepository();
-		 repositoryManager.write(fileNames, 0);
-		//
-		// int base = 0;
-		// int recordSize = 8+8+200+1;
-		// int id = 0;
-		// for(String name: fileNames) {
-		// repositoryManager.write(base, ++id, name, (byte)10);
-		// base += recordSize;
-		// }
-		//
-		// RepositoryRecord repoRecord =
-		RepositoryRecord rr = repositoryManager.read(100003 * RecordConstants.FULL_SIZE);
-		//
-		System.out.println("Done");
-
-		// repositoryManager.read(base2);
-	}
-
 	@SuppressWarnings("unused")
 	public long countRecords() {
 		long counter = -1;
@@ -332,6 +304,43 @@ public class RepositoryManager {
 		}
 
 		return repositoryRecord;
+	}
+	
+	public Thread getMasterRepositoryThread() {
+		return new Thread(new MasterRepositoryThread());
+	}
+	
+	private class MasterRepositoryThread implements Runnable {
+
+		@Override
+		public void run() {
+			RepositoryManager repositoryManager = new RepositoryManager();
+
+//			List<RepositoryRecord> records = repositoryManager.readAll();
+
+			// repositoryManager.loadRepositoryRecords(repositoryManager.countRecords());
+
+			// repositoryManager.init();
+
+			List<String> fileNames = repositoryManager.synchronizeRepository();
+			repositoryManager.write(fileNames, 0);
+			//
+			// int base = 0;
+			// int recordSize = 8+8+200+1;
+			// int id = 0;
+			// for(String name: fileNames) {
+			// repositoryManager.write(base, ++id, name, (byte)10);
+			// base += recordSize;
+			// }
+			//
+			// RepositoryRecord repoRecord =
+			RepositoryRecord rr = repositoryManager.read(100003 * RecordConstants.FULL_SIZE);
+			//
+			System.out.println("Done");
+
+			// repositoryManager.read(base2);
+		}
+		
 	}
 
 }
