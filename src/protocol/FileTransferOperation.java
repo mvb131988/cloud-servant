@@ -66,7 +66,7 @@ public class FileTransferOperation {
 		bfo1.sendSize(os, size);
 		bfo1.sendRelativeName(os, relativeName);
 		bfo1.sendCreationDate(os, creationDateTime);
-		bfo1.send(os, p);
+		bfo1.send(os, Paths.get(repositoryRoot.toString(), p.toString()));
 		bfo1.sendActionType(os, OperationType.RESPONSE_FILE_END);
 	}
 
