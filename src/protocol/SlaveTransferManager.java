@@ -4,21 +4,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
-import java.nio.file.Path;
 
-import file.FileReceiver;
-import file.FileSender;
 import protocol.context.FileTransferOperationContext;
 
 public class SlaveTransferManager {
 	
 	private FileTransferOperation fto;
 	
-	//HealthCheck, TransferData, TransferMetadata operation must be here
-	private FileReceiver fileReceiver;
-	
-	public void init(FileReceiver fileReceiver, FileTransferOperation fto) {
-		this.fileReceiver = fileReceiver;
+	public void init(FileTransferOperation fto) {
 		this.fto = fto;
 	}
 

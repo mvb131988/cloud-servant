@@ -8,7 +8,6 @@ import java.net.Socket;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import file.FileSender;
 import protocol.context.FileTransferOperationContext;
 
 /**
@@ -28,11 +27,7 @@ public class MasterTransferManager {
 	// Pool of master-client communication threads
 	private ExecutorService slavePool;
 	
-	//TransferMetadata operation must be here
-	private FileSender fileSender;
-	
-	public void init(FileSender fileSender, FileTransferOperation fto) {
-		this.fileSender = fileSender;
+	public void init(FileTransferOperation fto) {
 		this.fto = fto;
 		
 		try {

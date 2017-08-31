@@ -1,9 +1,8 @@
 package main;
 
-import file.FileReceiver;
-import file.FileSender;
 import file.repository.metadata.RepositoryManager;
 import file.repository.metadata.RepositoryVisitor;
+import protocol.BaseTransferOperations;
 import protocol.FileTransferOperation;
 import protocol.MasterTransferManager;
 import protocol.SlaveTransferManager;
@@ -35,12 +34,12 @@ public class AppContext {
 
 		// only after scan repository thread is finished start master file
 		// transferring component
-		getMasterTransferManager().init(getFileSender(), getFileTransferOperation());
+		getMasterTransferManager().init(getFileTransferOperation());
 	}
 
 	private void startAsClient() {
 		SlaveTransferManager stm = getSlaveTransferManager();
-		stm.init(getFileReceiver(), getFileTransferOperation());
+		stm.init(getFileTransferOperation());
 		stm.getSlaveTransferThread().start();
 	}
 
@@ -68,18 +67,6 @@ public class AppContext {
 		return slaveTransferManager;
 	}
 
-	private FileSender fileSender = new FileSender();
-
-	private FileSender getFileSender() {
-		return fileSender;
-	}
-
-	private FileReceiver fileReceiver = new FileReceiver();
-
-	private FileReceiver getFileReceiver() {
-		return fileReceiver;
-	}
-
 	/**
 	 * repository.metadata
 	 */
@@ -90,10 +77,20 @@ public class AppContext {
 		return repositoryManager;
 	}
 	
-	private FileTransferOperation fileTransferOperation = new FileTransferOperation(getFileSender(), getFileReceiver());
+	private FileTransferOperation fileTransferOperation = new FileTransferOperation(getBaseTransferOperations());
 	
 	private FileTransferOperation getFileTransferOperation() {
 		return fileTransferOperation;
+	}
+	
+	private BaseTransferOperations baseTransferOperations = new BaseTransferOperations(getFrameProcessor());
+	private BaseTransferOperations getBaseTransferOperations() {
+		return baseTransferOperations;
+	}
+	
+	private FrameProcessor frameProcessor = new FrameProcessor();
+	private FrameProcessor getFrameProcessor() {
+		return frameProcessor;
 	}
 
 }
