@@ -76,6 +76,16 @@ public class AppContext {
 	public RepositoryManager getRepositoryManager() {
 		return repositoryManager;
 	}
+
+	private FrameProcessor frameProcessor = new FrameProcessor();
+	private FrameProcessor getFrameProcessor() {
+		return frameProcessor;
+	}
+
+	private BaseTransferOperations baseTransferOperations = new BaseTransferOperations(getFrameProcessor());
+	private BaseTransferOperations getBaseTransferOperations() {
+		return baseTransferOperations;
+	}
 	
 	private FileTransferOperation fileTransferOperation = new FileTransferOperation(getBaseTransferOperations());
 	
@@ -83,14 +93,5 @@ public class AppContext {
 		return fileTransferOperation;
 	}
 	
-	private BaseTransferOperations baseTransferOperations = new BaseTransferOperations(getFrameProcessor());
-	private BaseTransferOperations getBaseTransferOperations() {
-		return baseTransferOperations;
-	}
-	
-	private FrameProcessor frameProcessor = new FrameProcessor();
-	private FrameProcessor getFrameProcessor() {
-		return frameProcessor;
-	}
 
 }
