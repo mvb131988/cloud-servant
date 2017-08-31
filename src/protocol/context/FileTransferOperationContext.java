@@ -1,4 +1,4 @@
-package protocol;
+package protocol.context;
 
 public class FileTransferOperationContext {
 

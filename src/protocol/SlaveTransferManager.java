@@ -8,6 +8,7 @@ import java.nio.file.Path;
 
 import file.FileReceiver;
 import file.FileSender;
+import protocol.context.FileTransferOperationContext;
 
 public class SlaveTransferManager {
 	

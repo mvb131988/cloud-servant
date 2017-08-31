@@ -8,6 +8,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.FileTime;
 
+import protocol.constant.OperationType;
 import protocol.file.FrameProcessor;
 
 public class FileReceiver {
@@ -18,7 +19,7 @@ public class FileReceiver {
 	private Path repositoryRoot = Paths.get("C:\\temp");
 	
 	// TODO: Move out
-	public int receiveActionType(InputStream is) {
+	public OperationType receiveActionType(InputStream is) {
 		int actionType = -1;
 		try {
 			// file transfer operation
@@ -27,7 +28,7 @@ public class FileReceiver {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		return actionType;
+		return OperationType.to(actionType);
 	}
 
 	public long receiveSize(InputStream is) {
@@ -74,7 +75,7 @@ public class FileReceiver {
 	}
 	
 	//TODO: while for receive
-	public void receive(InputStream is, long size, Path relativeFilePath, long creationDateTime) {
+	public void receive(InputStream is, long size, Path repositoryRoot, Path relativeFilePath, long creationDateTime) {
 		byte[] buffer = new byte[1024];
 		int readBufferSize = -1;
 		long remainigSize = size;

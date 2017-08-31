@@ -8,42 +8,27 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
 
+import protocol.constant.OperationType;
 import protocol.file.FrameProcessor;
 
 //TODO:
 //Rename to BaseTransferOperations
 public class FileSender {
-
-	private Path p;
-	private long size;
-	private String relativeName;
-	// in milliseconds
-	private long creationDateTime;
-	
-	// Move to properties
-	private Path repositoryRoot = Paths.get("D:\\temp");
 	
 	private FrameProcessor fp = new FrameProcessor();
 
-	public FileSender(String fullName) throws IOException {
-		p = Paths.get(fullName);
-		size = Files.readAttributes(p, BasicFileAttributes.class).size();
-		relativeName = repositoryRoot.relativize(p).toString();
-		creationDateTime = Files.readAttributes(p, BasicFileAttributes.class).creationTime().toMillis();
-	}
-	
 	//TODO: Move out
-	public void sendActionType(OutputStream os){
+	public void sendActionType(OutputStream os, OperationType ot){
 		try {
 			// file transfer operation
-			os.write(0x01);
+			os.write(ot.getType());
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
 	
-	public void sendSize(OutputStream os) {
+	public void sendSize(OutputStream os, long size) {
 		try {
 			os.write(fp.packSize(size));
 		} catch (IOException e) {
@@ -53,11 +38,11 @@ public class FileSender {
 	}
 	
 	//TODO: Extend relative name size to int
-	public void sendRelativeName(OutputStream os) {
+	public void sendRelativeName(OutputStream os, String relativePath) {
 		int length = 0;
 		byte[] b;
 		try {
-			b = relativeName.getBytes("UTF-8");
+			b = relativePath.getBytes("UTF-8");
 			length = b.length;
 			os.write(length);
 			os.write(b);
@@ -70,7 +55,7 @@ public class FileSender {
 		}
 	}
 	
-	public void sendCreationDate(OutputStream os) {
+	public void sendCreationDate(OutputStream os, long creationDateTime) {
 		try {
 			os.write(fp.packSize(creationDateTime));
 		} catch (IOException e) {
@@ -80,10 +65,10 @@ public class FileSender {
 	}
 	
 	//TODO: while for send
-	public void send(OutputStream os) {
+	public void send(OutputStream os, Path absolutePath) {
 		byte[] buffer = new byte[1024];
 		int readBufferSize = -1;
-		try (InputStream is = Files.newInputStream(p);) {
+		try (InputStream is = Files.newInputStream(absolutePath);) {
 			while((readBufferSize = is.read(buffer))!=-1){
 				os.write(buffer, 0, readBufferSize);
 			}

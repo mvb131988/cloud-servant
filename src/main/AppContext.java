@@ -1,7 +1,5 @@
 package main;
 
-import java.io.IOException;
-
 import file.FileReceiver;
 import file.FileSender;
 import file.repository.metadata.RepositoryManager;
@@ -70,18 +68,9 @@ public class AppContext {
 		return slaveTransferManager;
 	}
 
-	private FileSender fileSender;
+	private FileSender fileSender = new FileSender();
 
 	private FileSender getFileSender() {
-		if (fileSender == null) {
-			String cyrilicName = "\u043c\u0430\u043a\u0441\u0438\u043c\u0430\u043b\u044c\u043d\u043e\u005f\u0434\u043e\u043f\u0443\u0441\u0442\u0438\u043c\u043e\u0435\u005f\u043f\u043e\u005f\u0434\u043b\u0438\u043d\u0435\u005f\u0438\u043c\u044f";
-			try {
-				fileSender = new FileSender("D:\\temp\\" + cyrilicName + ".jpg");
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
 		return fileSender;
 	}
 

@@ -9,6 +9,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import file.FileSender;
+import protocol.context.FileTransferOperationContext;
 
 /**
  *  Responsible for the full cycle file transfer(from master side). 
