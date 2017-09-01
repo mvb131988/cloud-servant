@@ -31,16 +31,15 @@ public class BatchFilesTransferOperation {
 		OperationType ot = null;
 		while (REQUEST_BATCH_END != (ot=bto.checkOperationType(pushbackInputStream))) {
 			if(ot == null) {
+				// if connection is aborted
 				// error detected
 			}
 			
 			switch (ot) {
 			case REQUEST_BATCH_START:
+				//read REQUEST_BATCH_START byte
+				bto.receiveOperationType(pushbackInputStream);
 				bto.sendOperationType(os, OperationType.RESPONSE_BATCH_START);
-				break;
-
-			case REQUEST_BATCH_END:
-				bto.sendOperationType(os, OperationType.RESPONSE_BATCH_END);
 				break;
 
 			case REQUEST_FILE_START:
@@ -52,6 +51,8 @@ public class BatchFilesTransferOperation {
 				break;
 			}
 		}
+		//read REQUEST_BATCH_END byte
+		bto.receiveOperationType(pushbackInputStream);
 	}
 
 	public void executeAsSlave(OutputStream os, InputStream is, FilesContext fsc) {
