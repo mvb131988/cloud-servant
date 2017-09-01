@@ -1,5 +1,6 @@
 package main;
 
+import file.repository.metadata.FilePropertyLookupService;
 import file.repository.metadata.RepositoryManager;
 import file.repository.metadata.RepositoryVisitor;
 import protocol.BaseTransferOperations;
@@ -73,12 +74,18 @@ public class AppContext {
 		return frameProcessor;
 	}
 	
+	private FilePropertyLookupService fpls = new FilePropertyLookupService();
+	private FilePropertyLookupService getFilePropertyLookupService() {
+		return fpls;
+	}
+	
 	private BaseTransferOperations baseTransferOperations = new BaseTransferOperations(getFrameProcessor());
 	private BaseTransferOperations getBaseTransferOperations() {
 		return baseTransferOperations;
 	}
 	
-	private FileTransferOperation fileTransferOperation = new FileTransferOperation(getBaseTransferOperations());
+	private FileTransferOperation fileTransferOperation = new FileTransferOperation(getBaseTransferOperations(), 
+																					getFilePropertyLookupService());
 	private FileTransferOperation getFileTransferOperation() {
 		return fileTransferOperation;
 	}

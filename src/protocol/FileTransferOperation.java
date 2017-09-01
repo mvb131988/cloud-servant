@@ -4,10 +4,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Path;
 
+import file.repository.metadata.FilePropertyLookupService;
 import protocol.constant.OperationType;
 import protocol.context.FileContext;
-import protocol.context.FileTransferOperationContext;
-import protocol.context.FilesContext;
 
 /**
  *	Implements transfer protocol for a single file. Both master and slave sides. 
@@ -16,12 +15,15 @@ public class FileTransferOperation {
 
 	private BaseTransferOperations bto;
 	
-	public FileTransferOperation(BaseTransferOperations bto) {
+	private FilePropertyLookupService fpls;
+	
+	public FileTransferOperation(BaseTransferOperations bto, FilePropertyLookupService fpls) {
 		super();
 		this.bto = bto;
+		this.fpls = fpls;
 	}
 
-	public void executeAsMaster(OutputStream os, InputStream is, FileContext fc){
+	public void executeAsMaster(OutputStream os, InputStream is){
 		//Receive request for a file
 		OperationType ot = bto.receiveOperationType(is);
 		if(ot != OperationType.REQUEST_FILE_START) {
@@ -33,14 +35,12 @@ public class FileTransferOperation {
 			//error detected
 		}
 		
-		//File Lookup by relative name
-		
 		//Send the requested file back
 		bto.sendOperationType(os, OperationType.RESPONSE_FILE_START);
-		bto.sendSize(os, fc.getSize());
-		bto.sendRelativePath(os, fc.getRelativePath());
-		bto.sendCreationDateTime(os, fc.getCreationDateTime());
-		bto.sendFile(os, fc.getRepositoryRoot().resolve(relativePath));
+		bto.sendSize(os, fpls.getSize(relativePath));
+		bto.sendRelativePath(os, relativePath);
+		bto.sendCreationDateTime(os, fpls.getCreationDateTime(relativePath));
+		bto.sendFile(os, fpls.getRepositoryRoot().resolve(relativePath));
 		bto.sendOperationType(os, OperationType.RESPONSE_FILE_END);
 	}
 
