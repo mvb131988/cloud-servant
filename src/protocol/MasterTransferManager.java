@@ -89,6 +89,7 @@ public class MasterTransferManager {
 		}
 		
 		FileContext fc = (new FileContext.Builder())
+				.setRepositoryRoot(repositoryRoot)
 				.setRelativePath(relativePath)
 				.setSize(size)
 				.setCreationDateTime(creationDateTime)
