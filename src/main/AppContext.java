@@ -3,6 +3,7 @@ package main;
 import file.repository.metadata.RepositoryManager;
 import file.repository.metadata.RepositoryVisitor;
 import protocol.BaseTransferOperations;
+import protocol.BatchFilesTransferOperation;
 import protocol.FileTransferOperation;
 import protocol.MasterTransferManager;
 import protocol.SlaveTransferManager;
@@ -34,12 +35,12 @@ public class AppContext {
 
 		// only after scan repository thread is finished start master file
 		// transferring component
-		getMasterTransferManager().init(getFileTransferOperation());
+		getMasterTransferManager().init(getBatchFilesTransferOperation());
 	}
 
 	private void startAsClient() {
 		SlaveTransferManager stm = getSlaveTransferManager();
-		stm.init(getFileTransferOperation());
+		stm.init(getBatchFilesTransferOperation());
 		stm.getSlaveTransferThread().start();
 	}
 
@@ -67,6 +68,26 @@ public class AppContext {
 		return slaveTransferManager;
 	}
 
+	private FrameProcessor frameProcessor = new FrameProcessor();
+	private FrameProcessor getFrameProcessor() {
+		return frameProcessor;
+	}
+	
+	private BaseTransferOperations baseTransferOperations = new BaseTransferOperations(getFrameProcessor());
+	private BaseTransferOperations getBaseTransferOperations() {
+		return baseTransferOperations;
+	}
+	
+	private FileTransferOperation fileTransferOperation = new FileTransferOperation(getBaseTransferOperations());
+	private FileTransferOperation getFileTransferOperation() {
+		return fileTransferOperation;
+	}
+
+	private BatchFilesTransferOperation batchTransferOperation = new BatchFilesTransferOperation(getFileTransferOperation());
+	private BatchFilesTransferOperation getBatchFilesTransferOperation() {
+		return batchTransferOperation;
+	}
+	
 	/**
 	 * repository.metadata
 	 */
@@ -77,21 +98,6 @@ public class AppContext {
 		return repositoryManager;
 	}
 
-	private FrameProcessor frameProcessor = new FrameProcessor();
-	private FrameProcessor getFrameProcessor() {
-		return frameProcessor;
-	}
-
-	private BaseTransferOperations baseTransferOperations = new BaseTransferOperations(getFrameProcessor());
-	private BaseTransferOperations getBaseTransferOperations() {
-		return baseTransferOperations;
-	}
-	
-	private FileTransferOperation fileTransferOperation = new FileTransferOperation(getBaseTransferOperations());
-	
-	private FileTransferOperation getFileTransferOperation() {
-		return fileTransferOperation;
-	}
 	
 
 }

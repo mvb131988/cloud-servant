@@ -4,15 +4,20 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.attribute.BasicFileAttributes;
 
-import protocol.context.FileTransferOperationContext;
+import protocol.context.FileContext;
+import protocol.context.FilesContext;
 
 public class SlaveTransferManager {
 	
-	private FileTransferOperation fto;
+	private BatchFilesTransferOperation bfto;
 	
-	public void init(FileTransferOperation fto) {
-		this.fto = fto;
+	public void init(BatchFilesTransferOperation bfto) {
+		this.bfto = bfto;
 	}
 
 	public void destroy() {
@@ -37,13 +42,20 @@ public class SlaveTransferManager {
 	// (2) metadata message
 	// (3) data message (repeats one or more times) 
 	private void transfer(OutputStream os, InputStream is) {
-		fto.executeAsSlave(os, is, new FileTransferOperationContext());
+		String cyrilicName = "\u043c\u0430\u043a\u0441\u0438\u043c\u0430\u043b\u044c\u043d\u043e\u005f\u0434\u043e\u043f\u0443\u0441\u0442\u0438\u043c\u043e\u0435\u005f\u043f\u043e\u005f\u0434\u043b\u0438\u043d\u0435\u005f\u0438\u043c\u044f";
 		
-//		fileReceiver.receiveActionType(is);
-//		long size = fileReceiver.receiveSize(is);
-//		Path p = fileReceiver.receiveRelativeName(is);
-//		long creationDateTime = fileReceiver.receiveCreationDate(is);
-//		fileReceiver.receive(is, size, p, creationDateTime);
+		Path repositoryRoot = Paths.get("C:\\temp");
+		Path relativePath = Paths.get(cyrilicName + ".jpg");
+		
+		FileContext fc = (new FileContext.Builder())
+				.setRepositoryRoot(repositoryRoot)
+				.setRelativePath(relativePath)
+				.build(); 
+		
+		FilesContext fsc = new FilesContext();
+		fsc.add(fc);
+		
+		bfto.executeAsSlave(os, is, fsc);
 	}
 
 	public Thread getSlaveTransferThread() {
@@ -76,7 +88,6 @@ public class SlaveTransferManager {
 				this.os = master.getOutputStream();
 				this.is = master.getInputStream();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
@@ -90,7 +101,6 @@ public class SlaveTransferManager {
 				is.close();
 				master.close();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
