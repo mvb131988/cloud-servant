@@ -3,6 +3,7 @@ package protocol;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.PushbackInputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -39,6 +40,17 @@ public class BaseTransferOperations {
 			e.printStackTrace();
 		}
 		return OperationType.to(actionType);
+	}
+
+	public OperationType checkOperationType(PushbackInputStream is) {
+		int operationType = -1;
+		try {
+			operationType = is.read();
+			is.unread(operationType);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return OperationType.to(operationType);
 	}
 
 	public void sendLong(OutputStream os, long size) {

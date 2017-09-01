@@ -90,7 +90,8 @@ public class AppContext {
 		return fileTransferOperation;
 	}
 
-	private BatchFilesTransferOperation batchTransferOperation = new BatchFilesTransferOperation(getFileTransferOperation());
+	private BatchFilesTransferOperation batchTransferOperation = new BatchFilesTransferOperation(getFileTransferOperation(),
+																								 getBaseTransferOperations());
 	private BatchFilesTransferOperation getBatchFilesTransferOperation() {
 		return batchTransferOperation;
 	}
