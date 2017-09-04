@@ -4,10 +4,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.attribute.BasicFileAttributes;
 
 import protocol.context.FileContext;
 import protocol.context.FilesContext;
@@ -52,7 +50,14 @@ public class SlaveTransferManager {
 				.setRelativePath(relativePath)
 				.build(); 
 		
+		relativePath = Paths.get("31e38af422fc7dac65b484aa81921afa.jpg");
+		fc = (new FileContext.Builder())
+				.setRepositoryRoot(repositoryRoot)
+				.setRelativePath(relativePath)
+				.build(); 
+		
 		FilesContext fsc = new FilesContext();
+		fsc.add(fc);
 		fsc.add(fc);
 		
 		bfto.executeAsSlave(os, is, fsc);
