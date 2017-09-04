@@ -3,14 +3,14 @@ package file.repository.metadata;
 import java.util.Set;
 
 public class RecordSet {
-	
+
+	//TODO: replace repositoryManager on BaseRepositoryOperations
 	private RepositoryManager repositoryManager;
 	
 	private Set<String> names;
 	
 	public RecordSet(RepositoryManager repositoryManager) {
 		this.repositoryManager = repositoryManager;
-		names = repositoryManager.readNames();
 	}
 	
 	/**

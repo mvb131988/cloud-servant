@@ -6,16 +6,23 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 
+import file.repository.metadata.BaseRepositoryOperations;
+import file.repository.metadata.RepositoryRecord;
 import protocol.context.FileContext;
 import protocol.context.FilesContext;
+import protocol.context.LazyFilesContext;
 
 public class SlaveTransferManager {
 	
 	private BatchFilesTransferOperation bfto;
 	
-	public void init(BatchFilesTransferOperation bfto) {
+	private BaseRepositoryOperations bro;
+	
+	public void init(BatchFilesTransferOperation bfto, BaseRepositoryOperations bro) {
 		this.bfto = bfto;
+		this.bro = bro;
 	}
 
 	public void destroy() {
@@ -62,6 +69,11 @@ public class SlaveTransferManager {
 //		fsc.add(fc);
 		
 		bfto.executeAsSlave(os, is, fsc);
+		
+		//After data.repo is received scan repository and create  a corresponding FilesContext structure
+		List<RepositoryRecord> records = bro.readAll();
+		LazyFilesContext lfc = new LazyFilesContext(records);
+		
 	}
 
 	public Thread getSlaveTransferThread() {

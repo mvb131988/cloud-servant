@@ -33,6 +33,8 @@ import protocol.file.FrameProcessor;
  * -----------------------------------------------------
  *
  */
+
+//TODO: check and move basic methods to BaseRepositoryOperations 
 public class RepositoryManager {
 
 	private Path repositoryRoot = Paths.get("D:\\temp");
@@ -218,63 +220,6 @@ public class RepositoryManager {
 			e.printStackTrace();
 		}
 
-	}
-
-	public Set<String> readNames() {
-		Set<String> names = new HashSet<>();
-		for (RepositoryRecord rr : readAll()) {
-			names.add(rr.getFileName());
-		}
-		return names;
-	}
-
-	public List<RepositoryRecord> readAll() {
-		List<RepositoryRecord> records = new ArrayList<>();
-		byte[] buffer = new byte[RecordConstants.FULL_SIZE * BATCH_SIZE];
-
-		Path configPath = repositoryRoot.resolve("data.repo");
-
-		int bufSize = 0;
-		try (InputStream is = Files.newInputStream(configPath);) {
-			while ((bufSize = is.read(buffer)) != -1) {
-
-				// build RepositoryRecord
-				int offset = 0;
-				while (offset != bufSize) {
-
-					byte[] bId = new byte[RecordConstants.ID_SIZE];
-					System.arraycopy(buffer, offset, bId, 0, RecordConstants.ID_SIZE);
-					long id = frameProcessor.extractSize(bId);
-					offset += RecordConstants.ID_SIZE;
-
-					byte[] bSize = new byte[RecordConstants.NAME_LENGTH_SIZE];
-					System.arraycopy(buffer, offset, bSize, 0, RecordConstants.NAME_LENGTH_SIZE);
-					long length = frameProcessor.extractSize(bSize);
-					offset += RecordConstants.NAME_LENGTH_SIZE;
-
-					byte[] bFileName = new byte[(int) RecordConstants.NAME_SIZE];
-					System.arraycopy(buffer, offset, bFileName, 0, (int) length);
-					String fileName = new String(bFileName, 0, (int) length, "UTF-8");
-					offset += RecordConstants.NAME_SIZE;
-
-					byte status = buffer[offset];
-					offset += RecordConstants.STATUS_SIZE;
-
-					RepositoryRecord rr = new RepositoryRecord();
-					rr.setId(id);
-					rr.setFileameSize(length);
-					rr.setFileName(fileName);
-					rr.setStatus(status);
-					records.add(rr);
-				}
-
-				buffer = new byte[RecordConstants.FULL_SIZE * BATCH_SIZE];
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-
-		return records;
 	}
 
 	@Deprecated

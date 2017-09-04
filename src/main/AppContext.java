@@ -1,5 +1,6 @@
 package main;
 
+import file.repository.metadata.BaseRepositoryOperations;
 import file.repository.metadata.FilePropertyLookupService;
 import file.repository.metadata.RepositoryManager;
 import file.repository.metadata.RepositoryVisitor;
@@ -41,7 +42,7 @@ public class AppContext {
 
 	private void startAsClient() {
 		SlaveTransferManager stm = getSlaveTransferManager();
-		stm.init(getBatchFilesTransferOperation());
+		stm.init(getBatchFilesTransferOperation(), getBaseRepositoryOperations());
 		stm.getSlaveTransferThread().start();
 	}
 
@@ -50,6 +51,16 @@ public class AppContext {
 	// return new RepositoryManager();
 	// }
 
+	private FrameProcessor frameProcessor = new FrameProcessor();
+	private FrameProcessor getFrameProcessor() {
+		return frameProcessor;
+	}
+	
+	private BaseRepositoryOperations baseRepositoryOperations = new BaseRepositoryOperations(frameProcessor);
+	private BaseRepositoryOperations getBaseRepositoryOperations() {
+		return baseRepositoryOperations;
+	}
+	
 	// singleton scope
 	private RepositoryVisitor repositoryVisitor = new RepositoryVisitor();
 
@@ -67,11 +78,6 @@ public class AppContext {
 
 	public SlaveTransferManager getSlaveTransferManager() {
 		return slaveTransferManager;
-	}
-
-	private FrameProcessor frameProcessor = new FrameProcessor();
-	private FrameProcessor getFrameProcessor() {
-		return frameProcessor;
 	}
 	
 	private FilePropertyLookupService fpls = new FilePropertyLookupService();
