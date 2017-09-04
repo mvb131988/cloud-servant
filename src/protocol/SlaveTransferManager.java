@@ -40,10 +40,11 @@ public class SlaveTransferManager {
 	// (2) metadata message
 	// (3) data message (repeats one or more times) 
 	private void transfer(OutputStream os, InputStream is) {
-		String cyrilicName = "\u043c\u0430\u043a\u0441\u0438\u043c\u0430\u043b\u044c\u043d\u043e\u005f\u0434\u043e\u043f\u0443\u0441\u0442\u0438\u043c\u043e\u0435\u005f\u043f\u043e\u005f\u0434\u043b\u0438\u043d\u0435\u005f\u0438\u043c\u044f";
+//		String cyrilicName = "\u043c\u0430\u043a\u0441\u0438\u043c\u0430\u043b\u044c\u043d\u043e\u005f\u0434\u043e\u043f\u0443\u0441\u0442\u0438\u043c\u043e\u0435\u005f\u043f\u043e\u005f\u0434\u043b\u0438\u043d\u0435\u005f\u0438\u043c\u044f";
 		
 		Path repositoryRoot = Paths.get("C:\\temp");
-		Path relativePath = Paths.get(cyrilicName + ".jpg");
+//		Path relativePath = Paths.get(cyrilicName + ".jpg");
+		Path relativePath = Paths.get("data.repo");
 		
 		FilesContext fsc = new FilesContext();
 		
@@ -53,12 +54,12 @@ public class SlaveTransferManager {
 				.build(); 
 		fsc.add(fc);
 		
-		relativePath = Paths.get("31e38af422fc7dac65b484aa81921afa.jpg");
-		fc = (new FileContext.Builder())
-				.setRepositoryRoot(repositoryRoot)
-				.setRelativePath(relativePath)
-				.build(); 
-		fsc.add(fc);
+//		relativePath = Paths.get("31e38af422fc7dac65b484aa81921afa.jpg");
+//		fc = (new FileContext.Builder())
+//				.setRepositoryRoot(repositoryRoot)
+//				.setRelativePath(relativePath)
+//				.build(); 
+//		fsc.add(fc);
 		
 		bfto.executeAsSlave(os, is, fsc);
 	}
