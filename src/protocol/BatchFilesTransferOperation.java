@@ -63,8 +63,9 @@ public class BatchFilesTransferOperation {
 			// error detected
 		}
 
-		// for all files
-		fto.executeAsSlave(os, is, fsc.next());
+		while(fsc.hasNext()) {
+			fto.executeAsSlave(os, is, fsc.next());
+		}
 
 		// 3. Send end batch flag
 		bto.sendOperationType(os, OperationType.REQUEST_BATCH_END);
