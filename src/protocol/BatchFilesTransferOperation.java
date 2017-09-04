@@ -14,6 +14,7 @@ import static protocol.constant.OperationType.REQUEST_BATCH_END;
  * Implements transfer protocol for a batch of files. Both master and slave
  * sides.
  */
+@Deprecated
 public class BatchFilesTransferOperation {
 
 	private FileTransferOperation fto;

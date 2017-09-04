@@ -19,14 +19,17 @@ public class MasterTransferManager {
 
 	private BatchFilesTransferOperation bfto;
 	
+	private FullFileTransferOperation ffto;
+	
 	// Server socket of the master
 	private ServerSocket master;
 
 	// Pool of master-client communication threads
 	private ExecutorService slavePool;
 	
-	public void init(BatchFilesTransferOperation bfto) {
+	public void init(BatchFilesTransferOperation bfto, FullFileTransferOperation ffto) {
 		this.bfto = bfto;
+		this.ffto = ffto;
 		
 		try {
 			master = new ServerSocket(22222);
@@ -68,7 +71,8 @@ public class MasterTransferManager {
 	// (2) metadata message
 	// (3) data message (repeats one or more times) 
 	private void transfer(OutputStream os, InputStream is) {
-		bfto.executeAsMaster(os, is);
+//		bfto.executeAsMaster(os, is);
+		ffto.executeAsMaster(os, is);
 	}
 	
 	private class MasterTransferThread implements Runnable {

@@ -7,6 +7,7 @@ import file.repository.metadata.RepositoryVisitor;
 import protocol.BaseTransferOperations;
 import protocol.BatchFilesTransferOperation;
 import protocol.FileTransferOperation;
+import protocol.FullFileTransferOperation;
 import protocol.MasterTransferManager;
 import protocol.SlaveTransferManager;
 import protocol.file.FrameProcessor;
@@ -38,12 +39,12 @@ public class AppContext {
 
 		// only after scan repository thread is finished start master file
 		// transferring component
-		getMasterTransferManager().init(getBatchFilesTransferOperation());
+		getMasterTransferManager().init(getBatchFilesTransferOperation(), getFullFileTransferOperation());
 	}
 
 	private void startAsClient() {
 		SlaveTransferManager stm = getSlaveTransferManager();
-		stm.init(getBatchFilesTransferOperation(), getBaseRepositoryOperations(), getFilesContextTransformer());
+		stm.init(getBatchFilesTransferOperation(), getBaseRepositoryOperations(), getFilesContextTransformer(), getFullFileTransferOperation());
 		stm.getSlaveTransferThread().start();
 	}
 
@@ -67,6 +68,7 @@ public class AppContext {
 		return baseRepositoryOperations;
 	}
 	
+
 	// singleton scope
 	private RepositoryVisitor repositoryVisitor = new RepositoryVisitor();
 
@@ -106,6 +108,12 @@ public class AppContext {
 																								 getBaseTransferOperations());
 	private BatchFilesTransferOperation getBatchFilesTransferOperation() {
 		return batchTransferOperation;
+	}
+	
+	private FullFileTransferOperation fullFileTransferOperation = new FullFileTransferOperation(getFileTransferOperation(),
+			 																					getBaseTransferOperations());
+	private FullFileTransferOperation getFullFileTransferOperation() {
+		return fullFileTransferOperation;
 	}
 	
 	/**
