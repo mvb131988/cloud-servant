@@ -11,7 +11,7 @@ public class FilesContext {
 	private int currentLength = 0;
 	
 	public boolean hasNext() {
-		return (currentPos > currentLength) && (currentPos < currentLength);
+		return (currentLength > 0) && (currentPos < currentLength);
 	}
 	
 	public FileContext next() {
