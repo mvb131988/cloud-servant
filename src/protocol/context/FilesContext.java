@@ -7,15 +7,15 @@ import java.util.List;
 public class FilesContext {
 
 	private List<FileContext> fcList = new ArrayList<>();
-	private int currentPos = -1;
+	private int currentPos = 0;
 	private int currentLength = 0;
 	
 	public boolean hasNext() {
-		return (currentPos > -1) && (currentPos < currentLength);
+		return (currentPos > currentLength) && (currentPos < currentLength);
 	}
 	
 	public FileContext next() {
-		return fcList.get(++currentPos);
+		return fcList.get(currentPos++);
 	}
 	
 	public void add(FileContext fc) {
