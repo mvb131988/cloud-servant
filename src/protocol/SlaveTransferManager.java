@@ -11,8 +11,9 @@ import java.util.List;
 import file.repository.metadata.BaseRepositoryOperations;
 import file.repository.metadata.RepositoryRecord;
 import protocol.context.FileContext;
-import protocol.context.FilesContext;
+import protocol.context.EagerFilesContext;
 import protocol.context.LazyFilesContext;
+import transformer.FilesContextTransformer;
 
 public class SlaveTransferManager {
 	
@@ -20,9 +21,12 @@ public class SlaveTransferManager {
 	
 	private BaseRepositoryOperations bro;
 	
-	public void init(BatchFilesTransferOperation bfto, BaseRepositoryOperations bro) {
+	private FilesContextTransformer fct;
+	
+	public void init(BatchFilesTransferOperation bfto, BaseRepositoryOperations bro,  FilesContextTransformer fct) {
 		this.bfto = bfto;
 		this.bro = bro;
+		this.fct = fct;
 	}
 
 	public void destroy() {
@@ -53,7 +57,7 @@ public class SlaveTransferManager {
 //		Path relativePath = Paths.get(cyrilicName + ".jpg");
 		Path relativePath = Paths.get("data.repo");
 		
-		FilesContext fsc = new FilesContext();
+		EagerFilesContext fsc = new EagerFilesContext();
 		
 		FileContext fc = (new FileContext.Builder())
 				.setRepositoryRoot(repositoryRoot)
@@ -72,8 +76,8 @@ public class SlaveTransferManager {
 		
 		//After data.repo is received scan repository and create  a corresponding FilesContext structure
 		List<RepositoryRecord> records = bro.readAll();
-		LazyFilesContext lfc = new LazyFilesContext(records);
-		
+		LazyFilesContext lfc = new LazyFilesContext(records, fct);
+		bfto.executeAsSlave(os, is, lfc);
 	}
 
 	public Thread getSlaveTransferThread() {

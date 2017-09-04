@@ -1,25 +1,9 @@
 package protocol.context;
 
-import java.util.ArrayList;
-import java.util.List;
+public interface FilesContext {
 
-// Extract interface from
-public class FilesContext {
+	public boolean hasNext();
 
-	private List<FileContext> fcList = new ArrayList<>();
-	private int currentPos = 0;
-	private int currentLength = 0;
+	public FileContext next();
 	
-	public boolean hasNext() {
-		return (currentLength > 0) && (currentPos < currentLength);
-	}
-	
-	public FileContext next() {
-		return fcList.get(currentPos++);
-	}
-	
-	public void add(FileContext fc) {
-		fcList.add(fc);
-		currentLength++;
-	}
 }

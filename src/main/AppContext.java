@@ -10,12 +10,13 @@ import protocol.FileTransferOperation;
 import protocol.MasterTransferManager;
 import protocol.SlaveTransferManager;
 import protocol.file.FrameProcessor;
+import transformer.FilesContextTransformer;
 
 public class AppContext {
 
 	private FrameProcessor fp = new FrameProcessor();
 
-	private boolean isMaster = true;
+	private boolean isMaster = false;
 
 	public void start() {
 		if (isMaster) {
@@ -42,7 +43,7 @@ public class AppContext {
 
 	private void startAsClient() {
 		SlaveTransferManager stm = getSlaveTransferManager();
-		stm.init(getBatchFilesTransferOperation(), getBaseRepositoryOperations());
+		stm.init(getBatchFilesTransferOperation(), getBaseRepositoryOperations(), getFilesContextTransformer());
 		stm.getSlaveTransferThread().start();
 	}
 
@@ -54,6 +55,11 @@ public class AppContext {
 	private FrameProcessor frameProcessor = new FrameProcessor();
 	private FrameProcessor getFrameProcessor() {
 		return frameProcessor;
+	}
+	
+	private FilesContextTransformer filesContextTransformer = new FilesContextTransformer();
+	private FilesContextTransformer getFilesContextTransformer() {
+		return filesContextTransformer;
 	}
 	
 	private BaseRepositoryOperations baseRepositoryOperations = new BaseRepositoryOperations(frameProcessor);

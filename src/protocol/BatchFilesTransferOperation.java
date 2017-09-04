@@ -5,6 +5,7 @@ import java.io.OutputStream;
 import java.io.PushbackInputStream;
 
 import protocol.constant.OperationType;
+import protocol.context.EagerFilesContext;
 import protocol.context.FilesContext;
 
 import static protocol.constant.OperationType.REQUEST_BATCH_END;

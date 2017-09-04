@@ -14,7 +14,7 @@ import protocol.file.FrameProcessor;
 
 public class BaseRepositoryOperations {
 
-	private Path repositoryRoot = Paths.get("D:\\temp");
+	private Path repositoryRoot = Paths.get("C:\\temp");
 	private final static int BATCH_SIZE = 10000;
 
 	private FrameProcessor frameProcessor = new FrameProcessor();
