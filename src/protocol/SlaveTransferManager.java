@@ -45,19 +45,19 @@ public class SlaveTransferManager {
 		Path repositoryRoot = Paths.get("C:\\temp");
 		Path relativePath = Paths.get(cyrilicName + ".jpg");
 		
+		FilesContext fsc = new FilesContext();
+		
 		FileContext fc = (new FileContext.Builder())
 				.setRepositoryRoot(repositoryRoot)
 				.setRelativePath(relativePath)
 				.build(); 
+		fsc.add(fc);
 		
 		relativePath = Paths.get("31e38af422fc7dac65b484aa81921afa.jpg");
 		fc = (new FileContext.Builder())
 				.setRepositoryRoot(repositoryRoot)
 				.setRelativePath(relativePath)
 				.build(); 
-		
-		FilesContext fsc = new FilesContext();
-		fsc.add(fc);
 		fsc.add(fc);
 		
 		bfto.executeAsSlave(os, is, fsc);
