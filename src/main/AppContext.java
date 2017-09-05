@@ -17,7 +17,7 @@ public class AppContext {
 
 	private FrameProcessor fp = new FrameProcessor();
 
-	private boolean isMaster = false;
+	private boolean isMaster = true;
 
 	public void start() {
 		if (isMaster) {

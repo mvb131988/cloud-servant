@@ -14,7 +14,10 @@ public class RepositoryVisitor implements FileVisitor<Path> {
 
 	private List<String> filesList = new ArrayList<String>();
 	
-	private Path repositoryRoot = Paths.get(ResourceBundle.getBundle("app").getString("root"));
+	private Path repositoryRoot = Paths.get("D:\\temp");
+	
+	//TODO: This is future variant
+//	private Path repositoryRoot = Paths.get(ResourceBundle.getBundle("app").getString("root"));
 
 	@Override
 	public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {

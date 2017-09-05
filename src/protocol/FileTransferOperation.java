@@ -40,7 +40,7 @@ public class FileTransferOperation {
 		bto.sendSize(os, fpls.getSize(relativePath));
 		bto.sendRelativePath(os, relativePath);
 		bto.sendCreationDateTime(os, fpls.getCreationDateTime(relativePath));
-		bto.sendFile(os, fpls.getRepositoryRoot().resolve(relativePath));
+		bto.sendFile(os, fpls.getRepositoryRoot().resolve(relativePath).normalize());
 		bto.sendOperationType(os, OperationType.RESPONSE_FILE_END);
 	}
 
