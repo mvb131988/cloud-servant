@@ -111,7 +111,9 @@ public class AppContext {
 	}
 	
 	private FullFileTransferOperation fullFileTransferOperation = new FullFileTransferOperation(getFileTransferOperation(),
-			 																					getBaseTransferOperations());
+			 																					getBaseTransferOperations(),
+			 																					getBaseRepositoryOperations(),
+			 																					getFilesContextTransformer());
 	private FullFileTransferOperation getFullFileTransferOperation() {
 		return fullFileTransferOperation;
 	}

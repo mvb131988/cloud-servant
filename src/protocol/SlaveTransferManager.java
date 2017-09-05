@@ -78,11 +78,11 @@ public class SlaveTransferManager {
 //		bfto.executeAsSlave(os, is, fsc);
 		
 		//After data.repo is received scan repository and create  a corresponding FilesContext structure
-		List<RepositoryRecord> records = bro.readAll();
-		LazyFilesContext lfc = new LazyFilesContext(records, fct);
+//		List<RepositoryRecord> records = bro.readAll();
+//		LazyFilesContext lfc = new LazyFilesContext(records, fct);
 //		bfto.executeAsSlave(os, is, lfc);
 		
-		ffto.executeAsSlave(os, is, lfc);
+		ffto.executeAsSlave(os, is, null);
 	}
 
 	public Thread getSlaveTransferThread() {

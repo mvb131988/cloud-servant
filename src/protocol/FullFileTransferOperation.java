@@ -11,12 +11,14 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 
+import file.repository.metadata.BaseRepositoryOperations;
 import file.repository.metadata.RepositoryRecord;
 import protocol.constant.OperationType;
 import protocol.context.EagerFilesContext;
 import protocol.context.FileContext;
 import protocol.context.FilesContext;
 import protocol.context.LazyFilesContext;
+import transformer.FilesContextTransformer;
 
 /**
  * Main operation of the protocol. Organize main protocol cycle, which handles all supported operations.  
@@ -27,10 +29,16 @@ public class FullFileTransferOperation {
 	
 	private FileTransferOperation fto;
 	
-	public FullFileTransferOperation(FileTransferOperation fto, BaseTransferOperations bto) {
+	private BaseRepositoryOperations bro;
+	
+	private FilesContextTransformer fct;
+	
+	public FullFileTransferOperation(FileTransferOperation fto, BaseTransferOperations bto, BaseRepositoryOperations bro, FilesContextTransformer fct) {
 		super();
 		this.bto = bto;
 		this.fto = fto;
+		this.bro = bro;
+		this.fct = fct;
 	}
 
 	public void executeAsMaster(OutputStream os, InputStream is) {
@@ -52,6 +60,10 @@ public class FullFileTransferOperation {
 				//read REQUEST_BATCH_START byte
 				bto.receiveOperationType(pushbackInputStream);
 				bto.sendOperationType(os, OperationType.RESPONSE_BATCH_START);
+				break;
+			case REQUEST_BATCH_END:
+				bto.receiveOperationType(pushbackInputStream);
+				bto.sendOperationType(os, OperationType.RESPONSE_BATCH_END);
 				break;
 			case REQUEST_FILE_START:
 				fto.executeAsMaster(os, pushbackInputStream);
@@ -83,6 +95,9 @@ public class FullFileTransferOperation {
 				.build(); 
 		fto.executeAsSlave(os, is, fc);
 		
+		List<RepositoryRecord> records = bro.readAll();
+		LazyFilesContext lfc = new LazyFilesContext(records, fct);
+		
 		// --- TODO: move to batch operation ---
 		// Batch operation 
 		// 1. Send start batch flag
@@ -92,8 +107,8 @@ public class FullFileTransferOperation {
 			// error detected
 		}
 
-		while (fsc.hasNext()) {
-			fto.executeAsSlave(os, is, fsc.next());
+		while (lfc.hasNext()) {
+			fto.executeAsSlave(os, is, lfc.next());
 		}
 
 		// 3. Send end batch flag

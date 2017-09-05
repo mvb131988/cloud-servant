@@ -135,8 +135,15 @@ public class BaseTransferOperations {
 		int readBufferSize = -1;
 		long remainigSize = size;
 
-		Path p = repositoryRoot.resolve(relativeFilePath);
-
+		Path p = repositoryRoot.resolve(relativeFilePath).normalize();
+		try {
+			if (!Files.exists(p.getParent())) {
+				Files.createDirectories(p.getParent());
+			}
+		} catch (IOException e1) {
+			e1.printStackTrace();
+		}
+		
 		try (OutputStream os = Files.newOutputStream(p);) {
 			while (remainigSize != 0) {
 				readBufferSize = remainigSize >= 1024 ? is.read(buffer, 0, 1024)
