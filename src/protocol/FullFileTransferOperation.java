@@ -11,6 +11,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import file.repository.metadata.BaseRepositoryOperations;
 import file.repository.metadata.RepositoryRecord;
 import protocol.constant.OperationType;
@@ -24,6 +27,8 @@ import transformer.FilesContextTransformer;
  * Main operation of the protocol. Organize main protocol cycle, which handles all supported operations.  
  */
 public class FullFileTransferOperation {
+	
+	private Logger logger = LogManager.getRootLogger();
 
 	private BaseTransferOperations bto;
 	
@@ -54,16 +59,24 @@ public class FullFileTransferOperation {
 			switch (ot) {
 			case REQUEST_TRANSFER_START:
 				bto.receiveOperationType(pushbackInputStream);
+				logger.info("[" + this.getClass().getSimpleName() + "] slave requested transfer start operation");
+				
 				bto.sendOperationType(os, OperationType.RESPONSE_TRANSFER_START);
+				logger.info("[" + this.getClass().getSimpleName() + "] sent transfer start operation accept");
 				break;
 			case REQUEST_BATCH_START:
-				//read REQUEST_BATCH_START byte
 				bto.receiveOperationType(pushbackInputStream);
+				logger.info("[" + this.getClass().getSimpleName() + "] slave requested batch transfer start operation");
+				
 				bto.sendOperationType(os, OperationType.RESPONSE_BATCH_START);
+				logger.info("[" + this.getClass().getSimpleName() + "] sent batch transfer start operation accept");
 				break;
 			case REQUEST_BATCH_END:
 				bto.receiveOperationType(pushbackInputStream);
+				logger.info("[" + this.getClass().getSimpleName() + "] slave requested batch transfer end operation");
+				
 				bto.sendOperationType(os, OperationType.RESPONSE_BATCH_END);
+				logger.info("[" + this.getClass().getSimpleName() + "] sent batch transfer end operation accept");
 				break;
 			case REQUEST_FILE_START:
 				fto.executeAsMaster(os, pushbackInputStream);
@@ -75,7 +88,10 @@ public class FullFileTransferOperation {
 		}
 		//read REQUEST_TRANSFER_END byte
 		bto.receiveOperationType(pushbackInputStream);
+		logger.info("[" + this.getClass().getSimpleName() + "] slave requested transfer end operation");
+		
 		bto.sendOperationType(os, OperationType.RESPONSE_TRANSFER_END);
+		logger.info("[" + this.getClass().getSimpleName() + "] sent transfer end operation accept");
 	}
 	
 	public void executeAsSlave(OutputStream os, InputStream is, FilesContext fsc) {

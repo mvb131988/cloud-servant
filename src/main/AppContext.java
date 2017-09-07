@@ -1,5 +1,8 @@
 package main;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import file.repository.metadata.BaseRepositoryOperations;
 import file.repository.metadata.FilePropertyLookupService;
 import file.repository.metadata.RepositoryManager;
@@ -19,6 +22,8 @@ public class AppContext {
 
 	private boolean isMaster = true;
 
+	private Logger logger = LogManager.getRootLogger();
+	
 	public void start() {
 		if (isMaster) {
 			startAsServer();

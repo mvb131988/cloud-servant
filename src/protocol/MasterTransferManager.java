@@ -8,6 +8,9 @@ import java.net.Socket;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 /**
  *  Responsible for the full cycle file transfer(from master side). 
  *  The cycle consists of:
@@ -17,6 +20,8 @@ import java.util.concurrent.Executors;
  */
 public class MasterTransferManager {
 
+	private Logger logger = LogManager.getRootLogger();
+	
 	private BatchFilesTransferOperation bfto;
 	
 	private FullFileTransferOperation ffto;
@@ -28,18 +33,24 @@ public class MasterTransferManager {
 	private ExecutorService slavePool;
 	
 	public void init(BatchFilesTransferOperation bfto, FullFileTransferOperation ffto) {
+		logger.info("[" + this.getClass().getSimpleName() + "] initialization start");
+
 		this.bfto = bfto;
 		this.ffto = ffto;
-		
+
 		try {
 			master = new ServerSocket(22222);
+			
 			slavePool = Executors.newSingleThreadExecutor();
 
-			new Thread(new MasterTransferThread()).start();
+			Thread mtt = new Thread(new MasterTransferThread());
+			mtt.setName("MasterTransferThread");
+			mtt.start();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.error("[" + this.getClass().getSimpleName() + "] initialization fail", e.getMessage());
 		}
+
+		logger.info("[" + this.getClass().getSimpleName() + "] initialization end");
 	}
 
 	public void destroy() {
@@ -54,7 +65,9 @@ public class MasterTransferManager {
 	private void acceptSlave() {
 		Socket slave;
 		try {
+			logger.info("[" + this.getClass().getSimpleName() + "] waiting for slave to connect");
 			slave = master.accept();
+			logger.info("[" + this.getClass().getSimpleName() + "] slave connected");
 			
 			// Pass os and is to an allocated thread
 			MasterSlaveCommunicationThread communication = new MasterSlaveCommunicationThread(slave);
@@ -66,12 +79,7 @@ public class MasterTransferManager {
 		}
 	}
 	
-	// Transfer protocol logic method. Contains 3 major steps:
-	// (1) health check message
-	// (2) metadata message
-	// (3) data message (repeats one or more times) 
 	private void transfer(OutputStream os, InputStream is) {
-//		bfto.executeAsMaster(os, is);
 		ffto.executeAsMaster(os, is);
 	}
 	
@@ -97,6 +105,8 @@ public class MasterTransferManager {
 		public MasterSlaveCommunicationThread(Socket slave) {
 			super();
 			
+			logger.info("[" + this.getClass().getSimpleName() + "] initialization start");
+			
 			this.slave = slave;
 			
 			try {
@@ -105,10 +115,14 @@ public class MasterTransferManager {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
+			
+			logger.info("[" + this.getClass().getSimpleName() + "] initialization end");
 		}
 
 		@Override
 		public void run() {
+			logger.info("[" + this.getClass().getSimpleName() + "] transfer start");
+			
 			transfer(os, is);
 			
 			try {
@@ -116,8 +130,10 @@ public class MasterTransferManager {
 				is.close();
 				slave.close();
 			} catch (IOException e) {
-				e.printStackTrace();
+				logger.error("[" + this.getClass().getSimpleName() + "] can't close io-streams / socket", e.getMessage());
 			}
+			
+			logger.info("[" + this.getClass().getSimpleName() + "] transfer end");
 		}
 		
 	}
