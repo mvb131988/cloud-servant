@@ -11,6 +11,7 @@ import java.util.List;
 import file.repository.metadata.BaseRepositoryOperations;
 import file.repository.metadata.RepositoryRecord;
 import protocol.context.FileContext;
+import protocol.constant.MasterStatus;
 import protocol.context.EagerFilesContext;
 import protocol.context.LazyFilesContext;
 import transformer.FilesContextTransformer;
@@ -25,11 +26,19 @@ public class SlaveTransferManager {
 	
 	private FullFileTransferOperation ffto;
 	
-	public void init(BatchFilesTransferOperation bfto, BaseRepositoryOperations bro,  FilesContextTransformer fct, FullFileTransferOperation ffto) {
+	private StatusTransferOperation sto;
+	
+	public void init(BatchFilesTransferOperation bfto, 
+					 BaseRepositoryOperations bro,  
+					 FilesContextTransformer fct, 
+					 FullFileTransferOperation ffto,
+					 StatusTransferOperation sto) 
+	{
 		this.bfto = bfto;
 		this.bro = bro;
 		this.fct = fct;
 		this.ffto = ffto;
+		this.sto = sto;
 	}
 
 	public void destroy() {
@@ -49,39 +58,17 @@ public class SlaveTransferManager {
 		new Thread(new SlaveMasterCommunicationThread(master)).start();
 	}
 	
-	// Transfer protocol logic method. Contains 3 major steps:
-	// (1) health check message
-	// (2) metadata message
-	// (3) data message (repeats one or more times) 
 	private void transfer(OutputStream os, InputStream is) {
-//		String cyrilicName = "\u043c\u0430\u043a\u0441\u0438\u043c\u0430\u043b\u044c\u043d\u043e\u005f\u0434\u043e\u043f\u0443\u0441\u0442\u0438\u043c\u043e\u0435\u005f\u043f\u043e\u005f\u0434\u043b\u0438\u043d\u0435\u005f\u0438\u043c\u044f";
+		MasterStatus status = null;
+		while((status = sto.executeAsSlave(os, is)) == MasterStatus.BUSY) {
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
 		
-//		Path repositoryRoot = Paths.get("C:\\temp");
-//		Path relativePath = Paths.get(cyrilicName + ".jpg");
-//		Path relativePath = Paths.get("data.repo");
-		
-//		EagerFilesContext fsc = new EagerFilesContext();
-//		
-//		FileContext fc = (new FileContext.Builder())
-//				.setRepositoryRoot(repositoryRoot)
-//				.setRelativePath(relativePath)
-//				.build(); 
-//		fsc.add(fc);
-		
-//		relativePath = Paths.get("31e38af422fc7dac65b484aa81921afa.jpg");
-//		fc = (new FileContext.Builder())
-//				.setRepositoryRoot(repositoryRoot)
-//				.setRelativePath(relativePath)
-//				.build(); 
-//		fsc.add(fc);
-		
-//		bfto.executeAsSlave(os, is, fsc);
-		
-		//After data.repo is received scan repository and create  a corresponding FilesContext structure
-//		List<RepositoryRecord> records = bro.readAll();
-//		LazyFilesContext lfc = new LazyFilesContext(records, fct);
-//		bfto.executeAsSlave(os, is, lfc);
-		
+		// TODO: run this on schedule
 		ffto.executeAsSlave(os, is, null);
 	}
 

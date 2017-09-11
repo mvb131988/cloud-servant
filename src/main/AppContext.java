@@ -14,6 +14,7 @@ import protocol.FullFileTransferOperation;
 import protocol.MasterTransferManager;
 import protocol.SlaveCommunicationPool;
 import protocol.SlaveTransferManager;
+import protocol.StatusTransferOperation;
 import protocol.constant.StatusMapper;
 import protocol.file.FrameProcessor;
 import provider.MasterCommunicationProvider;
@@ -23,7 +24,7 @@ public class AppContext {
 
 	private FrameProcessor fp = new FrameProcessor();
 
-	private boolean isMaster = true;
+	private boolean isMaster = false;
 
 	private Logger logger = LogManager.getRootLogger();
 	
@@ -35,6 +36,7 @@ public class AppContext {
 		masterTransferManager = new MasterTransferManager();
 		masterTransferManager.init(getBatchFilesTransferOperation(), 
 								   getFullFileTransferOperation(), 
+								   getStatusTransferOperation(),
 								   getSlaveCommunicationPool(), 
 								   getStatusMapper());
 		
@@ -69,7 +71,11 @@ public class AppContext {
 
 	private void startAsClient() {
 		SlaveTransferManager stm = getSlaveTransferManager();
-		stm.init(getBatchFilesTransferOperation(), getBaseRepositoryOperations(), getFilesContextTransformer(), getFullFileTransferOperation());
+		stm.init(getBatchFilesTransferOperation(), 
+				 getBaseRepositoryOperations(), 
+				 getFilesContextTransformer(), 
+				 getFullFileTransferOperation(),
+				 getStatusTransferOperation());
 		stm.getSlaveTransferThread().start();
 	}
 
@@ -116,6 +122,11 @@ public class AppContext {
 		return baseTransferOperations;
 	}
 	
+	private StatusTransferOperation sto = new StatusTransferOperation(getBaseTransferOperations());
+	public StatusTransferOperation getStatusTransferOperation() {
+		return sto;
+	}
+
 	private FileTransferOperation fileTransferOperation = new FileTransferOperation(getBaseTransferOperations(), 
 																					getFilePropertyLookupService());
 	private FileTransferOperation getFileTransferOperation() {

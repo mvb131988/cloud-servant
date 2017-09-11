@@ -13,6 +13,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import protocol.constant.MasterSlaveCommunicationStatus;
+import protocol.constant.MasterStatus;
 import protocol.constant.MasterTransferThreadStatus;
 import protocol.constant.StatusMapper;
 
@@ -28,6 +29,8 @@ public class MasterTransferManager {
 	private BatchFilesTransferOperation bfto;
 
 	private FullFileTransferOperation ffto;
+	
+	private StatusTransferOperation sto;
 
 	private SlaveCommunicationPool slaveCommunicationPool;
 
@@ -42,7 +45,8 @@ public class MasterTransferManager {
 	private MasterTransferThread masterTransferThread;
 
 	public void init(BatchFilesTransferOperation bfto, 
-					 FullFileTransferOperation ffto, 
+					 FullFileTransferOperation ffto,
+					 StatusTransferOperation sto,
 					 SlaveCommunicationPool scp,
 					 StatusMapper sm) 
 	{
@@ -50,6 +54,7 @@ public class MasterTransferManager {
 
 		this.bfto = bfto;
 		this.ffto = ffto;
+		this.sto = sto;
 		this.slaveCommunicationPool = scp;
 		this.statusMapper = sm;
 
@@ -147,6 +152,10 @@ public class MasterTransferManager {
 
 	private void transfer(OutputStream os, InputStream is) {
 		ffto.executeAsMaster(os, is);
+	}
+	
+	private void transferBusy(OutputStream os, InputStream is) {
+		sto.executeAsMaster(os, is, MasterStatus.BUSY);
 	}
 
 	public MasterTransferThread getMasterTransferThread() {
@@ -252,7 +261,7 @@ public class MasterTransferManager {
 				// periodically.
 				transfer(os, is);
 			} else if (actualStatus == MasterSlaveCommunicationStatus.BUSY) {
-
+				transferBusy(os, is);
 			}
 
 			// change status

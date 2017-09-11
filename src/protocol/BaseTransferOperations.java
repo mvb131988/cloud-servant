@@ -9,6 +9,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.FileTime;
 
+import protocol.constant.MasterStatus;
 import protocol.constant.OperationType;
 import protocol.file.FrameProcessor;
 
@@ -41,7 +42,25 @@ public class BaseTransferOperations {
 		}
 		return OperationType.to(actionType);
 	}
+	
+	public void sendMasterStatus(OutputStream os, MasterStatus ms) {
+		try {
+			os.write(ms.getValue());
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
 
+	public MasterStatus receiveMasterStatus(InputStream is) {
+		int masterStatus = -1;
+		try {
+			masterStatus = is.read();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return MasterStatus.to(masterStatus);
+	}
+	
 	public OperationType checkOperationType(PushbackInputStream is) {
 		int operationType = -1;
 		try {
