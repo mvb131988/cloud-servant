@@ -4,19 +4,17 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.List;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import file.repository.metadata.BaseRepositoryOperations;
-import file.repository.metadata.RepositoryRecord;
-import protocol.context.FileContext;
 import protocol.constant.MasterStatus;
-import protocol.context.EagerFilesContext;
-import protocol.context.LazyFilesContext;
 import transformer.FilesContextTransformer;
 
 public class SlaveTransferManager {
+	
+	private Logger logger = LogManager.getRootLogger();
 	
 	private BatchFilesTransferOperation bfto;
 	
@@ -48,14 +46,20 @@ public class SlaveTransferManager {
 	
 	private void connect() {
 		Socket master = null;
+		String ip = "172.16.42.210";
+		int port = 22222;
+		
 		try {
-			master = new Socket("172.16.42.210", 22222);
+			logger.info("[" + this.getClass().getSimpleName() + "] opening socket to " + ip + ":" + port);
+			master = new Socket(ip, port);
+			logger.info("[" + this.getClass().getSimpleName() + "]  socket to " + ip + ":" + port + " opened");
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.error("[" + this.getClass().getSimpleName() + "] error opening socket to " + ip + ":" + port);
 		}
 		
-		new Thread(new SlaveMasterCommunicationThread(master)).start();
+		Thread thread = new Thread(new SlaveMasterCommunicationThread(master));
+		thread.setName("SlaveTransferThread");
+		thread.start();
 	}
 	
 	private void transfer(OutputStream os, InputStream is) {
@@ -69,11 +73,19 @@ public class SlaveTransferManager {
 		}
 		
 		// TODO: run this on schedule
+
 		ffto.executeAsSlave(os, is, null);
 	}
 
 	public Thread getSlaveTransferThread() {
-		return new Thread(new SlaveTransferThread());
+		logger.info("[" + this.getClass().getSimpleName() + "] initialization of SlaveTransferThread start");
+		
+		Thread thread = new Thread(new SlaveTransferThread());
+		thread.setName("SlaveTransferThread");
+		
+		logger.info("[" + this.getClass().getSimpleName() + "] initialization SlaveTransferThread end");
+
+		return thread;
 	}
 	
 	private class SlaveTransferThread implements Runnable {

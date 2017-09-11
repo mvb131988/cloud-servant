@@ -55,10 +55,10 @@ public class FileTransferOperation {
 	}
 
 	public void executeAsSlave(OutputStream os, InputStream is, FileContext fc){
-		//Change signature to (OutputStream, operation_type)
 		bto.sendOperationType(os, OperationType.REQUEST_FILE_START);	
 		bto.sendRelativePath(os, fc.getRelativePath());
 		bto.sendOperationType(os, OperationType.REQUEST_FILE_END);
+		logger.info("[" + this.getClass().getSimpleName() + "] sent request for file [" + fc.getRelativePath() + "]" );
 		
 		OperationType ot = bto.receiveOperationType(is);
 		if(ot != OperationType.RESPONSE_FILE_START) {
@@ -72,6 +72,8 @@ public class FileTransferOperation {
 		if(ot != OperationType.RESPONSE_FILE_END) {
 			//error detected
 		}
+		
+		logger.info("[" + this.getClass().getSimpleName() + "] file[" + relativePath + "] size[" + size + "bytes] received");
 	}
 	
 }

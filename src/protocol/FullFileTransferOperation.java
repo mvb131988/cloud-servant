@@ -103,10 +103,13 @@ public class FullFileTransferOperation {
 	
 	public void executeAsSlave(OutputStream os, InputStream is, FilesContext fsc) {
 		bto.sendOperationType(os, OperationType.REQUEST_TRANSFER_START);
+		logger.info("[" + this.getClass().getSimpleName() + "] sent transfer start operation request");
+		
 		OperationType ot = bto.receiveOperationType(is);
 		if (ot != OperationType.RESPONSE_TRANSFER_START) {
 			// error detected
 		}
+		logger.info("[" + this.getClass().getSimpleName() + "] master responded transfer start");
 		
 		// Get data.repo
 		// TODO: parameterize what is possible
@@ -117,6 +120,7 @@ public class FullFileTransferOperation {
 				.setRelativePath(relativePath)
 				.build(); 
 		fto.executeAsSlave(os, is, fc);
+		logger.info("[" + this.getClass().getSimpleName() + "] data.repo received");
 		
 		List<RepositoryRecord> records = bro.readAll();
 		LazyFilesContext lfc = new LazyFilesContext(records, fct);
@@ -125,10 +129,13 @@ public class FullFileTransferOperation {
 		// Batch operation 
 		// 1. Send start batch flag
 		bto.sendOperationType(os, OperationType.REQUEST_BATCH_START);
+		logger.info("[" + this.getClass().getSimpleName() + "] sent batch transfer start operation request");
+		
 		ot = bto.receiveOperationType(is);
 		if (ot != OperationType.RESPONSE_BATCH_START) {
 			// error detected
 		}
+		logger.info("[" + this.getClass().getSimpleName() + "] master responded batch transfer start");
 
 		while (lfc.hasNext()) {
 			fto.executeAsSlave(os, is, lfc.next());
@@ -136,17 +143,23 @@ public class FullFileTransferOperation {
 
 		// 3. Send end batch flag
 		bto.sendOperationType(os, OperationType.REQUEST_BATCH_END);
+		logger.info("[" + this.getClass().getSimpleName() + "] sent batch transfer end operation request");
+		
 		ot = bto.receiveOperationType(is);
 		if (ot != OperationType.RESPONSE_BATCH_END) {
 			// error detected
 		}
+		logger.info("[" + this.getClass().getSimpleName() + "] master responded batch transfer end");
 		// --- move to batch operation ---
 		
 		bto.sendOperationType(os, OperationType.REQUEST_TRANSFER_END);
+		logger.info("[" + this.getClass().getSimpleName() + "] sent transfer end request");
+		
 		ot = bto.receiveOperationType(is);
 		if (ot != OperationType.RESPONSE_TRANSFER_END) {
 			// error detected
 		}
+		logger.info("[" + this.getClass().getSimpleName() + "] master responded transfer end");
 	}
 	
 }
