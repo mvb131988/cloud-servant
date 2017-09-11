@@ -44,6 +44,8 @@ public class RepositoryManager {
 	private final static int BATCH_SIZE = 10000;
 
 	private byte[] internalBuffer = new byte[RecordConstants.FULL_SIZE * BATCH_SIZE];
+	
+	private RepositoryScaner repositoryScaner;
 
 	public static void main(String[] args) {
 		RepositoryManager repositoryManager = new RepositoryManager();
@@ -300,16 +302,40 @@ public class RepositoryManager {
 		return repositoryRecord;
 	}
 	
-	public Thread getScaner() {
-		return new Thread(new RepositoryScaner());
+	public Thread getScanerThread() {
+		return new Thread(getScaner());
 	}
 	
-	private class RepositoryScaner implements Runnable {
+	public RepositoryScaner getScaner() {
+		if(repositoryScaner == null) {
+			return new RepositoryScaner();
+		}
+		return repositoryScaner;
+	}
+	
+	public class RepositoryScaner implements Runnable {
 
+		private RepositoryScannerStatus status;
+		
+		private RepositoryScaner() {
+		}
+		
 		@Override
 		public void run() {
+			status = RepositoryScannerStatus.BUSY;
+			
 			init();
 			writeAll(scan());
+			
+			status = RepositoryScannerStatus.READY;
+		}
+
+		public RepositoryScannerStatus getStatus() {
+			return status;
+		}
+		
+		public void reset() {
+			status = RepositoryScannerStatus.BUSY;
 		}
 		
 	}

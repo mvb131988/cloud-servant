@@ -12,8 +12,11 @@ import protocol.BatchFilesTransferOperation;
 import protocol.FileTransferOperation;
 import protocol.FullFileTransferOperation;
 import protocol.MasterTransferManager;
+import protocol.SlaveCommunicationPool;
 import protocol.SlaveTransferManager;
+import protocol.constant.StatusMapper;
 import protocol.file.FrameProcessor;
+import provider.MasterCommunicationProvider;
 import transformer.FilesContextTransformer;
 
 public class AppContext {
@@ -24,6 +27,21 @@ public class AppContext {
 
 	private Logger logger = LogManager.getRootLogger();
 	
+	private MasterTransferManager masterTransferManager;
+	
+	private MasterCommunicationProvider masterCommunicationProvider;
+	
+	public AppContext() {
+		masterTransferManager = new MasterTransferManager();
+		masterTransferManager.init(getBatchFilesTransferOperation(), 
+								   getFullFileTransferOperation(), 
+								   getSlaveCommunicationPool(), 
+								   getStatusMapper());
+		
+		masterCommunicationProvider = 
+				new MasterCommunicationProvider(getRepositoryManager(), getMasterTransferManager());
+	}
+	
 	public void start() {
 		if (isMaster) {
 			startAsServer();
@@ -33,18 +51,20 @@ public class AppContext {
 	}
 
 	private void startAsServer() {
-		// scan repository and create data.repository
-		Thread repositoryScaner = getRepositoryManager().getScaner();
-		repositoryScaner.start();
-		try {
-			repositoryScaner.join();
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-
-		// only after scan repository thread is finished start master file
-		// transferring component
-		getMasterTransferManager().init(getBatchFilesTransferOperation(), getFullFileTransferOperation());
+//		// scan repository and create data.repository
+//		Thread repositoryScaner = getRepositoryManager().getScanerThread();
+//		repositoryScaner.start();
+//		try {
+//			repositoryScaner.join();
+//		} catch (InterruptedException e) {
+//			e.printStackTrace();
+//		}
+//
+//		// only after scan repository thread is finished start master file
+//		// transferring component
+//		getMasterTransferManager().init(getBatchFilesTransferOperation(), getFullFileTransferOperation());
+		
+		getMasterCommunicationProvider().init();
 	}
 
 	private void startAsClient() {
@@ -72,19 +92,12 @@ public class AppContext {
 	private BaseRepositoryOperations getBaseRepositoryOperations() {
 		return baseRepositoryOperations;
 	}
-	
 
 	// singleton scope
 	private RepositoryVisitor repositoryVisitor = new RepositoryVisitor();
 
 	public RepositoryVisitor getRepositoryVisitor() {
 		return repositoryVisitor;
-	}
-
-	private MasterTransferManager masterTransferManager = new MasterTransferManager();
-
-	public MasterTransferManager getMasterTransferManager() {
-		return masterTransferManager;
 	}
 
 	private SlaveTransferManager slaveTransferManager = new SlaveTransferManager();
@@ -123,6 +136,16 @@ public class AppContext {
 		return fullFileTransferOperation;
 	}
 	
+	private SlaveCommunicationPool slaveCommunicationPool = new SlaveCommunicationPool();
+	private SlaveCommunicationPool getSlaveCommunicationPool() {
+		return slaveCommunicationPool;
+	}
+	
+	private StatusMapper statusMapper = new StatusMapper();
+	private StatusMapper getStatusMapper() {
+		return statusMapper;
+	}
+	
 	/**
 	 * repository.metadata
 	 */
@@ -132,7 +155,13 @@ public class AppContext {
 	public RepositoryManager getRepositoryManager() {
 		return repositoryManager;
 	}
-
 	
+	public MasterTransferManager getMasterTransferManager() {
+		return masterTransferManager;
+	}
 
+	public MasterCommunicationProvider getMasterCommunicationProvider() {
+		return masterCommunicationProvider;
+	}
+	
 }
