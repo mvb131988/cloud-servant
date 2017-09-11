@@ -41,12 +41,13 @@ public class FullFileTransferOperation {
 	
 	private FilesContextTransformer fct;
 	
-	public FullFileTransferOperation(FileTransferOperation fto, BaseTransferOperations bto, BaseRepositoryOperations bro, FilesContextTransformer fct) {
+	public FullFileTransferOperation(FileTransferOperation fto, BaseTransferOperations bto, BaseRepositoryOperations bro, FilesContextTransformer fct, StatusTransferOperation sto) {
 		super();
 		this.bto = bto;
 		this.fto = fto;
 		this.bro = bro;
 		this.fct = fct;
+		this.sto = sto;
 	}
 
 	public void executeAsMaster(OutputStream os, InputStream is) {
@@ -61,7 +62,7 @@ public class FullFileTransferOperation {
 
 			switch (ot) {
 			case REQUEST_MASTER_STATUS_START: 
-				sto.executeAsMaster(os, is, MasterStatus.READY);
+				sto.executeAsMaster(os, pushbackInputStream, MasterStatus.READY);
 				break;
 			case REQUEST_TRANSFER_START:
 				bto.receiveOperationType(pushbackInputStream);

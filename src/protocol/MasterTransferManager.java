@@ -133,8 +133,8 @@ public class MasterTransferManager {
 	private MasterTransferThreadStatus statusSlaves() {
 		MasterTransferThreadStatus status = MasterTransferThreadStatus.EMPTY;
 		
-		if (status != MasterTransferThreadStatus.EMPTY) {
-			List<MasterSlaveCommunicationThread> list = slaveCommunicationPool.get();
+		List<MasterSlaveCommunicationThread> list = slaveCommunicationPool.get();
+		if (list.size() > 0) {
 			MasterSlaveCommunicationStatus baseValue = list.get(0).getActualStatus();
 			status = statusMapper.map(baseValue);
 
@@ -250,27 +250,31 @@ public class MasterTransferManager {
 
 		@Override
 		public void run() {
-			logger.info("[" + this.getClass().getSimpleName() + "] transfer start");
-
-			if (actualStatus == MasterSlaveCommunicationStatus.READY) {
-				// TODO: Add additional operation get status
-				// Check the case
-				// requestedStatus = BUSY, actual = READY, thread enters
-				// transfer but no transfer is required from
-				// slave. For this case get status message should be transfered
-				// periodically.
-				transfer(os, is);
-			} else if (actualStatus == MasterSlaveCommunicationStatus.BUSY) {
-				transferBusy(os, is);
+			for(;;) {
+				if (actualStatus == MasterSlaveCommunicationStatus.READY) {
+					// TODO: Add additional operation get status
+					// Check the case
+					// requestedStatus = BUSY, actual = READY, thread enters
+					// transfer but no transfer is required from
+					// slave. For this case get status message should be transfered
+					// periodically.
+					logger.info("[" + this.getClass().getSimpleName() + "] transfer start");
+					transfer(os, is);
+					logger.info("[" + this.getClass().getSimpleName() + "] transfer end");
+				} else if (actualStatus == MasterSlaveCommunicationStatus.BUSY) {
+					transferBusy(os, is);
+				}
+	
+				// change status
+				if (requestedStatus == MasterSlaveCommunicationStatus.BUSY) {
+					actualStatus = MasterSlaveCommunicationStatus.BUSY;
+				} else if (requestedStatus == MasterSlaveCommunicationStatus.READY) {
+					actualStatus = MasterSlaveCommunicationStatus.READY;
+				}
 			}
+		}
 
-			// change status
-			if (requestedStatus == MasterSlaveCommunicationStatus.BUSY) {
-				actualStatus = MasterSlaveCommunicationStatus.BUSY;
-			} else if (requestedStatus == MasterSlaveCommunicationStatus.READY) {
-				actualStatus = MasterSlaveCommunicationStatus.READY;
-			}
-
+		public void destroy() {
 			try {
 				os.close();
 				is.close();
@@ -279,10 +283,8 @@ public class MasterTransferManager {
 				logger.error("[" + this.getClass().getSimpleName() + "] can't close io-streams / socket",
 						e.getMessage());
 			}
-
-			logger.info("[" + this.getClass().getSimpleName() + "] transfer end");
 		}
-
+		
 		public MasterSlaveCommunicationStatus getActualStatus() {
 			return actualStatus;
 		}

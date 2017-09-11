@@ -24,7 +24,7 @@ public class AppContext {
 
 	private FrameProcessor fp = new FrameProcessor();
 
-	private boolean isMaster = false;
+	private boolean isMaster = true;
 
 	private Logger logger = LogManager.getRootLogger();
 	
@@ -142,7 +142,8 @@ public class AppContext {
 	private FullFileTransferOperation fullFileTransferOperation = new FullFileTransferOperation(getFileTransferOperation(),
 			 																					getBaseTransferOperations(),
 			 																					getBaseRepositoryOperations(),
-			 																					getFilesContextTransformer());
+			 																					getFilesContextTransformer(),
+			 																					getStatusTransferOperation());
 	private FullFileTransferOperation getFullFileTransferOperation() {
 		return fullFileTransferOperation;
 	}
