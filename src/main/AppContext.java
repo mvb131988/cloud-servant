@@ -53,19 +53,6 @@ public class AppContext {
 	}
 
 	private void startAsServer() {
-//		// scan repository and create data.repository
-//		Thread repositoryScaner = getRepositoryManager().getScanerThread();
-//		repositoryScaner.start();
-//		try {
-//			repositoryScaner.join();
-//		} catch (InterruptedException e) {
-//			e.printStackTrace();
-//		}
-//
-//		// only after scan repository thread is finished start master file
-//		// transferring component
-//		getMasterTransferManager().init(getBatchFilesTransferOperation(), getFullFileTransferOperation());
-		
 		getMasterCommunicationProvider().init();
 	}
 

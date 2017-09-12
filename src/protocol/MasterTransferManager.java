@@ -58,16 +58,11 @@ public class MasterTransferManager {
 		this.slaveCommunicationPool = scp;
 		this.statusMapper = sm;
 
-		masterTransferThread = new MasterTransferThread();
+		this.masterTransferThread = new MasterTransferThread();
+		this.slaveThreadPool = Executors.newCachedThreadPool();
 
 		try {
-			master = new ServerSocket(22222);
-
-			slaveThreadPool = Executors.newSingleThreadExecutor();
-
-//			Thread mtt = new Thread(masterTransferThread);
-//			mtt.setName("MasterTransferThread");
-//			mtt.start();
+			this.master = new ServerSocket(22222);
 		} catch (IOException e) {
 			logger.error("[" + this.getClass().getSimpleName() + "] initialization fail", e.getMessage());
 		}
@@ -85,8 +80,6 @@ public class MasterTransferManager {
 	 * Establishes connection with the slave and passes client socket to a
 	 * separate thread of execution
 	 */
-	// TODO: Check case when MasterTransferManager status is busy, but new
-	// connection is accepted
 	private void acceptSlave() {
 		Socket slave;
 		try {
@@ -100,7 +93,6 @@ public class MasterTransferManager {
 
 			slaveCommunicationPool.add(communication);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -150,10 +142,16 @@ public class MasterTransferManager {
 		return status;
 	}
 
+	/**
+	 * Entry point to start full transfer operation 
+	 */
 	private void transfer(OutputStream os, InputStream is) {
 		ffto.executeAsMaster(os, is);
 	}
 	
+	/**
+	 * Entry point to send status message
+	 */
 	private void transferBusy(OutputStream os, InputStream is) {
 		sto.executeAsMaster(os, is, MasterStatus.BUSY);
 	}
@@ -162,17 +160,30 @@ public class MasterTransferManager {
 		return masterTransferThread;
 	}
 
+	/**
+	 * Its main responsibility is to accept incoming connections
+	 * pause/resume/status methods are invoked from separate thread(MasterCommunicationProviderThread) 
+	 */
 	public class MasterTransferThread implements Runnable {
 
+		private MasterTransferThread() {
+		}
+		
 		@Override
 		public void run() {
+			logger.info("[" + this.getClass().getSimpleName() + "] start");
 			for (;;) {
 				acceptSlave();
 				// sleep
 			}
 		}
 
+		/**
+		 * Blocks until all communications are not paused  
+		 */
 		public void pause() {
+			logger.info("[" + this.getClass().getSimpleName() + "] pausing start");
+			
 			if (status() != MasterTransferThreadStatus.EMPTY) {
 				// Connections that come after this invocation are already in BUSY
 				pauseSlaves();
@@ -184,13 +195,19 @@ public class MasterTransferManager {
 					}
 				}
 			}
+			
+			logger.info("[" + this.getClass().getSimpleName() + "] pausing end");
 		}
 
 		/**
+		 * Blocks until all communications are not paused 
+		 *
 		 * resume(), pause() and status() are not invoked simultaneous, only
 		 * consequently
 		 */
 		public void resume() {
+			logger.info("[" + this.getClass().getSimpleName() + "] resuming start");
+			
 			if (status() != MasterTransferThreadStatus.EMPTY) {
 				while (status() != MasterTransferThreadStatus.READY) {
 					// Multiple invocations to avoid the following situation:
@@ -206,6 +223,8 @@ public class MasterTransferManager {
 					}
 				}
 			}
+			
+			logger.info("[" + this.getClass().getSimpleName() + "] resuming end");
 		}
 
 		public MasterTransferThreadStatus status() {
@@ -250,38 +269,45 @@ public class MasterTransferManager {
 
 		@Override
 		public void run() {
-			for(;;) {
-				if (actualStatus == MasterSlaveCommunicationStatus.READY) {
-					// TODO: Add additional operation get status
-					// Check the case
-					// requestedStatus = BUSY, actual = READY, thread enters
-					// transfer but no transfer is required from
-					// slave. For this case get status message should be transfered
-					// periodically.
-					logger.info("[" + this.getClass().getSimpleName() + "] transfer start");
-					transfer(os, is);
-					logger.info("[" + this.getClass().getSimpleName() + "] transfer end");
-				} else if (actualStatus == MasterSlaveCommunicationStatus.BUSY) {
-					transferBusy(os, is);
-				}
-	
-				// change status
-				if (requestedStatus == MasterSlaveCommunicationStatus.BUSY) {
-					actualStatus = MasterSlaveCommunicationStatus.BUSY;
-				} else if (requestedStatus == MasterSlaveCommunicationStatus.READY) {
-					actualStatus = MasterSlaveCommunicationStatus.READY;
-				}
-			}
-		}
-
-		public void destroy() {
 			try {
-				os.close();
-				is.close();
-				slave.close();
-			} catch (IOException e) {
-				logger.error("[" + this.getClass().getSimpleName() + "] can't close io-streams / socket",
-						e.getMessage());
+				for (;;) {
+					if (actualStatus == MasterSlaveCommunicationStatus.READY) {
+						logger.info("[" + this.getClass().getSimpleName() + "] transfer start");
+						transfer(os, is);
+						logger.info("[" + this.getClass().getSimpleName() + "] transfer end");
+					} else if (actualStatus == MasterSlaveCommunicationStatus.BUSY) {
+						logger.info("[" + this.getClass().getSimpleName() + "] BUSY start");
+						transferBusy(os, is);
+						logger.info("[" + this.getClass().getSimpleName() + "] BUSY end");
+					}
+
+					// change status
+					if (requestedStatus == MasterSlaveCommunicationStatus.BUSY) {
+						actualStatus = MasterSlaveCommunicationStatus.BUSY;
+					} else if (requestedStatus == MasterSlaveCommunicationStatus.READY) {
+						actualStatus = MasterSlaveCommunicationStatus.READY;
+					}
+
+					try {
+						Thread.sleep(30000);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+				}
+			} catch (Exception e) {
+				logger.error("[" + this.getClass().getSimpleName() + "] "  +  e);
+			}
+			finally {
+				try {
+					os.close();
+					is.close();
+					slave.close();
+					logger.info("[" + this.getClass().getSimpleName() + "] [MasterSlaveCommunicationThread] connection is closed");
+				} 
+				catch (IOException e) {
+					logger.error("[" + this.getClass().getSimpleName() + "] can't close io-streams / socket",
+							e.getMessage());
+				}
 			}
 		}
 		

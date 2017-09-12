@@ -16,6 +16,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import protocol.file.FrameProcessor;
 
 /**
@@ -37,6 +40,8 @@ import protocol.file.FrameProcessor;
 //TODO: check and move basic methods to BaseRepositoryOperations 
 public class RepositoryManager {
 
+	private Logger logger = LogManager.getRootLogger();
+	
 	private Path repositoryRoot = Paths.get("D:\\temp");
 
 	private FrameProcessor frameProcessor = new FrameProcessor();
@@ -318,16 +323,28 @@ public class RepositoryManager {
 		private RepositoryScannerStatus status;
 		
 		private RepositoryScaner() {
+			status = RepositoryScannerStatus.READY;
 		}
 		
 		@Override
 		public void run() {
-			status = RepositoryScannerStatus.BUSY;
-			
-			init();
-			writeAll(scan());
-			
-			status = RepositoryScannerStatus.READY;
+			for(;;) {
+				if(status == RepositoryScannerStatus.BUSY) {
+					logger.info("[" + this.getClass().getSimpleName() + "] scan started");
+				
+					init();
+					writeAll(scan());
+				
+					status = RepositoryScannerStatus.READY;
+					logger.info("[" + this.getClass().getSimpleName() + "] scan ended");
+				}
+				
+				try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
 		}
 
 		public RepositoryScannerStatus getStatus() {

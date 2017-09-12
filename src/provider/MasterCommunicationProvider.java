@@ -1,13 +1,23 @@
 package provider;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import file.repository.metadata.RepositoryManager;
 import file.repository.metadata.RepositoryManager.RepositoryScaner;
 import file.repository.metadata.RepositoryScannerStatus;
 import protocol.MasterTransferManager;
 import protocol.MasterTransferManager.MasterTransferThread;
 
+/**
+ * Synchronize repository scanner with master transfer manager.
+ * When repository scanner is working, all communications holding by master transfer manager must be in BUSY state(
+ * meaning no transfer could occur during the scan).  
+ */
 public class MasterCommunicationProvider {
 
+	private Logger logger = LogManager.getRootLogger();
+	
 	private RepositoryManager repositoryManager;
 
 	private MasterTransferManager masterTransferManager;
@@ -26,6 +36,7 @@ public class MasterCommunicationProvider {
 	 */
 	public void init() {
 		masterCommunicationProviderThread = new Thread(new MasterCommunicationProviderThread());
+		masterCommunicationProviderThread.setName("MasterCommunicationProviderThread");
 		masterCommunicationProviderThread.start();
 	}
 
@@ -33,6 +44,8 @@ public class MasterCommunicationProvider {
 
 		@Override
 		public void run() {
+			logger.info("[" + this.getClass().getSimpleName() + "] started");
+			
 			boolean isStartup = true;
 			//TODO: Define schedule rules
 			boolean isScheduled = false;
@@ -49,14 +62,15 @@ public class MasterCommunicationProvider {
 				// startup/schedule part
 				if (isStartup) {
 					t1.start();
+					repositoryScaner.reset();
+					
 					t2.start();
 					isStartup = false;
 				} 
-				else if (isScheduled) {
+				else if (isScheduled && repositoryScaner.getStatus() == RepositoryScannerStatus.READY) {
 					mtt.pause();
 					
 					repositoryScaner.reset();
-					t1.start();
 					
 					isScheduled = false;
 				}
@@ -68,7 +82,7 @@ public class MasterCommunicationProvider {
 				}
 				
 				try {
-					Thread.sleep(1000);
+					Thread.sleep(30000);
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}

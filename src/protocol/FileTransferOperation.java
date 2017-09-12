@@ -34,7 +34,7 @@ public class FileTransferOperation {
 		if(ot != OperationType.REQUEST_FILE_START) {
 			//error detected
 		}
-		logger.info("[" + this.getClass().getSimpleName() + "] slave requested file start operation");
+		logger.trace("[" + this.getClass().getSimpleName() + "] slave requested file start operation");
 		
 		Path relativePath = bto.receiveRelativePath(is);
 		ot = bto.receiveOperationType(is);
@@ -51,7 +51,7 @@ public class FileTransferOperation {
 		bto.sendFile(os, fpls.getRepositoryRoot().resolve(relativePath).normalize());
 		bto.sendOperationType(os, OperationType.RESPONSE_FILE_END);
 
-		logger.info("[" + this.getClass().getSimpleName() + "] file[" + relativePath + "] size[" + size + "bytes] was sent");
+		logger.trace("[" + this.getClass().getSimpleName() + "] file[" + relativePath + "] size[" + size + "bytes] was sent");
 	}
 
 	public void executeAsSlave(OutputStream os, InputStream is, FileContext fc){
