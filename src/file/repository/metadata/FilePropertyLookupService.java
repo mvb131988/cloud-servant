@@ -6,6 +6,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
 
+//TODO: Move into BaseRepositoryOperations
 public class FilePropertyLookupService {
 
 	private Path repositoryRoot = Paths.get("D:\\temp");

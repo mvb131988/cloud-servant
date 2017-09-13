@@ -136,33 +136,6 @@ public class FullFileTransferOperation {
 		// batch transfer
 		bfto.executeAsSlave(os, is, null);
 		
-		// --- TODO: move to batch operation ---
-		// Batch operation 
-		// 1. Send start batch flag
-//		bto.sendOperationType(os, OperationType.REQUEST_BATCH_START);
-//		logger.info("[" + this.getClass().getSimpleName() + "] sent batch transfer start operation request");
-//		
-//		ot = bto.receiveOperationType(is);
-//		if (ot != OperationType.RESPONSE_BATCH_START) {
-//			// error detected
-//		}
-//		logger.info("[" + this.getClass().getSimpleName() + "] master responded batch transfer start");
-//
-//		while (lfc.hasNext()) {
-//			fto.executeAsSlave(os, is, lfc.next());
-//		}
-//
-//		// 3. Send end batch flag
-//		bto.sendOperationType(os, OperationType.REQUEST_BATCH_END);
-//		logger.info("[" + this.getClass().getSimpleName() + "] sent batch transfer end operation request");
-//		
-//		ot = bto.receiveOperationType(is);
-//		if (ot != OperationType.RESPONSE_BATCH_END) {
-//			// error detected
-//		}
-//		logger.info("[" + this.getClass().getSimpleName() + "] master responded batch transfer end");
-		// --- move to batch operation ---
-		
 		bto.sendOperationType(os, OperationType.REQUEST_TRANSFER_END);
 		logger.info("[" + this.getClass().getSimpleName() + "] sent transfer end request");
 		

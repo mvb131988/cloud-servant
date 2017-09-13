@@ -38,6 +38,7 @@ import protocol.file.FrameProcessor;
  */
 
 //TODO: check and move basic methods to BaseRepositoryOperations 
+//TODO: rename to MasterRepositoryManager
 public class RepositoryManager {
 
 	private Logger logger = LogManager.getRootLogger();

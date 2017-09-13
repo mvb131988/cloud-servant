@@ -1,6 +1,6 @@
 package protocol.constant;
 
-public class StatusMapper {
+public class ProtocolStatusMapper {
 
 	public MasterTransferThreadStatus map(MasterSlaveCommunicationStatus in) {
 		MasterTransferThreadStatus out = null;

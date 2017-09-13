@@ -9,20 +9,26 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
+import file.repository.metadata.status.AsynchronySearcherStatus;
 import protocol.file.FrameProcessor;
+import transformer.FilesContextTransformer;
 
 public class BaseRepositoryOperations {
 
 	private Path repositoryRoot = Paths.get("C:\\temp");
 	private final static int BATCH_SIZE = 10000;
 
-	private FrameProcessor frameProcessor = new FrameProcessor();
+	private FrameProcessor frameProcessor;
 	
+	private FilesContextTransformer fct;
 	
-	public BaseRepositoryOperations(FrameProcessor frameProcessor) {
+	public BaseRepositoryOperations(FrameProcessor frameProcessor, FilesContextTransformer fct) {
 		super();
 		this.frameProcessor = frameProcessor;
+		this.fct = fct;
 	}
 
 	public Set<String> readNames() {
@@ -85,4 +91,131 @@ public class BaseRepositoryOperations {
 		return records;
 	}
 	
+	public boolean existsFile(Path relativePath) {
+		return Files.exists(repositoryRoot.resolve(relativePath));
+	}
+	
+	/**
+	 * Open data.repo main repository config and return input stream associated with it.   
+	 */
+	private InputStream openDataRepo() {
+		Path configPath = repositoryRoot.resolve("data.repo");
+		InputStream is = null;
+		try {
+			is = Files.newInputStream(configPath);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return is;
+	}
+	
+	/**
+	 * Open input stream associated with data.repo main repository config.   
+	 */
+	private void closeDataRepo(InputStream is) {
+		try {
+			is.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	/**
+	 * Returns next bytes chunk(it contains exactly number of bytes corresponding to batch_size RepositoryRecords) 
+	 * from the input stream associated with data.repo main repository config. 
+	 * 
+	 * Returns number of read bytes or -1 if end of stream reached
+	 */
+	private int next(InputStream is, byte[] buffer) {
+		int readBytes = 0;
+		try {
+			readBytes = is.read(buffer);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return readBytes;
+	}
+	
+	
+	/**
+	 * asynchrony - is a file that exists in data.repo and doesn't in slave file system
+	 * 				or vice versa.
+	 */
+	//TODO: Delete operation isn't implemented
+	public class AsynchronySearcher implements Runnable {
+		
+		//TODO: improve by adding buffer queue
+		private RepositoryRecord asynchrony;
+		
+		private AsynchronySearcherStatus asynchronySearcherStatus;
+		
+		private Lock lock = new ReentrantLock();
+		
+		private AsynchronySearcher() { 
+			asynchrony = null;
+			asynchronySearcherStatus = AsynchronySearcherStatus.READY;
+		}
+		
+		@Override
+		public void run() {
+			asynchronySearcherStatus = AsynchronySearcherStatus.BUSY;
+			
+			byte[] buffer = new byte[RecordConstants.FULL_SIZE * BATCH_SIZE];
+
+			InputStream is = openDataRepo();
+			int readBytes = 0;
+			while((readBytes = next(is, buffer)) != -1){
+				List<RepositoryRecord> records = fct.transform(buffer, readBytes);
+				for(RepositoryRecord rr: records) {
+					//1. Set current record path to be used for file transfer
+					if(!existsFile(Paths.get(rr.getFileName())) && asynchrony == null) {
+						setAsynchrony(records.get(0));
+					}
+					//2. if previous read asynchrony isn't consumed wait until it is consumed
+					if(!existsFile(Paths.get(rr.getFileName())) && asynchrony != null) {
+						while(asynchrony != null) {
+							try {
+								Thread.sleep(1000);
+							} catch (InterruptedException e) {
+								e.printStackTrace();
+							}
+						}
+						setAsynchrony(records.get(0));
+					}
+					//3. If file for record exists skip it move to next one
+					if(existsFile(Paths.get(rr.getFileName()))) {
+						// log as existed one
+					}
+				}
+			}
+			closeDataRepo(is);
+			
+			asynchronySearcherStatus = AsynchronySearcherStatus.TERMINATED;
+		}
+
+		public RepositoryRecord nextAsynchrony() {
+			lock.lock();
+			
+			RepositoryRecord copy = asynchrony;
+			asynchrony = null;
+			
+			lock.unlock();
+			return copy;
+		}
+		
+		private void setAsynchrony(RepositoryRecord rr) {
+			lock.lock();
+			asynchrony = rr;
+			lock.unlock();
+		}
+		
+		public AsynchronySearcherStatus getStatus() {
+			return asynchronySearcherStatus;
+		}
+		
+	}
+	
+	public AsynchronySearcher getAsynchronySearcher() {
+		return new AsynchronySearcher();
+	}
 }

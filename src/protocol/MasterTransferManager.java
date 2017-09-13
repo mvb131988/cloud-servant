@@ -15,7 +15,7 @@ import org.apache.logging.log4j.Logger;
 import protocol.constant.MasterSlaveCommunicationStatus;
 import protocol.constant.MasterStatus;
 import protocol.constant.MasterTransferThreadStatus;
-import protocol.constant.StatusMapper;
+import protocol.constant.ProtocolStatusMapper;
 
 /**
  * Responsible for the full cycle file transfer(from master side). The cycle
@@ -32,7 +32,7 @@ public class MasterTransferManager {
 
 	private MasterSlaveCommunicationPool slaveCommunicationPool;
 
-	private StatusMapper statusMapper;
+	private ProtocolStatusMapper statusMapper;
 
 	// Server socket of the master
 	private ServerSocket master;
@@ -45,7 +45,7 @@ public class MasterTransferManager {
 	public void init(FullFileTransferOperation ffto,
 					 StatusTransferOperation sto,
 					 MasterSlaveCommunicationPool scp,
-					 StatusMapper sm) 
+					 ProtocolStatusMapper sm) 
 	{
 		logger.info("[" + this.getClass().getSimpleName() + "] initialization start");
 

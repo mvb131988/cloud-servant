@@ -6,7 +6,10 @@ import org.apache.logging.log4j.Logger;
 import file.repository.metadata.BaseRepositoryOperations;
 import file.repository.metadata.FilePropertyLookupService;
 import file.repository.metadata.RepositoryManager;
+import file.repository.metadata.RepositoryScannerStatus;
 import file.repository.metadata.RepositoryVisitor;
+import file.repository.metadata.SlaveRepositoryManager;
+import file.repository.metadata.status.RepositoryStatusMapper;
 import protocol.BaseTransferOperations;
 import protocol.BatchFilesTransferOperation;
 import protocol.FileTransferOperation;
@@ -15,7 +18,7 @@ import protocol.MasterTransferManager;
 import protocol.MasterSlaveCommunicationPool;
 import protocol.SlaveTransferManager;
 import protocol.StatusTransferOperation;
-import protocol.constant.StatusMapper;
+import protocol.constant.ProtocolStatusMapper;
 import protocol.file.FrameProcessor;
 import provider.MasterCommunicationProvider;
 import transformer.FilesContextTransformer;
@@ -32,15 +35,22 @@ public class AppContext {
 	
 	private MasterCommunicationProvider masterCommunicationProvider;
 	
+	private SlaveRepositoryManager slaveRepositoryManager;
+	
+	private RepositoryStatusMapper repositoryStatusMapper;
+	
 	public AppContext() {
 		masterTransferManager = new MasterTransferManager();
 		masterTransferManager.init(getFullFileTransferOperation(), 
 								   getStatusTransferOperation(),
 								   getSlaveCommunicationPool(), 
-								   getStatusMapper());
+								   getProtocolStatusMapper());
 		
 		masterCommunicationProvider = 
 				new MasterCommunicationProvider(getRepositoryManager(), getMasterTransferManager());
+		
+		repositoryStatusMapper = new RepositoryStatusMapper();
+		slaveRepositoryManager = new SlaveRepositoryManager(getBaseRepositoryOperations(), getRepositoryStatusMapper());
 	}
 	
 	public void start() {
@@ -74,12 +84,12 @@ public class AppContext {
 		return frameProcessor;
 	}
 	
-	private FilesContextTransformer filesContextTransformer = new FilesContextTransformer();
+	private FilesContextTransformer filesContextTransformer = new FilesContextTransformer(getFrameProcessor());
 	private FilesContextTransformer getFilesContextTransformer() {
 		return filesContextTransformer;
 	}
 	
-	private BaseRepositoryOperations baseRepositoryOperations = new BaseRepositoryOperations(frameProcessor);
+	private BaseRepositoryOperations baseRepositoryOperations = new BaseRepositoryOperations(getFrameProcessor(), getFilesContextTransformer());
 	private BaseRepositoryOperations getBaseRepositoryOperations() {
 		return baseRepositoryOperations;
 	}
@@ -121,7 +131,8 @@ public class AppContext {
 	private BatchFilesTransferOperation batchTransferOperation = new BatchFilesTransferOperation(getFileTransferOperation(),
 																								 getBaseTransferOperations(),
 																								 getFilesContextTransformer(),
-																								 getBaseRepositoryOperations());
+																								 getBaseRepositoryOperations(),
+																								 getSlaveRepositoryManager());
 	private BatchFilesTransferOperation getBatchFilesTransferOperation() {
 		return batchTransferOperation;
 	}
@@ -141,9 +152,9 @@ public class AppContext {
 		return slaveCommunicationPool;
 	}
 	
-	private StatusMapper statusMapper = new StatusMapper();
-	private StatusMapper getStatusMapper() {
-		return statusMapper;
+	private ProtocolStatusMapper protocolStatusMapper = new ProtocolStatusMapper();
+	private ProtocolStatusMapper getProtocolStatusMapper() {
+		return protocolStatusMapper;
 	}
 	
 	/**
@@ -162,6 +173,14 @@ public class AppContext {
 
 	public MasterCommunicationProvider getMasterCommunicationProvider() {
 		return masterCommunicationProvider;
+	}
+
+	public SlaveRepositoryManager getSlaveRepositoryManager() {
+		return slaveRepositoryManager;
+	}
+
+	public RepositoryStatusMapper getRepositoryStatusMapper() {
+		return repositoryStatusMapper;
 	}
 	
 }
