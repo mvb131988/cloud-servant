@@ -169,10 +169,10 @@ public class BaseRepositoryOperations {
 				for(RepositoryRecord rr: records) {
 					//1. Set current record path to be used for file transfer
 					if(!existsFile(Paths.get(rr.getFileName())) && asynchrony == null) {
-						setAsynchrony(records.get(0));
+						setAsynchrony(rr);
 					}
 					//2. if previous read asynchrony isn't consumed wait until it is consumed
-					if(!existsFile(Paths.get(rr.getFileName())) && asynchrony != null) {
+					else if(!existsFile(Paths.get(rr.getFileName())) && asynchrony != null) {
 						while(asynchrony != null) {
 							try {
 								Thread.sleep(1000);
@@ -180,7 +180,7 @@ public class BaseRepositoryOperations {
 								e.printStackTrace();
 							}
 						}
-						setAsynchrony(records.get(0));
+						setAsynchrony(rr);
 					}
 					//3. If file for record exists skip it move to next one
 					if(existsFile(Paths.get(rr.getFileName()))) {

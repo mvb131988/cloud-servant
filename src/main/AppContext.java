@@ -27,7 +27,7 @@ public class AppContext {
 
 	private FrameProcessor fp = new FrameProcessor();
 
-	private boolean isMaster = true;
+	private boolean isMaster = false;
 
 	private Logger logger = LogManager.getRootLogger();
 	
@@ -39,18 +39,40 @@ public class AppContext {
 	
 	private RepositoryStatusMapper repositoryStatusMapper;
 	
+	private StatusTransferOperation statusTransferOperation;
+	
+	private BatchFilesTransferOperation batchTransferOperation;
+	
+	private FullFileTransferOperation fullFileTransferOperation;
+	
 	public AppContext() {
+		repositoryStatusMapper = new RepositoryStatusMapper();
+		slaveRepositoryManager = new SlaveRepositoryManager(getBaseRepositoryOperations(), getRepositoryStatusMapper());
+		
+		statusTransferOperation = new StatusTransferOperation(getBaseTransferOperations());
+		
+		batchTransferOperation = new BatchFilesTransferOperation(getFileTransferOperation(),
+				 												 getBaseTransferOperations(),
+				 												 getFilesContextTransformer(),
+				 												 getBaseRepositoryOperations(),
+				 												 getSlaveRepositoryManager(),
+				 												 getStatusTransferOperation());
+		
+		fullFileTransferOperation = new FullFileTransferOperation(getFileTransferOperation(),
+																  getBaseTransferOperations(),
+																  getBaseRepositoryOperations(),
+																  getFilesContextTransformer(),
+																  getStatusTransferOperation(),
+																  getBatchFilesTransferOperation());
+		
 		masterTransferManager = new MasterTransferManager();
 		masterTransferManager.init(getFullFileTransferOperation(), 
 								   getStatusTransferOperation(),
 								   getSlaveCommunicationPool(), 
 								   getProtocolStatusMapper());
-		
+
 		masterCommunicationProvider = 
 				new MasterCommunicationProvider(getRepositoryManager(), getMasterTransferManager());
-		
-		repositoryStatusMapper = new RepositoryStatusMapper();
-		slaveRepositoryManager = new SlaveRepositoryManager(getBaseRepositoryOperations(), getRepositoryStatusMapper());
 	}
 	
 	public void start() {
@@ -117,9 +139,8 @@ public class AppContext {
 		return baseTransferOperations;
 	}
 	
-	private StatusTransferOperation sto = new StatusTransferOperation(getBaseTransferOperations());
 	public StatusTransferOperation getStatusTransferOperation() {
-		return sto;
+		return statusTransferOperation;
 	}
 
 	private FileTransferOperation fileTransferOperation = new FileTransferOperation(getBaseTransferOperations(), 
@@ -128,22 +149,10 @@ public class AppContext {
 		return fileTransferOperation;
 	}
 
-	private BatchFilesTransferOperation batchTransferOperation = new BatchFilesTransferOperation(getFileTransferOperation(),
-																								 getBaseTransferOperations(),
-																								 getFilesContextTransformer(),
-																								 getBaseRepositoryOperations(),
-																								 getSlaveRepositoryManager(),
-																								 getStatusTransferOperation());
 	private BatchFilesTransferOperation getBatchFilesTransferOperation() {
 		return batchTransferOperation;
 	}
 	
-	private FullFileTransferOperation fullFileTransferOperation = new FullFileTransferOperation(getFileTransferOperation(),
-			 																					getBaseTransferOperations(),
-			 																					getBaseRepositoryOperations(),
-			 																					getFilesContextTransformer(),
-			 																					getStatusTransferOperation(),
-			 																					getBatchFilesTransferOperation());
 	private FullFileTransferOperation getFullFileTransferOperation() {
 		return fullFileTransferOperation;
 	}
