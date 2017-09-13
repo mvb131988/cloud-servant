@@ -132,7 +132,8 @@ public class AppContext {
 																								 getBaseTransferOperations(),
 																								 getFilesContextTransformer(),
 																								 getBaseRepositoryOperations(),
-																								 getSlaveRepositoryManager());
+																								 getSlaveRepositoryManager(),
+																								 getStatusTransferOperation());
 	private BatchFilesTransferOperation getBatchFilesTransferOperation() {
 		return batchTransferOperation;
 	}

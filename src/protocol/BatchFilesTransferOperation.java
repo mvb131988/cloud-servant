@@ -34,12 +34,15 @@ public class BatchFilesTransferOperation {
 	private FilesContextTransformer fct;
 	
 	private SlaveRepositoryManager srm;
+	
+	private StatusTransferOperation sto;
 
 	public BatchFilesTransferOperation(FileTransferOperation fto, 
 									   BaseTransferOperations bto, 
 									   FilesContextTransformer fct, 
 									   BaseRepositoryOperations bro,
-									   SlaveRepositoryManager srm) 
+									   SlaveRepositoryManager srm,
+									   StatusTransferOperation sto) 
 	{
 		super();
 		this.fto = fto;
@@ -47,6 +50,7 @@ public class BatchFilesTransferOperation {
 		this.fct = fct;
 		this.bro = bro;
 		this.srm = srm;
+		this.sto = sto;
 	}
 
 	@Deprecated
@@ -105,6 +109,10 @@ public class BatchFilesTransferOperation {
 			if (rr != null) {
 				fto.executeAsSlave(os, is, fct.transform(rr));
 			} else {
+				// send status check message
+				// TODO: must be READY any time but may be logged for testing purposes   
+				sto.executeAsSlave(os, is);
+				
 				try {
 					Thread.sleep(1000);
 				} catch (InterruptedException e) {
