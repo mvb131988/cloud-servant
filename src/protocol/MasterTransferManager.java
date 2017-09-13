@@ -26,13 +26,11 @@ public class MasterTransferManager {
 
 	private Logger logger = LogManager.getRootLogger();
 
-	private BatchFilesTransferOperation bfto;
-
 	private FullFileTransferOperation ffto;
 	
 	private StatusTransferOperation sto;
 
-	private SlaveCommunicationPool slaveCommunicationPool;
+	private MasterSlaveCommunicationPool slaveCommunicationPool;
 
 	private StatusMapper statusMapper;
 
@@ -44,15 +42,13 @@ public class MasterTransferManager {
 
 	private MasterTransferThread masterTransferThread;
 
-	public void init(BatchFilesTransferOperation bfto, 
-					 FullFileTransferOperation ffto,
+	public void init(FullFileTransferOperation ffto,
 					 StatusTransferOperation sto,
-					 SlaveCommunicationPool scp,
+					 MasterSlaveCommunicationPool scp,
 					 StatusMapper sm) 
 	{
 		logger.info("[" + this.getClass().getSimpleName() + "] initialization start");
 
-		this.bfto = bfto;
 		this.ffto = ffto;
 		this.sto = sto;
 		this.slaveCommunicationPool = scp;

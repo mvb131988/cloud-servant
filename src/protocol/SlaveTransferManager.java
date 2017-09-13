@@ -16,8 +16,6 @@ public class SlaveTransferManager {
 	
 	private Logger logger = LogManager.getRootLogger();
 	
-	private BatchFilesTransferOperation bfto;
-	
 	private BaseRepositoryOperations bro;
 	
 	private FilesContextTransformer fct;
@@ -26,13 +24,11 @@ public class SlaveTransferManager {
 	
 	private StatusTransferOperation sto;
 	
-	public void init(BatchFilesTransferOperation bfto, 
-					 BaseRepositoryOperations bro,  
+	public void init(BaseRepositoryOperations bro,  
 					 FilesContextTransformer fct, 
 					 FullFileTransferOperation ffto,
 					 StatusTransferOperation sto) 
 	{
-		this.bfto = bfto;
 		this.bro = bro;
 		this.fct = fct;
 		this.ffto = ffto;

@@ -18,13 +18,13 @@ import protocol.MasterTransferManager.MasterSlaveCommunicationThread;
  * only on the next get method invocation. Until that moment it will have
  * default behavior, that was set on its creation.
  */
-public class SlaveCommunicationPool {
+public class MasterSlaveCommunicationPool {
 
 	private List<MasterTransferManager.MasterSlaveCommunicationThread> pool;
 	
 	private Lock lock;
 	
-	public SlaveCommunicationPool() {
+	public MasterSlaveCommunicationPool() {
 		this.pool = new ArrayList<>();
 		this.lock = new ReentrantLock();
 	}

@@ -41,13 +41,21 @@ public class FullFileTransferOperation {
 	
 	private FilesContextTransformer fct;
 	
-	public FullFileTransferOperation(FileTransferOperation fto, BaseTransferOperations bto, BaseRepositoryOperations bro, FilesContextTransformer fct, StatusTransferOperation sto) {
+	private BatchFilesTransferOperation bfto;
+	
+	public FullFileTransferOperation(FileTransferOperation fto, 
+									 BaseTransferOperations bto, 
+									 BaseRepositoryOperations bro, 
+									 FilesContextTransformer fct, 
+									 StatusTransferOperation sto,
+									 BatchFilesTransferOperation bfto) {
 		super();
 		this.bto = bto;
 		this.fto = fto;
 		this.bro = bro;
 		this.fct = fct;
 		this.sto = sto;
+		this.bfto = bfto;
 	}
 
 	public void executeAsMaster(OutputStream os, InputStream is) {
@@ -125,31 +133,34 @@ public class FullFileTransferOperation {
 		List<RepositoryRecord> records = bro.readAll();
 		LazyFilesContext lfc = new LazyFilesContext(records, fct);
 		
+		// batch transfer
+		bfto.executeAsSlave(os, is, null);
+		
 		// --- TODO: move to batch operation ---
 		// Batch operation 
 		// 1. Send start batch flag
-		bto.sendOperationType(os, OperationType.REQUEST_BATCH_START);
-		logger.info("[" + this.getClass().getSimpleName() + "] sent batch transfer start operation request");
-		
-		ot = bto.receiveOperationType(is);
-		if (ot != OperationType.RESPONSE_BATCH_START) {
-			// error detected
-		}
-		logger.info("[" + this.getClass().getSimpleName() + "] master responded batch transfer start");
-
-		while (lfc.hasNext()) {
-			fto.executeAsSlave(os, is, lfc.next());
-		}
-
-		// 3. Send end batch flag
-		bto.sendOperationType(os, OperationType.REQUEST_BATCH_END);
-		logger.info("[" + this.getClass().getSimpleName() + "] sent batch transfer end operation request");
-		
-		ot = bto.receiveOperationType(is);
-		if (ot != OperationType.RESPONSE_BATCH_END) {
-			// error detected
-		}
-		logger.info("[" + this.getClass().getSimpleName() + "] master responded batch transfer end");
+//		bto.sendOperationType(os, OperationType.REQUEST_BATCH_START);
+//		logger.info("[" + this.getClass().getSimpleName() + "] sent batch transfer start operation request");
+//		
+//		ot = bto.receiveOperationType(is);
+//		if (ot != OperationType.RESPONSE_BATCH_START) {
+//			// error detected
+//		}
+//		logger.info("[" + this.getClass().getSimpleName() + "] master responded batch transfer start");
+//
+//		while (lfc.hasNext()) {
+//			fto.executeAsSlave(os, is, lfc.next());
+//		}
+//
+//		// 3. Send end batch flag
+//		bto.sendOperationType(os, OperationType.REQUEST_BATCH_END);
+//		logger.info("[" + this.getClass().getSimpleName() + "] sent batch transfer end operation request");
+//		
+//		ot = bto.receiveOperationType(is);
+//		if (ot != OperationType.RESPONSE_BATCH_END) {
+//			// error detected
+//		}
+//		logger.info("[" + this.getClass().getSimpleName() + "] master responded batch transfer end");
 		// --- move to batch operation ---
 		
 		bto.sendOperationType(os, OperationType.REQUEST_TRANSFER_END);

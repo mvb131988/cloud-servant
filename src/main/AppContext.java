@@ -12,7 +12,7 @@ import protocol.BatchFilesTransferOperation;
 import protocol.FileTransferOperation;
 import protocol.FullFileTransferOperation;
 import protocol.MasterTransferManager;
-import protocol.SlaveCommunicationPool;
+import protocol.MasterSlaveCommunicationPool;
 import protocol.SlaveTransferManager;
 import protocol.StatusTransferOperation;
 import protocol.constant.StatusMapper;
@@ -34,8 +34,7 @@ public class AppContext {
 	
 	public AppContext() {
 		masterTransferManager = new MasterTransferManager();
-		masterTransferManager.init(getBatchFilesTransferOperation(), 
-								   getFullFileTransferOperation(), 
+		masterTransferManager.init(getFullFileTransferOperation(), 
 								   getStatusTransferOperation(),
 								   getSlaveCommunicationPool(), 
 								   getStatusMapper());
@@ -58,8 +57,7 @@ public class AppContext {
 
 	private void startAsClient() {
 		SlaveTransferManager stm = getSlaveTransferManager();
-		stm.init(getBatchFilesTransferOperation(), 
-				 getBaseRepositoryOperations(), 
+		stm.init(getBaseRepositoryOperations(), 
 				 getFilesContextTransformer(), 
 				 getFullFileTransferOperation(),
 				 getStatusTransferOperation());
@@ -121,7 +119,9 @@ public class AppContext {
 	}
 
 	private BatchFilesTransferOperation batchTransferOperation = new BatchFilesTransferOperation(getFileTransferOperation(),
-																								 getBaseTransferOperations());
+																								 getBaseTransferOperations(),
+																								 getFilesContextTransformer(),
+																								 getBaseRepositoryOperations());
 	private BatchFilesTransferOperation getBatchFilesTransferOperation() {
 		return batchTransferOperation;
 	}
@@ -130,13 +130,14 @@ public class AppContext {
 			 																					getBaseTransferOperations(),
 			 																					getBaseRepositoryOperations(),
 			 																					getFilesContextTransformer(),
-			 																					getStatusTransferOperation());
+			 																					getStatusTransferOperation(),
+			 																					getBatchFilesTransferOperation());
 	private FullFileTransferOperation getFullFileTransferOperation() {
 		return fullFileTransferOperation;
 	}
 	
-	private SlaveCommunicationPool slaveCommunicationPool = new SlaveCommunicationPool();
-	private SlaveCommunicationPool getSlaveCommunicationPool() {
+	private MasterSlaveCommunicationPool slaveCommunicationPool = new MasterSlaveCommunicationPool();
+	private MasterSlaveCommunicationPool getSlaveCommunicationPool() {
 		return slaveCommunicationPool;
 	}
 	
