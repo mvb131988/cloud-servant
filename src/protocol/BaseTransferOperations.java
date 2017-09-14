@@ -174,6 +174,8 @@ public class BaseTransferOperations {
 			e.printStackTrace();
 		}
 
+		//Move file from temp directory to actual
+		
 		try {
 			Files.setAttribute(p, "creationTime", FileTime.fromMillis(creationDateTime));
 			Files.setAttribute(p, "lastModifiedTime", FileTime.fromMillis(creationDateTime));

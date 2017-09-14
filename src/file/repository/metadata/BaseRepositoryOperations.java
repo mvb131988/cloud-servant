@@ -3,6 +3,7 @@ package file.repository.metadata;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -37,6 +38,33 @@ public class BaseRepositoryOperations {
 			names.add(rr.getFileName());
 		}
 		return names;
+	}
+	
+	/**
+	 * Creates directory relative to the repository root 
+	 */
+	public void createDirectoryIfNotExist(Path relativePath) {
+		try {
+			Path newPath = repositoryRoot.resolve(relativePath);
+			if (!Files.exists(newPath)) {
+				Files.createDirectory(newPath);
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	/**
+	 * Assign hidden attribute to the directory 
+	 */
+	//TODO: os dependent operation. Execute only on windows. On linux dir started with '.' is already hidden. 
+	public void hideDirectory(Path relativePath) {
+		try {
+			Files.setAttribute(repositoryRoot.resolve(relativePath), "dos:hidden", Boolean.TRUE, LinkOption.NOFOLLOW_LINKS);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	//TODO: Optimize read. Don't read the entire file at a time. Instead provide a reader(inner class)

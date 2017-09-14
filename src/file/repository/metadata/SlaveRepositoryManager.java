@@ -1,5 +1,8 @@
 package file.repository.metadata;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -27,6 +30,16 @@ public class SlaveRepositoryManager {
 		repositoryScanerThread = new Thread(asynchronySearcher);
 	}
 
+	public void init() {
+		// Create temporary folder where incoming files firstly will be saved
+		Path temp = Paths.get(".temp");
+		bro.createDirectoryIfNotExist(temp);
+		bro.hideDirectory(temp);
+	}
+	
+	/**
+	 * ==========================================================================================
+	 */
 	public SlaveRepositoryManagerStatus getStatus() {
 		return sm.map(asynchronySearcher.getStatus());
 	}
@@ -58,5 +71,8 @@ public class SlaveRepositoryManager {
 		
 		return rr;
 	}
+	/**
+	 * ==========================================================================================
+	 */
 	
 }

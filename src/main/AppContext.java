@@ -45,8 +45,10 @@ public class AppContext {
 	
 	private FullFileTransferOperation fullFileTransferOperation;
 	
+	//TODO: separate contexts for master/slave
 	public AppContext() {
 		repositoryStatusMapper = new RepositoryStatusMapper();
+		
 		slaveRepositoryManager = new SlaveRepositoryManager(getBaseRepositoryOperations(), getRepositoryStatusMapper());
 		
 		statusTransferOperation = new StatusTransferOperation(getBaseTransferOperations());
@@ -79,6 +81,7 @@ public class AppContext {
 		if (isMaster) {
 			startAsServer();
 		} else {
+			slaveRepositoryManager.init();
 			startAsClient();
 		}
 	}
