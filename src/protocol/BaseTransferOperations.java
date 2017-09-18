@@ -4,9 +4,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PushbackInputStream;
+import java.nio.file.CopyOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.FileTime;
 
 import protocol.constant.MasterStatus;
@@ -154,7 +156,7 @@ public class BaseTransferOperations {
 		int readBufferSize = -1;
 		long remainigSize = size;
 
-		Path p = repositoryRoot.resolve(relativeFilePath).normalize();
+		Path p = repositoryRoot.resolve(".temp").resolve(relativeFilePath).normalize();
 		try {
 			if (!Files.exists(p.getParent())) {
 				Files.createDirectories(p.getParent());
@@ -170,19 +172,20 @@ public class BaseTransferOperations {
 				remainigSize -= readBufferSize;
 				os.write(buffer, 0, readBufferSize);
 			}
+			
+			// Move file from temp directory to actual
+			// TODO: move to base repository operations
+			Path src = repositoryRoot.resolve(".temp").resolve(relativeFilePath).normalize();
+			Path dstn = repositoryRoot.resolve(relativeFilePath).normalize();
+			Files.copy(src, dstn, StandardCopyOption.REPLACE_EXISTING);
+			Files.delete(src);
+			Files.setAttribute(dstn, "creationTime", FileTime.fromMillis(creationDateTime));
+			Files.setAttribute(dstn, "lastModifiedTime", FileTime.fromMillis(creationDateTime));
+			Files.setAttribute(dstn, "lastAccessTime", FileTime.fromMillis(creationDateTime));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-
-		//Move file from temp directory to actual
 		
-		try {
-			Files.setAttribute(p, "creationTime", FileTime.fromMillis(creationDateTime));
-			Files.setAttribute(p, "lastModifiedTime", FileTime.fromMillis(creationDateTime));
-			Files.setAttribute(p, "lastAccessTime", FileTime.fromMillis(creationDateTime));
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
 	}
 
 }

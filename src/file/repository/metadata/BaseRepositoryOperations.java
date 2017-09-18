@@ -218,6 +218,15 @@ public class BaseRepositoryOperations {
 			}
 			closeDataRepo(is);
 			
+			//Last read. Wait until last read record isn't consumed.
+			while(asynchrony != null) {
+				try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+			
 			asynchronySearcherStatus = AsynchronySearcherStatus.TERMINATED;
 		}
 
