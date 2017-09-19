@@ -2,6 +2,7 @@ package file.repository.metadata;
 
 import java.util.Set;
 
+@Deprecated
 public class RecordSet {
 
 	//TODO: replace repositoryManager on BaseRepositoryOperations

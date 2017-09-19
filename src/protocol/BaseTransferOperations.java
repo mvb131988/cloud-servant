@@ -4,13 +4,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PushbackInputStream;
-import java.nio.file.CopyOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
-import java.nio.file.attribute.FileTime;
 
+import file.repository.metadata.BaseRepositoryOperations;
 import protocol.constant.MasterStatus;
 import protocol.constant.OperationType;
 import protocol.file.FrameProcessor;
@@ -21,8 +19,10 @@ import protocol.file.FrameProcessor;
 public class BaseTransferOperations {
 
 	private FrameProcessor fp;
+	
+	private BaseRepositoryOperations bro;
 
-	public BaseTransferOperations(FrameProcessor fp) {
+	public BaseTransferOperations(FrameProcessor fp, BaseRepositoryOperations bro) {
 		super();
 		this.fp = fp;
 	}
@@ -155,15 +155,7 @@ public class BaseTransferOperations {
 		byte[] buffer = new byte[1024];
 		int readBufferSize = -1;
 		long remainigSize = size;
-
 		Path p = repositoryRoot.resolve(".temp").resolve(relativeFilePath).normalize();
-		try {
-			if (!Files.exists(p.getParent())) {
-				Files.createDirectories(p.getParent());
-			}
-		} catch (IOException e1) {
-			e1.printStackTrace();
-		}
 		
 		try (OutputStream os = Files.newOutputStream(p);) {
 			while (remainigSize != 0) {
@@ -172,20 +164,12 @@ public class BaseTransferOperations {
 				remainigSize -= readBufferSize;
 				os.write(buffer, 0, readBufferSize);
 			}
-			
-			// Move file from temp directory to actual
-			// TODO: move to base repository operations
-			Path src = repositoryRoot.resolve(".temp").resolve(relativeFilePath).normalize();
-			Path dstn = repositoryRoot.resolve(relativeFilePath).normalize();
-			Files.copy(src, dstn, StandardCopyOption.REPLACE_EXISTING);
-			Files.delete(src);
-			Files.setAttribute(dstn, "creationTime", FileTime.fromMillis(creationDateTime));
-			Files.setAttribute(dstn, "lastModifiedTime", FileTime.fromMillis(creationDateTime));
-			Files.setAttribute(dstn, "lastAccessTime", FileTime.fromMillis(creationDateTime));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 		
+		//Move file to actual location
+		bro.fromTempToRepository(relativeFilePath, creationDateTime);
 	}
 
 }

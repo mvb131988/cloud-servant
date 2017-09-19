@@ -137,7 +137,7 @@ public class AppContext {
 		return fpls;
 	}
 	
-	private BaseTransferOperations baseTransferOperations = new BaseTransferOperations(getFrameProcessor());
+	private BaseTransferOperations baseTransferOperations = new BaseTransferOperations(getFrameProcessor(), getBaseRepositoryOperations());
 	private BaseTransferOperations getBaseTransferOperations() {
 		return baseTransferOperations;
 	}

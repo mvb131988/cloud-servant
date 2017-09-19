@@ -96,10 +96,8 @@ public class RepositoryManager {
 				throw new Exception("File is corrupted");
 			}
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
@@ -131,7 +129,6 @@ public class RepositoryManager {
 		try {
 			Files.walkFileTree(repositoryRoot, repoVisitor);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return repoVisitor.getFilesList();
@@ -146,7 +143,6 @@ public class RepositoryManager {
 		try (OutputStream os = Files.newOutputStream(configPath);) {
 
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -224,7 +220,6 @@ public class RepositoryManager {
 		}
 
 		catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
@@ -257,10 +252,8 @@ public class RepositoryManager {
 			offset += 1;
 
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 
@@ -301,7 +294,6 @@ public class RepositoryManager {
 			repositoryRecord.setStatus((byte) status);
 
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 

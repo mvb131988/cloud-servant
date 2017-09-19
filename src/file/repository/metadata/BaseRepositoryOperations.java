@@ -6,6 +6,8 @@ import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.nio.file.attribute.FileTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -62,7 +64,26 @@ public class BaseRepositoryOperations {
 		try {
 			Files.setAttribute(repositoryRoot.resolve(relativePath), "dos:hidden", Boolean.TRUE, LinkOption.NOFOLLOW_LINKS);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * Move newly received file form temp directory to actual location
+	 * 
+	 * @param relativeFilePath
+	 * @param creationDateTime
+	 */
+	public void fromTempToRepository(Path relativeFilePath, long creationDateTime) {
+		try {
+			Path src = repositoryRoot.resolve(".temp").resolve(relativeFilePath).normalize();
+			Files.setAttribute(src, "lastModifiedTime", FileTime.fromMillis(creationDateTime));
+			Files.setAttribute(src, "lastAccessTime", FileTime.fromMillis(creationDateTime));
+			Path dstn = repositoryRoot.resolve(relativeFilePath).normalize();
+			Files.copy(src, dstn, StandardCopyOption.REPLACE_EXISTING);
+			Files.delete(src);
+			Files.setAttribute(src, "creationTime", FileTime.fromMillis(creationDateTime));
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
@@ -70,6 +91,7 @@ public class BaseRepositoryOperations {
 	//TODO: Optimize read. Don't read the entire file at a time. Instead provide a reader(inner class)
 	// kind of iterator(buffered) to limit loaded data to buffer size 
 	//
+	@Deprecated
 	public List<RepositoryRecord> readAll() {
 		List<RepositoryRecord> records = new ArrayList<>();
 		byte[] buffer = new byte[RecordConstants.FULL_SIZE * BATCH_SIZE];
