@@ -25,6 +25,7 @@ public class BaseTransferOperations {
 	public BaseTransferOperations(FrameProcessor fp, BaseRepositoryOperations bro) {
 		super();
 		this.fp = fp;
+		this.bro = bro;
 	}
 
 	public void sendOperationType(OutputStream os, OperationType ot) {
@@ -155,8 +156,10 @@ public class BaseTransferOperations {
 		byte[] buffer = new byte[1024];
 		int readBufferSize = -1;
 		long remainigSize = size;
-		Path p = repositoryRoot.resolve(".temp").resolve(relativeFilePath).normalize();
 		
+		//bro.createDirectoryIfNotExist(repositoryRoot.resolve(".temp"), relativeFilePath.getParent());
+
+		Path p = repositoryRoot.resolve(".temp").resolve(relativeFilePath.getFileName());
 		try (OutputStream os = Files.newOutputStream(p);) {
 			while (remainigSize != 0) {
 				readBufferSize = remainigSize >= 1024 ? is.read(buffer, 0, 1024)
@@ -164,12 +167,13 @@ public class BaseTransferOperations {
 				remainigSize -= readBufferSize;
 				os.write(buffer, 0, readBufferSize);
 			}
+
+			bro.createDirectoryIfNotExist(relativeFilePath.getParent());
+			//Move file to actual location
+			bro.fromTempToRepository(relativeFilePath, creationDateTime);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		
-		//Move file to actual location
-		bro.fromTempToRepository(relativeFilePath, creationDateTime);
 	}
 
 }

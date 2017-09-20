@@ -46,13 +46,15 @@ public class BaseRepositoryOperations {
 	 * Creates directory relative to the repository root 
 	 */
 	public void createDirectoryIfNotExist(Path relativePath) {
-		try {
-			Path newPath = repositoryRoot.resolve(relativePath);
-			if (!Files.exists(newPath)) {
-				Files.createDirectory(newPath);
+		if (relativePath != null) {
+			try {
+				Path newPath = repositoryRoot.resolve(relativePath);
+				if (!Files.exists(newPath)) {
+					Files.createDirectories(newPath);
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
 			}
-		} catch (IOException e) {
-			e.printStackTrace();
 		}
 	}
 	
@@ -71,18 +73,20 @@ public class BaseRepositoryOperations {
 	/**
 	 * Move newly received file form temp directory to actual location
 	 * 
-	 * @param relativeFilePath
+	 * @param relativeFilePath - file name with intermediate directories. When moved to repository file will be saved in intermediate directories
 	 * @param creationDateTime
 	 */
 	public void fromTempToRepository(Path relativeFilePath, long creationDateTime) {
 		try {
-			Path src = repositoryRoot.resolve(".temp").resolve(relativeFilePath).normalize();
-			Files.setAttribute(src, "lastModifiedTime", FileTime.fromMillis(creationDateTime));
-			Files.setAttribute(src, "lastAccessTime", FileTime.fromMillis(creationDateTime));
+			Path src = repositoryRoot.resolve(".temp").resolve(relativeFilePath.getFileName());
 			Path dstn = repositoryRoot.resolve(relativeFilePath).normalize();
 			Files.copy(src, dstn, StandardCopyOption.REPLACE_EXISTING);
 			Files.delete(src);
-			Files.setAttribute(src, "creationTime", FileTime.fromMillis(creationDateTime));
+			
+			//If service crashes here creation date could be lost
+			Files.setAttribute(dstn, "creationTime", FileTime.fromMillis(creationDateTime));
+			Files.setAttribute(dstn, "lastModifiedTime", FileTime.fromMillis(creationDateTime));
+			Files.setAttribute(dstn, "lastAccessTime", FileTime.fromMillis(creationDateTime));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
