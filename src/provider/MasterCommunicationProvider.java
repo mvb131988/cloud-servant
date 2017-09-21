@@ -3,8 +3,8 @@ package provider;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import file.repository.metadata.RepositoryManager;
-import file.repository.metadata.RepositoryManager.RepositoryScaner;
+import file.repository.metadata.MasterRepositoryManager;
+import file.repository.metadata.MasterRepositoryManager.RepositoryScaner;
 import file.repository.metadata.RepositoryScannerStatus;
 import protocol.MasterTransferManager;
 import protocol.MasterTransferManager.MasterTransferThread;
@@ -18,13 +18,13 @@ public class MasterCommunicationProvider {
 
 	private Logger logger = LogManager.getRootLogger();
 	
-	private RepositoryManager repositoryManager;
+	private MasterRepositoryManager repositoryManager;
 
 	private MasterTransferManager masterTransferManager;
 
 	private Thread masterCommunicationProviderThread;
 
-	public MasterCommunicationProvider(RepositoryManager repositoryManager,
+	public MasterCommunicationProvider(MasterRepositoryManager repositoryManager,
 			MasterTransferManager masterTransferManager) {
 		super();
 		this.repositoryManager = repositoryManager;

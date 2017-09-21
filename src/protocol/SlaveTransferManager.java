@@ -70,7 +70,7 @@ public class SlaveTransferManager {
 		
 		// TODO: run this on schedule
 
-		ffto.executeAsSlave(os, is, null);
+		ffto.executeAsSlave(os, is);
 	}
 
 	public Thread getSlaveTransferThread() {

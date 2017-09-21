@@ -157,8 +157,6 @@ public class BaseTransferOperations {
 		int readBufferSize = -1;
 		long remainigSize = size;
 		
-		//bro.createDirectoryIfNotExist(repositoryRoot.resolve(".temp"), relativeFilePath.getParent());
-
 		Path p = repositoryRoot.resolve(".temp").resolve(relativeFilePath.getFileName());
 		try (OutputStream os = Files.newOutputStream(p);) {
 			while (remainigSize != 0) {

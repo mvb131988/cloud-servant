@@ -19,15 +19,13 @@ import java.util.Set;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import main.AppProperties;
 import protocol.file.FrameProcessor;
 
 /**
  * Main class that scans the repository and creates data.repo
  * 
  * data.repo file - file with the list of all files saved in the repository. 
- */
-// See MappedByteBuffer to improve performance
-/**
  * 
  * Record format ----------------------------------------------------- | 8
  * bytes| 8 bytes | 200 bytes| 1 byte |
@@ -38,12 +36,11 @@ import protocol.file.FrameProcessor;
  */
 
 //TODO: check and move basic methods to BaseRepositoryOperations 
-//TODO: rename to MasterRepositoryManager
-public class RepositoryManager {
+public class MasterRepositoryManager {
 
 	private Logger logger = LogManager.getRootLogger();
 	
-	private Path repositoryRoot = Paths.get("D:\\temp");
+	private Path repositoryRoot;
 
 	private FrameProcessor frameProcessor = new FrameProcessor();
 
@@ -52,35 +49,15 @@ public class RepositoryManager {
 	private byte[] internalBuffer = new byte[RecordConstants.FULL_SIZE * BATCH_SIZE];
 	
 	private RepositoryScaner repositoryScaner;
+	
+	private RepositoryVisitor repositoryVisitor;
 
-	public static void main(String[] args) {
-		RepositoryManager repositoryManager = new RepositoryManager();
-
-		// List<RepositoryRecord> records = repositoryManager.readAll();
-
-		// repositoryManager.loadRepositoryRecords(repositoryManager.countRecords());
-
-		// repositoryManager.init();
-
-		List<String> fileNames = repositoryManager.scan();
-		repositoryManager.writeAll(fileNames, 0);
-		//
-		// int base = 0;
-		// int recordSize = 8+8+200+1;
-		// int id = 0;
-		// for(String name: fileNames) {
-		// repositoryManager.write(base, ++id, name, (byte)10);
-		// base += recordSize;
-		// }
-		//
-		// RepositoryRecord repoRecord =
-		RepositoryRecord rr = repositoryManager.read(100003 * RecordConstants.FULL_SIZE);
-		//
-		System.out.println("Done");
-
-		// repositoryManager.read(base2);
+	public MasterRepositoryManager(RepositoryVisitor repositoryVisitor, AppProperties appProperties) {
+		repositoryRoot = appProperties.getRepositoryRoot();
+		
+		this.repositoryVisitor = repositoryVisitor;
 	}
-
+	
 	@SuppressWarnings("unused")
 	public long countRecords() {
 		long counter = -1;
@@ -125,13 +102,13 @@ public class RepositoryManager {
 	 * records corresponding to all files are.
 	 */
 	private List<String> scan() {
-		RepositoryVisitor repoVisitor = new RepositoryVisitor();
+		repositoryVisitor.reset();
 		try {
-			Files.walkFileTree(repositoryRoot, repoVisitor);
+			Files.walkFileTree(repositoryRoot, repositoryVisitor);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		return repoVisitor.getFilesList();
+		return repositoryVisitor.getFilesList();
 	}
 
 	/**
@@ -311,6 +288,8 @@ public class RepositoryManager {
 		return repositoryScaner;
 	}
 	
+	//TODO: Don't get all file names into the memory at once.
+	//Instead implement (partial scan->flush) process
 	public class RepositoryScaner implements Runnable {
 
 		private RepositoryScannerStatus status;

@@ -7,6 +7,7 @@ import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileTime;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -16,32 +17,27 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import file.repository.metadata.status.AsynchronySearcherStatus;
+import main.AppProperties;
 import protocol.file.FrameProcessor;
 import transformer.FilesContextTransformer;
 
 public class BaseRepositoryOperations {
 
-	private Path repositoryRoot = Paths.get("C:\\temp");
+	private Path repositoryRoot;
 	private final static int BATCH_SIZE = 10000;
 
 	private FrameProcessor frameProcessor;
 	
 	private FilesContextTransformer fct;
 	
-	public BaseRepositoryOperations(FrameProcessor frameProcessor, FilesContextTransformer fct) {
+	public BaseRepositoryOperations(FrameProcessor frameProcessor, FilesContextTransformer fct, AppProperties appProperties) {
 		super();
 		this.frameProcessor = frameProcessor;
 		this.fct = fct;
+		
+		this.repositoryRoot = appProperties.getRepositoryRoot();
 	}
 
-	public Set<String> readNames() {
-		Set<String> names = new HashSet<>();
-		for (RepositoryRecord rr : readAll()) {
-			names.add(rr.getFileName());
-		}
-		return names;
-	}
-	
 	/**
 	 * Creates directory relative to the repository root 
 	 */
@@ -56,6 +52,26 @@ public class BaseRepositoryOperations {
 				e.printStackTrace();
 			}
 		}
+	}
+	
+	public long getSize(Path relativePath) {
+		long size = 0;
+		try {
+			size = Files.readAttributes(repositoryRoot.resolve(relativePath), BasicFileAttributes.class).size();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return size;
+	}
+	
+	public long getCreationDateTime(Path relativePath) {
+		long creationDateTime = 0;
+		try {
+			creationDateTime = Files.readAttributes(repositoryRoot.resolve(relativePath), BasicFileAttributes.class).creationTime().toMillis();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return creationDateTime;
 	}
 	
 	/**
@@ -90,59 +106,6 @@ public class BaseRepositoryOperations {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-	}
-	
-	//TODO: Optimize read. Don't read the entire file at a time. Instead provide a reader(inner class)
-	// kind of iterator(buffered) to limit loaded data to buffer size 
-	//
-	@Deprecated
-	public List<RepositoryRecord> readAll() {
-		List<RepositoryRecord> records = new ArrayList<>();
-		byte[] buffer = new byte[RecordConstants.FULL_SIZE * BATCH_SIZE];
-
-		Path configPath = repositoryRoot.resolve("data.repo");
-
-		int bufSize = 0;
-		try (InputStream is = Files.newInputStream(configPath);) {
-			while ((bufSize = is.read(buffer)) != -1) {
-
-				// build RepositoryRecord
-				int offset = 0;
-				while (offset != bufSize) {
-
-					byte[] bId = new byte[RecordConstants.ID_SIZE];
-					System.arraycopy(buffer, offset, bId, 0, RecordConstants.ID_SIZE);
-					long id = frameProcessor.extractSize(bId);
-					offset += RecordConstants.ID_SIZE;
-
-					byte[] bSize = new byte[RecordConstants.NAME_LENGTH_SIZE];
-					System.arraycopy(buffer, offset, bSize, 0, RecordConstants.NAME_LENGTH_SIZE);
-					long length = frameProcessor.extractSize(bSize);
-					offset += RecordConstants.NAME_LENGTH_SIZE;
-
-					byte[] bFileName = new byte[(int) RecordConstants.NAME_SIZE];
-					System.arraycopy(buffer, offset, bFileName, 0, (int) length);
-					String fileName = new String(bFileName, 0, (int) length, "UTF-8");
-					offset += RecordConstants.NAME_SIZE;
-
-					byte status = buffer[offset];
-					offset += RecordConstants.STATUS_SIZE;
-
-					RepositoryRecord rr = new RepositoryRecord();
-					rr.setId(id);
-					rr.setFileameSize(length);
-					rr.setFileName(fileName);
-					rr.setStatus(status);
-					records.add(rr);
-				}
-
-				buffer = new byte[RecordConstants.FULL_SIZE * BATCH_SIZE];
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-
-		return records;
 	}
 	
 	public boolean existsFile(Path relativePath) {

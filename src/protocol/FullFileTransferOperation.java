@@ -1,27 +1,19 @@
 package protocol;
 
 import static protocol.constant.OperationType.REQUEST_TRANSFER_END;
-import static protocol.constant.OperationType.REQUEST_TRANSFER_START;
-import static protocol.constant.OperationType.*;
 
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PushbackInputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import file.repository.metadata.BaseRepositoryOperations;
-import file.repository.metadata.RepositoryRecord;
 import protocol.constant.MasterStatus;
 import protocol.constant.OperationType;
 import protocol.context.FileContext;
-import protocol.context.FilesContext;
-import protocol.context.LazyFilesContext;
-import transformer.FilesContextTransformer;
 
 /**
  * Main operation of the protocol. Organize main protocol cycle, which handles all supported operations.  
@@ -37,23 +29,15 @@ public class FullFileTransferOperation {
 	
 	private StatusTransferOperation sto;
 	
-	private BaseRepositoryOperations bro;
-	
-	private FilesContextTransformer fct;
-	
 	private BatchFilesTransferOperation bfto;
 	
 	public FullFileTransferOperation(FileTransferOperation fto, 
 									 BaseTransferOperations bto, 
-									 BaseRepositoryOperations bro, 
-									 FilesContextTransformer fct, 
 									 StatusTransferOperation sto,
 									 BatchFilesTransferOperation bfto) {
 		super();
 		this.bto = bto;
 		this.fto = fto;
-		this.bro = bro;
-		this.fct = fct;
 		this.sto = sto;
 		this.bfto = bfto;
 	}
@@ -109,7 +93,7 @@ public class FullFileTransferOperation {
 		logger.info("[" + this.getClass().getSimpleName() + "] sent transfer end operation accept");
 	}
 	
-	public void executeAsSlave(OutputStream os, InputStream is, FilesContext fsc) {
+	public void executeAsSlave(OutputStream os, InputStream is) {
 		bto.sendOperationType(os, OperationType.REQUEST_TRANSFER_START);
 		logger.info("[" + this.getClass().getSimpleName() + "] sent transfer start operation request");
 		
@@ -120,21 +104,15 @@ public class FullFileTransferOperation {
 		logger.info("[" + this.getClass().getSimpleName() + "] master responded transfer start");
 		
 		// Get data.repo
-		// TODO: parameterize what is possible
-		Path repositoryRoot = Paths.get("C:\\temp");
 		Path relativePath = Paths.get("data.repo");
 		FileContext fc = (new FileContext.Builder())
-				.setRepositoryRoot(repositoryRoot)
 				.setRelativePath(relativePath)
 				.build(); 
 		fto.executeAsSlave(os, is, fc);
 		logger.info("[" + this.getClass().getSimpleName() + "] data.repo received");
 		
-		List<RepositoryRecord> records = bro.readAll();
-		LazyFilesContext lfc = new LazyFilesContext(records, fct);
-		
 		// batch transfer
-		bfto.executeAsSlave(os, is, null);
+		bfto.executeAsSlave(os, is);
 		
 		bto.sendOperationType(os, OperationType.REQUEST_TRANSFER_END);
 		logger.info("[" + this.getClass().getSimpleName() + "] sent transfer end request");

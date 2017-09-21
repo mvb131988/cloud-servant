@@ -14,7 +14,6 @@ import file.repository.metadata.RepositoryRecord;
 import file.repository.metadata.SlaveRepositoryManager;
 import file.repository.metadata.status.SlaveRepositoryManagerStatus;
 import protocol.constant.OperationType;
-import protocol.context.FilesContext;
 import transformer.FilesContextTransformer;
 
 /**
@@ -84,7 +83,7 @@ public class BatchFilesTransferOperation {
 		bto.receiveOperationType(pushbackInputStream);
 	}
 
-	public void executeAsSlave(OutputStream os, InputStream is, FilesContext fsc) {
+	public void executeAsSlave(OutputStream os, InputStream is) {
 //		List<RepositoryRecord> records = bro.readAll();
 //		LazyFilesContext lfc = new LazyFilesContext(records, fct);
 

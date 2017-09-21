@@ -1,7 +1,6 @@
 package transformer;
 
 import java.io.UnsupportedEncodingException;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
@@ -13,8 +12,6 @@ import protocol.file.FrameProcessor;
 
 public class FilesContextTransformer {
 
-	private Path repositoryRoot = Paths.get("C:\\temp");
-	
 	private FrameProcessor frameProcessor;
 	
 	public FilesContextTransformer(FrameProcessor frameProcessor) {
@@ -24,7 +21,6 @@ public class FilesContextTransformer {
 
 	public FileContext transform(RepositoryRecord rr) {
 		return (new FileContext.Builder())
-				.setRepositoryRoot(repositoryRoot)
 				.setRelativePath(Paths.get(rr.getFileName()))
 				.build(); 
 	}

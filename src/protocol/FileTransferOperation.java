@@ -7,7 +7,8 @@ import java.nio.file.Path;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import file.repository.metadata.FilePropertyLookupService;
+import file.repository.metadata.BaseRepositoryOperations;
+import main.AppProperties;
 import protocol.constant.OperationType;
 import protocol.context.FileContext;
 
@@ -16,16 +17,21 @@ import protocol.context.FileContext;
  */
 public class FileTransferOperation {
 	
+	private Path repositoryRoot;
+	
 	private Logger logger = LogManager.getRootLogger();
 
 	private BaseTransferOperations bto;
 	
-	private FilePropertyLookupService fpls;
+	private BaseRepositoryOperations bro;
 	
-	public FileTransferOperation(BaseTransferOperations bto, FilePropertyLookupService fpls) {
+	public FileTransferOperation(BaseTransferOperations bto, 
+								 BaseRepositoryOperations bro, 
+								 AppProperties appProperties) {
 		super();
 		this.bto = bto;
-		this.fpls = fpls;
+		this.bro = bro;
+		this.repositoryRoot = appProperties.getRepositoryRoot();
 	}
 
 	public void executeAsMaster(OutputStream os, InputStream is){
@@ -44,11 +50,11 @@ public class FileTransferOperation {
 		
 		//Send the requested file back
 		bto.sendOperationType(os, OperationType.RESPONSE_FILE_START);
-		long size = fpls.getSize(relativePath);
+		long size = bro.getSize(relativePath);
 		bto.sendSize(os, size);
 		bto.sendRelativePath(os, relativePath);
-		bto.sendCreationDateTime(os, fpls.getCreationDateTime(relativePath));
-		bto.sendFile(os, fpls.getRepositoryRoot().resolve(relativePath).normalize());
+		bto.sendCreationDateTime(os, bro.getCreationDateTime(relativePath));
+		bto.sendFile(os, repositoryRoot.resolve(relativePath).normalize());
 		bto.sendOperationType(os, OperationType.RESPONSE_FILE_END);
 
 		logger.trace("[" + this.getClass().getSimpleName() + "] file[" + relativePath + "] size[" + size + "bytes] was sent");
@@ -67,7 +73,7 @@ public class FileTransferOperation {
 		long size = bto.receiveSize(is);
 		Path relativePath = bto.receiveRelativePath(is);
 		long creationDateTime = bto.receiveCreationDateTime(is);
-		bto.receiveFile(is, size, fc.getRepositoryRoot(), relativePath, creationDateTime);
+		bto.receiveFile(is, size, repositoryRoot, relativePath, creationDateTime);
 		ot = bto.receiveOperationType(is);
 		if(ot != OperationType.RESPONSE_FILE_END) {
 			//error detected
