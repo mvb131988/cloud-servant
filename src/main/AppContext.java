@@ -31,6 +31,8 @@ public class AppContext {
 	
 	private MasterTransferManager masterTransferManager;
 	
+	private SlaveTransferManager slaveTransferManager;
+	
 	private MasterCommunicationProvider masterCommunicationProvider;
 	
 	private SlaveRepositoryManager slaveRepositoryManager;
@@ -51,11 +53,15 @@ public class AppContext {
 	
 	private BaseRepositoryOperations baseRepositoryOperations;
 	
+	private BaseTransferOperations baseTransferOperations;
+	
 	//TODO: separate contexts for master/slave
 	public AppContext() {
 		appProperties = new AppProperties();
 		
 		baseRepositoryOperations = new BaseRepositoryOperations(getFrameProcessor(), getFilesContextTransformer(), appProperties);
+		
+		baseTransferOperations = new BaseTransferOperations(getFrameProcessor(), getBaseRepositoryOperations());
 		
 		repositoryStatusMapper = new RepositoryStatusMapper();
 		
@@ -93,6 +99,12 @@ public class AppContext {
 		masterCommunicationProvider = 
 				new MasterCommunicationProvider(getRepositoryManager(), getMasterTransferManager());
 		
+		slaveTransferManager = new SlaveTransferManager();
+		slaveTransferManager.init(getBaseRepositoryOperations(), 
+				 				  getFilesContextTransformer(), 
+				 				  getFullFileTransferOperation(),
+				 				  getStatusTransferOperation());
+		
 	}
 	
 	public void start() {
@@ -110,10 +122,6 @@ public class AppContext {
 
 	private void startAsClient() {
 		SlaveTransferManager stm = getSlaveTransferManager();
-		stm.init(getBaseRepositoryOperations(), 
-				 getFilesContextTransformer(), 
-				 getFullFileTransferOperation(),
-				 getStatusTransferOperation());
 		stm.getSlaveTransferThread().start();
 	}
 
@@ -140,13 +148,10 @@ public class AppContext {
 		return repositoryVisitor;
 	}
 
-	private SlaveTransferManager slaveTransferManager = new SlaveTransferManager();
-
 	public SlaveTransferManager getSlaveTransferManager() {
 		return slaveTransferManager;
 	}
 	
-	private BaseTransferOperations baseTransferOperations = new BaseTransferOperations(getFrameProcessor(), getBaseRepositoryOperations());
 	private BaseTransferOperations getBaseTransferOperations() {
 		return baseTransferOperations;
 	}
