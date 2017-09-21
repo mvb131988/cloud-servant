@@ -23,11 +23,11 @@ import transformer.FilesContextTransformer;
 
 public class AppContext {
 
+	private Logger logger = LogManager.getRootLogger();
+
 	private FrameProcessor fp = new FrameProcessor();
 
 	private AppProperties appProperties;
-
-	private Logger logger = LogManager.getRootLogger();
 	
 	private MasterTransferManager masterTransferManager;
 	
@@ -49,93 +49,170 @@ public class AppContext {
 	
 	private RepositoryVisitor repositoryVisitor;
 	
-	private MasterRepositoryManager repositoryManager;
+	private MasterRepositoryManager masterRepositoryManager;
 	
 	private BaseRepositoryOperations baseRepositoryOperations;
 	
 	private BaseTransferOperations baseTransferOperations;
 	
+	private MasterSlaveCommunicationPool masterSlaveCommunicationPool;
+	
+	private ProtocolStatusMapper protocolStatusMapper;
+	
+	private FilesContextTransformer filesContextTransformer;
+	
+	private FrameProcessor frameProcessor;
+	
 	//TODO: separate contexts for master/slave
-	public AppContext() {
-		appProperties = new AppProperties();
+//	public AppContext() {
+//		appProperties = new AppProperties();
+//		
+//		baseRepositoryOperations = new BaseRepositoryOperations(getFrameProcessor(), getFilesContextTransformer(), appProperties);
+//		
+//		baseTransferOperations = new BaseTransferOperations(getFrameProcessor(), getBaseRepositoryOperations());
+//		
+//		repositoryStatusMapper = new RepositoryStatusMapper();
+//		
+//		slaveRepositoryManager = new SlaveRepositoryManager(getBaseRepositoryOperations(), getRepositoryStatusMapper());
+//		
+//		statusTransferOperation = new StatusTransferOperation(getBaseTransferOperations());
+//		
+//		fileTransferOperation = new FileTransferOperation(getBaseTransferOperations(), 
+//														  getBaseRepositoryOperations(),
+//														  appProperties);
+//
+//		batchTransferOperation = new BatchFilesTransferOperation(getBaseTransferOperations(),
+//				 												 getFileTransferOperation(),
+//				 												 getStatusTransferOperation(),
+//				 												 getBaseRepositoryOperations(),
+//				 												 getSlaveRepositoryManager(),
+//				 												 getFilesContextTransformer());
+//		
+//
+//		fullFileTransferOperation = new FullFileTransferOperation(getBaseTransferOperations(),
+//																  getFileTransferOperation(),
+//																  getStatusTransferOperation(),
+//																  getBatchFilesTransferOperation());
+//		
+//		
+//		masterTransferManager = new MasterTransferManager();
+//		masterTransferManager.init(getFullFileTransferOperation(), 
+//								   getStatusTransferOperation(),
+//								   getMasterSlaveCommunicationPool(), 
+//								   getProtocolStatusMapper());
+//
+//		repositoryVisitor = new RepositoryVisitor(appProperties);
+//		masterRepositoryManager = new MasterRepositoryManager(getRepositoryVisitor(), appProperties);
+//
+//		masterCommunicationProvider = 
+//				new MasterCommunicationProvider(getMasterRepositoryManager(), getMasterTransferManager());
+//		
+//		slaveTransferManager = new SlaveTransferManager();
+//		slaveTransferManager.init(getBaseRepositoryOperations(), 
+//				 				  getFilesContextTransformer(), 
+//				 				  getFullFileTransferOperation(),
+//				 				  getStatusTransferOperation());
+//		
+//	}
+	
+	public void initAsMaster() {
+		//Others
+		frameProcessor = new FrameProcessor();
+		protocolStatusMapper = new ProtocolStatusMapper();
+		filesContextTransformer = new FilesContextTransformer(getFrameProcessor());
 		
+		//Repository operations
+		repositoryVisitor = new RepositoryVisitor(appProperties);
 		baseRepositoryOperations = new BaseRepositoryOperations(getFrameProcessor(), getFilesContextTransformer(), appProperties);
 		
-		baseTransferOperations = new BaseTransferOperations(getFrameProcessor(), getBaseRepositoryOperations());
-		
-		repositoryStatusMapper = new RepositoryStatusMapper();
-		
-		slaveRepositoryManager = new SlaveRepositoryManager(getBaseRepositoryOperations(), getRepositoryStatusMapper());
-		
-		statusTransferOperation = new StatusTransferOperation(getBaseTransferOperations());
-		
+		//Transfer operations
+		baseTransferOperations = new BaseTransferOperations(getFrameProcessor(), 
+															getBaseRepositoryOperations());
 		fileTransferOperation = new FileTransferOperation(getBaseTransferOperations(), 
 														  getBaseRepositoryOperations(),
 														  appProperties);
-
-		batchTransferOperation = new BatchFilesTransferOperation(getFileTransferOperation(),
-				 												 getBaseTransferOperations(),
-				 												 getFilesContextTransformer(),
+		statusTransferOperation = new StatusTransferOperation(getBaseTransferOperations());
+		batchTransferOperation = new BatchFilesTransferOperation(getBaseTransferOperations(),
+																 getFileTransferOperation(),
+																 getStatusTransferOperation(),
+																 getBaseRepositoryOperations(),
+																 null,
+																 getFilesContextTransformer());
+		
+		fullFileTransferOperation = new FullFileTransferOperation(getBaseTransferOperations(),
+																  getFileTransferOperation(),
+																  getStatusTransferOperation(),
+																  getBatchFilesTransferOperation());
+		
+		//Layer 1
+		masterSlaveCommunicationPool = new MasterSlaveCommunicationPool();
+		masterTransferManager = new MasterTransferManager();
+		masterTransferManager.init(getFullFileTransferOperation(), 
+								   getStatusTransferOperation(),
+								   getMasterSlaveCommunicationPool(), 
+								   getProtocolStatusMapper());
+		masterRepositoryManager = new MasterRepositoryManager(getRepositoryVisitor(), appProperties);
+		
+		//Top layer: layer 0 
+		masterCommunicationProvider = 
+				new MasterCommunicationProvider(getMasterRepositoryManager(), getMasterTransferManager());
+	}
+	
+	public void initAsSlave() {
+		//Others
+		frameProcessor = new FrameProcessor();
+		protocolStatusMapper = new ProtocolStatusMapper();
+		filesContextTransformer = new FilesContextTransformer(getFrameProcessor());
+		
+		//Repository operations
+		repositoryVisitor = new RepositoryVisitor(appProperties);
+		baseRepositoryOperations = new BaseRepositoryOperations(getFrameProcessor(), getFilesContextTransformer(), appProperties);
+		slaveRepositoryManager = new SlaveRepositoryManager(getBaseRepositoryOperations(), 
+															getRepositoryStatusMapper());
+		slaveRepositoryManager.init();
+		
+		//Transfer operations
+		baseTransferOperations = new BaseTransferOperations(getFrameProcessor(), 
+															getBaseRepositoryOperations());
+		fileTransferOperation = new FileTransferOperation(getBaseTransferOperations(), 
+														  getBaseRepositoryOperations(),
+														  appProperties);
+		statusTransferOperation = new StatusTransferOperation(getBaseTransferOperations());
+		batchTransferOperation = new BatchFilesTransferOperation(getBaseTransferOperations(),
+				 												 getFileTransferOperation(),
+				 												 getStatusTransferOperation(),
 				 												 getBaseRepositoryOperations(),
 				 												 getSlaveRepositoryManager(),
-				 												 getStatusTransferOperation());
-		
-
-		fullFileTransferOperation = new FullFileTransferOperation(getFileTransferOperation(),
-																  getBaseTransferOperations(),
+				 												 getFilesContextTransformer());
+		fullFileTransferOperation = new FullFileTransferOperation(getBaseTransferOperations(),
+																  getFileTransferOperation(),
 																  getStatusTransferOperation(),
 																  getBatchFilesTransferOperation());
 		
 		
-		masterTransferManager = new MasterTransferManager();
-		masterTransferManager.init(getFullFileTransferOperation(), 
-								   getStatusTransferOperation(),
-								   getSlaveCommunicationPool(), 
-								   getProtocolStatusMapper());
-
-		repositoryVisitor = new RepositoryVisitor(appProperties);
-		repositoryManager = new MasterRepositoryManager(getRepositoryVisitor(), appProperties);
-
-		masterCommunicationProvider = 
-				new MasterCommunicationProvider(getRepositoryManager(), getMasterTransferManager());
-		
+		//Top layer: layer 0 
 		slaveTransferManager = new SlaveTransferManager();
 		slaveTransferManager.init(getBaseRepositoryOperations(), 
 				 				  getFilesContextTransformer(), 
 				 				  getFullFileTransferOperation(),
 				 				  getStatusTransferOperation());
-		
 	}
 	
 	public void start() {
+		appProperties = new AppProperties();
 		if (appProperties.isMaster()) {
-			startAsServer();
+			initAsMaster();
+			getMasterCommunicationProvider().init();
 		} else {
-			slaveRepositoryManager.init();
-			startAsClient();
+			initAsSlave();
+			getSlaveTransferManager().getSlaveTransferThread().start();
 		}
 	}
 
-	private void startAsServer() {
-		getMasterCommunicationProvider().init();
-	}
-
-	private void startAsClient() {
-		SlaveTransferManager stm = getSlaveTransferManager();
-		stm.getSlaveTransferThread().start();
-	}
-
-	// // prototype scope
-	// public RepositoryManager getRepositoryManager() {
-	// return new RepositoryManager();
-	// }
-
-	private FrameProcessor frameProcessor = new FrameProcessor();
 	private FrameProcessor getFrameProcessor() {
 		return frameProcessor;
 	}
 	
-	private FilesContextTransformer filesContextTransformer = new FilesContextTransformer(getFrameProcessor());
 	private FilesContextTransformer getFilesContextTransformer() {
 		return filesContextTransformer;
 	}
@@ -172,18 +249,16 @@ public class AppContext {
 		return fullFileTransferOperation;
 	}
 	
-	private MasterSlaveCommunicationPool slaveCommunicationPool = new MasterSlaveCommunicationPool();
-	private MasterSlaveCommunicationPool getSlaveCommunicationPool() {
-		return slaveCommunicationPool;
+	private MasterSlaveCommunicationPool getMasterSlaveCommunicationPool() {
+		return masterSlaveCommunicationPool;
 	}
 	
-	private ProtocolStatusMapper protocolStatusMapper = new ProtocolStatusMapper();
 	private ProtocolStatusMapper getProtocolStatusMapper() {
 		return protocolStatusMapper;
 	}
 	
-	public MasterRepositoryManager getRepositoryManager() {
-		return repositoryManager;
+	public MasterRepositoryManager getMasterRepositoryManager() {
+		return masterRepositoryManager;
 	}
 	
 	public MasterTransferManager getMasterTransferManager() {

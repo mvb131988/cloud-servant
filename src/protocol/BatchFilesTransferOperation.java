@@ -36,12 +36,12 @@ public class BatchFilesTransferOperation {
 	
 	private StatusTransferOperation sto;
 
-	public BatchFilesTransferOperation(FileTransferOperation fto, 
-									   BaseTransferOperations bto, 
-									   FilesContextTransformer fct, 
+	public BatchFilesTransferOperation(BaseTransferOperations bto, 
+									   FileTransferOperation fto, 
+									   StatusTransferOperation sto, 
 									   BaseRepositoryOperations bro,
 									   SlaveRepositoryManager srm,
-									   StatusTransferOperation sto) 
+									   FilesContextTransformer fct) 
 	{
 		super();
 		this.fto = fto;

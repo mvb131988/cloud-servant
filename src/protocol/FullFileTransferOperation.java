@@ -31,8 +31,8 @@ public class FullFileTransferOperation {
 	
 	private BatchFilesTransferOperation bfto;
 	
-	public FullFileTransferOperation(FileTransferOperation fto, 
-									 BaseTransferOperations bto, 
+	public FullFileTransferOperation(BaseTransferOperations bto, 
+									 FileTransferOperation fto, 
 									 StatusTransferOperation sto,
 									 BatchFilesTransferOperation bfto) {
 		super();
