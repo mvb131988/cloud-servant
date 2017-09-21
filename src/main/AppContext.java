@@ -165,6 +165,7 @@ public class AppContext {
 		filesContextTransformer = new FilesContextTransformer(getFrameProcessor());
 		
 		//Repository operations
+		repositoryStatusMapper = new RepositoryStatusMapper();
 		repositoryVisitor = new RepositoryVisitor(appProperties);
 		baseRepositoryOperations = new BaseRepositoryOperations(getFrameProcessor(), getFilesContextTransformer(), appProperties);
 		slaveRepositoryManager = new SlaveRepositoryManager(getBaseRepositoryOperations(), 
