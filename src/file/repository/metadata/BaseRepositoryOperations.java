@@ -15,6 +15,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 import java.util.Set;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -168,14 +169,14 @@ public class BaseRepositoryOperations {
 		private Queue<RepositoryRecord> asynchronyBuffer;
 		
 		//max asynchrony buffer size
-		private final int asynchronyBufferMaxSize = 100;
+		private final int asynchronyBufferMaxSize = 500;
 		
 		private AsynchronySearcherStatus asynchronySearcherStatus;
 		
 		private Lock lock = new ReentrantLock();
 		
 		private AsynchronySearcher() { 
-			asynchronyBuffer = new LinkedList<>();
+			asynchronyBuffer = new ArrayBlockingQueue<>(asynchronyBufferMaxSize);
 			asynchronySearcherStatus = AsynchronySearcherStatus.READY;
 		}
 		
@@ -190,12 +191,10 @@ public class BaseRepositoryOperations {
 			while((readBytes = next(is, buffer)) != -1){
 				List<RepositoryRecord> records = fct.transform(buffer, readBytes);
 				for(RepositoryRecord rr: records) {
-					//1. Set current record path to be used for file transfer
-					if(!existsFile(Paths.get(rr.getFileName())) && !bufferFull()) {
-						setAsynchrony(rr);
-					}
-					//2. if previous read asynchrony isn't consumed wait until it is consumed
-					else if(!existsFile(Paths.get(rr.getFileName())) && bufferFull()) {
+					
+					//Set current record path to be used for file transfer
+					if(!existsFile(Paths.get(rr.getFileName()))) {
+						//if previous read asynchrony isn't consumed wait until it is consumed
 						while(bufferFull()) {
 							try {
 								Thread.sleep(1000);
@@ -205,7 +204,8 @@ public class BaseRepositoryOperations {
 						}
 						setAsynchrony(rr);
 					}
-					//3. If file for record exists skip it move to next one
+					
+					//If file for record exists skip it move to next one
 					if(existsFile(Paths.get(rr.getFileName()))) {
 						// log as existed one
 					}
@@ -229,7 +229,7 @@ public class BaseRepositoryOperations {
 		 * @return true if buffer size exceeds asynchronyBufferMaxSize
 		 */
 		private boolean bufferFull() {
-			return asynchronyBuffer.size() > asynchronyBufferMaxSize;
+			return asynchronyBuffer.size() == asynchronyBufferMaxSize;
 		}
 		
 		/**
@@ -240,20 +240,11 @@ public class BaseRepositoryOperations {
 		}
 		
 		public RepositoryRecord nextAsynchrony() {
-			lock.lock();
-			
-			RepositoryRecord asynchrony = asynchronyBuffer.poll();
-			
-			lock.unlock();
-			return asynchrony;
+			return asynchronyBuffer.poll();
 		}
 		
 		private void setAsynchrony(RepositoryRecord rr) {
-			lock.lock();
-			
-			asynchronyBuffer.add(rr);
-			
-			lock.unlock();
+			asynchronyBuffer.offer(rr);
 		}
 		
 		public AsynchronySearcherStatus getStatus() {
