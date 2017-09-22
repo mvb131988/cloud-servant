@@ -11,7 +11,9 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileTime;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -161,15 +163,19 @@ public class BaseRepositoryOperations {
 	//TODO: Delete operation isn't implemented
 	public class AsynchronySearcher implements Runnable {
 		
-		//TODO: improve by adding buffer queue
-		private RepositoryRecord asynchrony;
+		//Records that don't have corresponding file in the repository
+		//TODO: replace to synchronized queue
+		private Queue<RepositoryRecord> asynchronyBuffer;
+		
+		//max asynchrony buffer size
+		private final int asynchronyBufferMaxSize = 100;
 		
 		private AsynchronySearcherStatus asynchronySearcherStatus;
 		
 		private Lock lock = new ReentrantLock();
 		
 		private AsynchronySearcher() { 
-			asynchrony = null;
+			asynchronyBuffer = new LinkedList<>();
 			asynchronySearcherStatus = AsynchronySearcherStatus.READY;
 		}
 		
@@ -185,12 +191,12 @@ public class BaseRepositoryOperations {
 				List<RepositoryRecord> records = fct.transform(buffer, readBytes);
 				for(RepositoryRecord rr: records) {
 					//1. Set current record path to be used for file transfer
-					if(!existsFile(Paths.get(rr.getFileName())) && asynchrony == null) {
+					if(!existsFile(Paths.get(rr.getFileName())) && !bufferFull()) {
 						setAsynchrony(rr);
 					}
 					//2. if previous read asynchrony isn't consumed wait until it is consumed
-					else if(!existsFile(Paths.get(rr.getFileName())) && asynchrony != null) {
-						while(asynchrony != null) {
+					else if(!existsFile(Paths.get(rr.getFileName())) && bufferFull()) {
+						while(bufferFull()) {
 							try {
 								Thread.sleep(1000);
 							} catch (InterruptedException e) {
@@ -208,7 +214,7 @@ public class BaseRepositoryOperations {
 			closeDataRepo(is);
 			
 			//Last read. Wait until last read record isn't consumed.
-			while(asynchrony != null) {
+			while(!bufferEmpty()) {
 				try {
 					Thread.sleep(1000);
 				} catch (InterruptedException e) {
@@ -218,20 +224,35 @@ public class BaseRepositoryOperations {
 			
 			asynchronySearcherStatus = AsynchronySearcherStatus.TERMINATED;
 		}
-
+		
+		/**
+		 * @return true if buffer size exceeds asynchronyBufferMaxSize
+		 */
+		private boolean bufferFull() {
+			return asynchronyBuffer.size() > asynchronyBufferMaxSize;
+		}
+		
+		/**
+		 * @return true when buffer size is zero
+		 */
+		private boolean bufferEmpty() {
+			return asynchronyBuffer.size() == 0;
+		}
+		
 		public RepositoryRecord nextAsynchrony() {
 			lock.lock();
 			
-			RepositoryRecord copy = asynchrony;
-			asynchrony = null;
+			RepositoryRecord asynchrony = asynchronyBuffer.poll();
 			
 			lock.unlock();
-			return copy;
+			return asynchrony;
 		}
 		
 		private void setAsynchrony(RepositoryRecord rr) {
 			lock.lock();
-			asynchrony = rr;
+			
+			asynchronyBuffer.add(rr);
+			
 			lock.unlock();
 		}
 		

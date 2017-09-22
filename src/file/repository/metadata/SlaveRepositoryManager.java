@@ -59,7 +59,7 @@ public class SlaveRepositoryManager {
 	}
 	
 	/**
-	 * Returns next repository record that doens't have corresponding file in slave repository. 
+	 * Returns next repository record that doesn't have corresponding file in slave repository. 
 	 * Non-blocking
 	 */
 	public RepositoryRecord next() {

@@ -63,58 +63,6 @@ public class AppContext {
 	
 	private FrameProcessor frameProcessor;
 	
-	//TODO: separate contexts for master/slave
-//	public AppContext() {
-//		appProperties = new AppProperties();
-//		
-//		baseRepositoryOperations = new BaseRepositoryOperations(getFrameProcessor(), getFilesContextTransformer(), appProperties);
-//		
-//		baseTransferOperations = new BaseTransferOperations(getFrameProcessor(), getBaseRepositoryOperations());
-//		
-//		repositoryStatusMapper = new RepositoryStatusMapper();
-//		
-//		slaveRepositoryManager = new SlaveRepositoryManager(getBaseRepositoryOperations(), getRepositoryStatusMapper());
-//		
-//		statusTransferOperation = new StatusTransferOperation(getBaseTransferOperations());
-//		
-//		fileTransferOperation = new FileTransferOperation(getBaseTransferOperations(), 
-//														  getBaseRepositoryOperations(),
-//														  appProperties);
-//
-//		batchTransferOperation = new BatchFilesTransferOperation(getBaseTransferOperations(),
-//				 												 getFileTransferOperation(),
-//				 												 getStatusTransferOperation(),
-//				 												 getBaseRepositoryOperations(),
-//				 												 getSlaveRepositoryManager(),
-//				 												 getFilesContextTransformer());
-//		
-//
-//		fullFileTransferOperation = new FullFileTransferOperation(getBaseTransferOperations(),
-//																  getFileTransferOperation(),
-//																  getStatusTransferOperation(),
-//																  getBatchFilesTransferOperation());
-//		
-//		
-//		masterTransferManager = new MasterTransferManager();
-//		masterTransferManager.init(getFullFileTransferOperation(), 
-//								   getStatusTransferOperation(),
-//								   getMasterSlaveCommunicationPool(), 
-//								   getProtocolStatusMapper());
-//
-//		repositoryVisitor = new RepositoryVisitor(appProperties);
-//		masterRepositoryManager = new MasterRepositoryManager(getRepositoryVisitor(), appProperties);
-//
-//		masterCommunicationProvider = 
-//				new MasterCommunicationProvider(getMasterRepositoryManager(), getMasterTransferManager());
-//		
-//		slaveTransferManager = new SlaveTransferManager();
-//		slaveTransferManager.init(getBaseRepositoryOperations(), 
-//				 				  getFilesContextTransformer(), 
-//				 				  getFullFileTransferOperation(),
-//				 				  getStatusTransferOperation());
-//		
-//	}
-	
 	public void initAsMaster() {
 		//Others
 		frameProcessor = new FrameProcessor();
