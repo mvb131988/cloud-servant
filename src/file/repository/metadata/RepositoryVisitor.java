@@ -31,7 +31,12 @@ public class RepositoryVisitor implements FileVisitor<Path> {
 
 	@Override
 	public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-		filesList.add(repositoryRoot.relativize(file).toString());
+		if(file.getFileName().toString().equals("data.repo")) {
+			//filter out data.repo
+		}
+		else {
+			filesList.add(repositoryRoot.relativize(file).toString());
+		}
 		return FileVisitResult.CONTINUE;
 	}
 

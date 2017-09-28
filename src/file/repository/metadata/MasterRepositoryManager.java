@@ -19,6 +19,7 @@ import java.util.Set;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import exception.FilePathMaxLengthException;
 import main.AppProperties;
 import protocol.file.FrameProcessor;
 
@@ -168,9 +169,17 @@ public class MasterRepositoryManager {
 				System.arraycopy(bSize, 0, buffer, offset, RecordConstants.NAME_LENGTH_SIZE);
 				offset += RecordConstants.NAME_LENGTH_SIZE;
 
-				// Set maximum number of bytes for file name (200 bytes as an
-				// example)
+				// Set maximum number of bytes for file name
+				// In the worst case file path could contain RecordConstants.NAME_SIZE/2 cyrillic symbols(2 bytes per cyrilic symbol)
 				byte[] bFileName = fileName.getBytes("UTF-8");
+				//TODO: Propagate higher when exception handling is ready
+				if(bFileName.length > RecordConstants.NAME_SIZE) {
+					try {
+						throw new FilePathMaxLengthException();
+					} catch (FilePathMaxLengthException e) {
+						e.printStackTrace();
+					}
+				}
 				System.arraycopy(bFileName, 0, buffer, offset, (int) length);
 				offset += RecordConstants.NAME_SIZE;
 
