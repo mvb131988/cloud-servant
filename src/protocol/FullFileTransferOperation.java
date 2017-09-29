@@ -55,6 +55,7 @@ public class FullFileTransferOperation {
 			switch (ot) {
 			case REQUEST_MASTER_STATUS_START: 
 				sto.executeAsMaster(os, pushbackInputStream, MasterStatus.READY);
+				logger.info("[" + this.getClass().getSimpleName() + "] slave requested status");
 				break;
 			case REQUEST_TRANSFER_START:
 				bto.receiveOperationType(pushbackInputStream);
@@ -64,21 +65,14 @@ public class FullFileTransferOperation {
 				logger.info("[" + this.getClass().getSimpleName() + "] sent transfer start operation accept");
 				break;
 			case REQUEST_BATCH_START:
-				bto.receiveOperationType(pushbackInputStream);
-				logger.info("[" + this.getClass().getSimpleName() + "] slave requested batch transfer start operation");
-
-				bto.sendOperationType(os, OperationType.RESPONSE_BATCH_START);
-				logger.info("[" + this.getClass().getSimpleName() + "] sent batch transfer start operation accept");
-				break;
-			case REQUEST_BATCH_END:
-				bto.receiveOperationType(pushbackInputStream);
-				logger.info("[" + this.getClass().getSimpleName() + "] slave requested batch transfer end operation");
-
-				bto.sendOperationType(os, OperationType.RESPONSE_BATCH_END);
-				logger.info("[" + this.getClass().getSimpleName() + "] sent batch transfer end operation accept");
+				logger.info("[" + this.getClass().getSimpleName() + "] batch transfer started");
+				bfto.executeAsMaster(os, pushbackInputStream);
+				logger.info("[" + this.getClass().getSimpleName() + "] batch transfer ended");
 				break;
 			case REQUEST_FILE_START:
+				logger.info("[" + this.getClass().getSimpleName() + "] file transfer started");
 				fto.executeAsMaster(os, pushbackInputStream);
+				logger.info("[" + this.getClass().getSimpleName() + "] file transfer ended");
 				break;
 			default:
 				// error detected

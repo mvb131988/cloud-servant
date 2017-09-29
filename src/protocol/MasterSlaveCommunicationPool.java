@@ -1,7 +1,9 @@
 package protocol;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -39,6 +41,14 @@ public class MasterSlaveCommunicationPool {
 	public void add(MasterTransferManager.MasterSlaveCommunicationThread communication){
 		lock.lock();
 		pool.add(communication);
+		lock.unlock();
+	}
+	
+	public void remove(MasterTransferManager.MasterSlaveCommunicationThread communication){
+		lock.lock();
+		pool.removeIf((MasterTransferManager.MasterSlaveCommunicationThread c) -> {
+			return c == communication;
+		});
 		lock.unlock();
 	}
 	

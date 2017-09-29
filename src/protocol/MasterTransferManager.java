@@ -86,13 +86,25 @@ public class MasterTransferManager {
 			// Pass os and is to an allocated thread, initial status
 			MasterSlaveCommunicationThread communication = new MasterSlaveCommunicationThread(slave);
 			slaveThreadPool.execute(communication);
-
-			slaveCommunicationPool.add(communication);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
 
+	/**
+	 * Adds newly created master slave communication into the pool
+	 */
+	private void addSlave(MasterSlaveCommunicationThread communication) {
+		slaveCommunicationPool.add(communication);
+	}
+	
+	/**
+	 * Removes terminated master slave communication from the pool
+	 */
+	private void removeSlave(MasterSlaveCommunicationThread communication) {
+		slaveCommunicationPool.remove(communication);
+	}
+	
 	/**
 	 * Requests all running to change their status to BUSY after the last
 	 * transfer operation is completed
@@ -266,6 +278,9 @@ public class MasterTransferManager {
 		@Override
 		public void run() {
 			try {
+				
+				addSlave(this);
+				
 				for (;;) {
 					if (actualStatus == MasterSlaveCommunicationStatus.READY) {
 						logger.info("[" + this.getClass().getSimpleName() + "] transfer start");
@@ -295,6 +310,9 @@ public class MasterTransferManager {
 			}
 			finally {
 				try {
+					
+					removeSlave(this);
+					
 					os.close();
 					is.close();
 					slave.close();

@@ -83,7 +83,6 @@ public class AppContext {
 		batchTransferOperation = new BatchFilesTransferOperation(getBaseTransferOperations(),
 																 getFileTransferOperation(),
 																 getStatusTransferOperation(),
-																 getBaseRepositoryOperations(),
 																 null,
 																 getFilesContextTransformer());
 		
@@ -130,7 +129,6 @@ public class AppContext {
 		batchTransferOperation = new BatchFilesTransferOperation(getBaseTransferOperations(),
 				 												 getFileTransferOperation(),
 				 												 getStatusTransferOperation(),
-				 												 getBaseRepositoryOperations(),
 				 												 getSlaveRepositoryManager(),
 				 												 getFilesContextTransformer());
 		fullFileTransferOperation = new FullFileTransferOperation(getBaseTransferOperations(),
