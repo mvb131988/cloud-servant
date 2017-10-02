@@ -1,6 +1,6 @@
-package protocol;
+package transfer;
 
-import static protocol.constant.OperationType.REQUEST_TRANSFER_END;
+import static transfer.constant.OperationType.REQUEST_TRANSFER_END;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -11,9 +11,9 @@ import java.nio.file.Paths;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import protocol.constant.MasterStatus;
-import protocol.constant.OperationType;
-import protocol.context.FileContext;
+import transfer.constant.MasterStatus;
+import transfer.constant.OperationType;
+import transfer.context.FileContext;
 
 /**
  * Main operation of the protocol. Organize main protocol cycle, which handles all supported operations.  

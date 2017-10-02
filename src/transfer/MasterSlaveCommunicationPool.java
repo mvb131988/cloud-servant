@@ -1,4 +1,4 @@
-package protocol;
+package transfer;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import protocol.MasterTransferManager.MasterSlaveCommunicationThread;
+import transfer.MasterTransferManager.MasterSlaveCommunicationThread;
 
 /**
  * Synchronizer class which main purpose is to provide separate access to

@@ -5,9 +5,9 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
-import file.repository.metadata.RecordConstants;
-import file.repository.metadata.RepositoryRecord;
-import protocol.context.FileContext;
+import repository.RecordConstants;
+import repository.RepositoryRecord;
+import transfer.context.FileContext;
 
 public class FilesContextTransformer {
 

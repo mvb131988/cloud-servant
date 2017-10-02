@@ -1,4 +1,4 @@
-package file.repository.metadata;
+package repository;
 
 import java.io.IOException;
 import java.io.OutputStream;

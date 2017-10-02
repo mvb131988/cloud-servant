@@ -1,4 +1,4 @@
-package file.repository.metadata;
+package repository;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -19,8 +19,8 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import exception.FilePathMaxLengthException;
-import file.repository.metadata.status.AsynchronySearcherStatus;
 import main.AppProperties;
+import repository.status.AsynchronySearcherStatus;
 import transformer.FilesContextTransformer;
 import transformer.LongTransformer;
 

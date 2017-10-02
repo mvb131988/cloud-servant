@@ -1,4 +1,4 @@
-package file.repository.metadata;
+package repository;
 
 public enum RepositoryScannerStatus {
 

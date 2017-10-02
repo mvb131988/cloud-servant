@@ -1,10 +1,10 @@
-package protocol;
+package transfer;
 
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import protocol.constant.MasterStatus;
-import protocol.constant.OperationType;
+import transfer.constant.MasterStatus;
+import transfer.constant.OperationType;
 
 public class StatusTransferOperation {
 

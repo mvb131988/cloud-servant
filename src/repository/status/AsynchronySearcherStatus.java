@@ -1,4 +1,4 @@
-package file.repository.metadata.status;
+package repository.status;
 
 public enum AsynchronySearcherStatus {
 

@@ -1,4 +1,4 @@
-package protocol;
+package transfer;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -12,10 +12,10 @@ import java.util.concurrent.Executors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import protocol.constant.MasterSlaveCommunicationStatus;
-import protocol.constant.MasterStatus;
-import protocol.constant.MasterTransferThreadStatus;
-import protocol.constant.ProtocolStatusMapper;
+import transfer.constant.MasterSlaveCommunicationStatus;
+import transfer.constant.MasterStatus;
+import transfer.constant.MasterTransferThreadStatus;
+import transfer.constant.ProtocolStatusMapper;
 
 /**
  * Responsible for the full cycle file transfer(from master side). The cycle

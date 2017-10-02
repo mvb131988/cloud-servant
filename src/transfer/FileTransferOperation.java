@@ -1,4 +1,4 @@
-package protocol;
+package transfer;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -7,10 +7,10 @@ import java.nio.file.Path;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import file.repository.metadata.BaseRepositoryOperations;
 import main.AppProperties;
-import protocol.constant.OperationType;
-import protocol.context.FileContext;
+import repository.BaseRepositoryOperations;
+import transfer.constant.OperationType;
+import transfer.context.FileContext;
 
 /**
  *	Implements transfer protocol for a single file. Both master and slave sides. 

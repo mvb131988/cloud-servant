@@ -3,11 +3,11 @@ package provider;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import file.repository.metadata.MasterRepositoryManager;
-import file.repository.metadata.MasterRepositoryManager.RepositoryScaner;
-import file.repository.metadata.RepositoryScannerStatus;
-import protocol.MasterTransferManager;
-import protocol.MasterTransferManager.MasterTransferThread;
+import repository.MasterRepositoryManager;
+import repository.RepositoryScannerStatus;
+import repository.MasterRepositoryManager.RepositoryScaner;
+import transfer.MasterTransferManager;
+import transfer.MasterTransferManager.MasterTransferThread;
 
 /**
  * Synchronize repository scanner with master transfer manager.

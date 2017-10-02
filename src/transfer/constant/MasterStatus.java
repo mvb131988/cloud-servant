@@ -1,4 +1,4 @@
-package protocol.constant;
+package transfer.constant;
 
 public enum MasterStatus {
 

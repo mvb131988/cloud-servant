@@ -1,4 +1,4 @@
-package file.repository.metadata;
+package repository;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -6,9 +6,9 @@ import java.nio.file.Paths;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import file.repository.metadata.BaseRepositoryOperations.AsynchronySearcher;
-import file.repository.metadata.status.SlaveRepositoryManagerStatus;
-import file.repository.metadata.status.RepositoryStatusMapper;
+import repository.BaseRepositoryOperations.AsynchronySearcher;
+import repository.status.RepositoryStatusMapper;
+import repository.status.SlaveRepositoryManagerStatus;
 
 public class SlaveRepositoryManager {
 

@@ -1,6 +1,6 @@
-package protocol;
+package transfer;
 
-import static protocol.constant.OperationType.REQUEST_BATCH_END;
+import static transfer.constant.OperationType.REQUEST_BATCH_END;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -9,11 +9,11 @@ import java.io.PushbackInputStream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import file.repository.metadata.RepositoryRecord;
-import file.repository.metadata.SlaveRepositoryManager;
-import file.repository.metadata.status.SlaveRepositoryManagerStatus;
-import protocol.constant.MasterStatus;
-import protocol.constant.OperationType;
+import repository.RepositoryRecord;
+import repository.SlaveRepositoryManager;
+import repository.status.SlaveRepositoryManagerStatus;
+import transfer.constant.MasterStatus;
+import transfer.constant.OperationType;
 import transformer.FilesContextTransformer;
 
 /**
