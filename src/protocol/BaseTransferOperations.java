@@ -11,18 +11,18 @@ import java.nio.file.Paths;
 import file.repository.metadata.BaseRepositoryOperations;
 import protocol.constant.MasterStatus;
 import protocol.constant.OperationType;
-import protocol.file.FrameProcessor;
+import transformer.LongTransformer;
 
 /**
  *  Performs base/primitive transfer operations. All primitive operations are considering in the context of single file transfering. 
  */
 public class BaseTransferOperations {
 
-	private FrameProcessor fp;
+	private LongTransformer fp;
 	
 	private BaseRepositoryOperations bro;
 
-	public BaseTransferOperations(FrameProcessor fp, BaseRepositoryOperations bro) {
+	public BaseTransferOperations(LongTransformer fp, BaseRepositoryOperations bro) {
 		super();
 		this.fp = fp;
 		this.bro = bro;
@@ -77,7 +77,7 @@ public class BaseTransferOperations {
 
 	public void sendLong(OutputStream os, long size) {
 		try {
-			os.write(fp.packSize(size));
+			os.write(fp.packLong(size));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -88,7 +88,7 @@ public class BaseTransferOperations {
 		try {
 			byte[] size = new byte[8];
 			is.read(size);
-			assembledSize = fp.extractSize(size);
+			assembledSize = fp.extractLong(size);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

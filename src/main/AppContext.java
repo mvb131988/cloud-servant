@@ -17,15 +17,15 @@ import protocol.MasterTransferManager;
 import protocol.SlaveTransferManager;
 import protocol.StatusTransferOperation;
 import protocol.constant.ProtocolStatusMapper;
-import protocol.file.FrameProcessor;
 import provider.MasterCommunicationProvider;
 import transformer.FilesContextTransformer;
+import transformer.LongTransformer;
 
 public class AppContext {
 
 	private Logger logger = LogManager.getRootLogger();
 
-	private FrameProcessor fp = new FrameProcessor();
+	private LongTransformer fp = new LongTransformer();
 
 	private AppProperties appProperties;
 	
@@ -61,11 +61,11 @@ public class AppContext {
 	
 	private FilesContextTransformer filesContextTransformer;
 	
-	private FrameProcessor frameProcessor;
+	private LongTransformer frameProcessor;
 	
 	public void initAsMaster() {
 		//Others
-		frameProcessor = new FrameProcessor();
+		frameProcessor = new LongTransformer();
 		protocolStatusMapper = new ProtocolStatusMapper();
 		filesContextTransformer = new FilesContextTransformer(getFrameProcessor());
 		
@@ -98,7 +98,7 @@ public class AppContext {
 								   getStatusTransferOperation(),
 								   getMasterSlaveCommunicationPool(), 
 								   getProtocolStatusMapper());
-		masterRepositoryManager = new MasterRepositoryManager(getRepositoryVisitor(), appProperties);
+		masterRepositoryManager = new MasterRepositoryManager(getRepositoryVisitor(), getBaseRepositoryOperations(), appProperties);
 		
 		//Top layer: layer 0 
 		masterCommunicationProvider = 
@@ -107,7 +107,7 @@ public class AppContext {
 	
 	public void initAsSlave() {
 		//Others
-		frameProcessor = new FrameProcessor();
+		frameProcessor = new LongTransformer();
 		protocolStatusMapper = new ProtocolStatusMapper();
 		filesContextTransformer = new FilesContextTransformer(getFrameProcessor());
 		
@@ -156,7 +156,7 @@ public class AppContext {
 		}
 	}
 
-	private FrameProcessor getFrameProcessor() {
+	private LongTransformer getFrameProcessor() {
 		return frameProcessor;
 	}
 	

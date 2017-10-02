@@ -1,7 +1,10 @@
 package file.repository.metadata;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.RandomAccessFile;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
@@ -9,38 +12,223 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileTime;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
-import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import exception.FilePathMaxLengthException;
 import file.repository.metadata.status.AsynchronySearcherStatus;
 import main.AppProperties;
-import protocol.file.FrameProcessor;
 import transformer.FilesContextTransformer;
+import transformer.LongTransformer;
 
 public class BaseRepositoryOperations {
 
 	private Path repositoryRoot;
 	private final static int BATCH_SIZE = 10000;
 
-	private FrameProcessor frameProcessor;
+	private LongTransformer frameProcessor;
 	
 	private FilesContextTransformer fct;
 	
-	public BaseRepositoryOperations(FrameProcessor frameProcessor, FilesContextTransformer fct, AppProperties appProperties) {
+	public BaseRepositoryOperations(LongTransformer frameProcessor, FilesContextTransformer fct, AppProperties appProperties) {
 		super();
 		this.frameProcessor = frameProcessor;
 		this.fct = fct;
 		
 		this.repositoryRoot = appProperties.getRepositoryRoot();
 	}
+	
+	//--------------------------------------------------------------------------------------------------------------------------------
+	//	Set of unused methods which are suitable for investigation purpose 
+	//--------------------------------------------------------------------------------------------------------------------------------
+	
+	@SuppressWarnings("unused")
+	public long countRecords() {
+		long counter = -1;
 
+		Path configPath = repositoryRoot.resolve("master.repo");
+		try {
+			long size = Files.readAttributes(configPath, BasicFileAttributes.class).size();
+			counter = size / RecordConstants.FULL_SIZE;
+			long remainder = size % RecordConstants.FULL_SIZE;
+
+			// File is corrupted
+			if (remainder != 0) {
+				throw new Exception("File is corrupted");
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		return counter;
+	}
+	
+	@SuppressWarnings("unused")
+	public void write(int baseAddr, int id, String name, byte status) {
+		Path configPath = repositoryRoot.resolve("master.repo");
+		try (RandomAccessFile file = new RandomAccessFile(configPath.toString(), "rw")) {
+
+			// offset = cursor pos
+			int offset = baseAddr;
+
+			// file id
+			file.seek(offset);
+			file.write(frameProcessor.packLong(id));
+			offset += 8;
+
+			// file name length
+			long length = name.getBytes("UTF-8").length;
+			file.write(frameProcessor.packLong(length));
+			offset += 8;
+
+			// Set maximum number of bytes for file name (200 bytes as example)
+			file.write(name.getBytes("UTF-8"));
+			offset += 200;
+
+			file.seek(offset);
+			file.write(status);
+			offset += 1;
+
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e1) {
+			e1.printStackTrace();
+		}
+
+	}
+
+	@SuppressWarnings("unused")
+	public RepositoryRecord read(int baseAddr) {
+		RepositoryRecord repositoryRecord = new RepositoryRecord();
+
+		int offset = baseAddr;
+
+		Path configPath = repositoryRoot.resolve("data.repo");
+		try (RandomAccessFile file = new RandomAccessFile(configPath.toString(), "r")) {
+			// file id
+			file.seek(offset);
+			byte[] bId = new byte[8];
+			file.read(bId, 0, 8);
+			long id = frameProcessor.extractLong(bId);
+			offset += 8;
+
+			// file name length
+			byte[] bLength = new byte[8];
+			int l = file.read(bLength, 0, 8);
+			long length = frameProcessor.extractLong(bLength);
+			offset += 8;
+
+			byte[] bName = new byte[200];
+			file.read(bName, 0, 200);
+			String name = new String(bName, 0, (int) length, "UTF-8");
+			offset += 200;
+
+			int status = file.read();
+			offset++;
+
+			repositoryRecord.setId(id);
+			repositoryRecord.setFileName(name);
+			repositoryRecord.setFileameSize(length);
+			repositoryRecord.setStatus((byte) status);
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		return repositoryRecord;
+	}
+
+	//--------------------------------------------------------------------------------------------------------------------------------
+	//	Unused finished 
+	//--------------------------------------------------------------------------------------------------------------------------------
+	
+	/**
+	 * Writes the list of files into data.repo Much more faster than random
+	 * access file
+	 *
+	 * Record format(defined by RecordConstants)-------------------------- 
+	 * | 8 bytes| 8 bytes          | 500 bytes| 1 byte     |
+	 * ------------------------------------------------------------------- 
+	 * | fileId | size of fileName | fileName | fileStatus |
+	 * -------------------------------------------------------------------	 
+	 *
+	 * @param fileNames
+	 *            - list of files(relative names) to be written into data.repo
+	 * @param startId
+	 *            - number used as starting to generate(increment sequence)
+	 *            unique ids for all files from fileNames
+	 */
+	public void writeAll(List<String> fileNames, int startId) {
+		byte[] buffer = new byte[RecordConstants.FULL_SIZE * BATCH_SIZE];
+		int offset = 0;
+
+		int id = startId;
+
+		Path configPath = repositoryRoot.resolve("data.repo");
+
+		try (OutputStream os = Files.newOutputStream(configPath);) {
+
+			// write record
+			for (String fileName : fileNames) {
+
+				// file id
+				byte[] bSize = frameProcessor.packLong(++id);
+				System.arraycopy(bSize, 0, buffer, offset, RecordConstants.ID_SIZE);
+				offset += RecordConstants.ID_SIZE;
+
+				// file name length
+				long length = fileName.getBytes("UTF-8").length;
+				bSize = frameProcessor.packLong(length);
+				System.arraycopy(bSize, 0, buffer, offset, RecordConstants.NAME_LENGTH_SIZE);
+				offset += RecordConstants.NAME_LENGTH_SIZE;
+
+				// Set maximum number of bytes for file name
+				// In the worst case file path could contain RecordConstants.NAME_SIZE/2 cyrillic symbols(2 bytes per cyrilic symbol)
+				byte[] bFileName = fileName.getBytes("UTF-8");
+				//TODO(MAJOR): Propagate higher when exception handling is ready
+				if(bFileName.length > RecordConstants.NAME_SIZE) {
+					try {
+						throw new FilePathMaxLengthException();
+					} catch (FilePathMaxLengthException e) {
+						e.printStackTrace();
+					}
+				}
+				System.arraycopy(bFileName, 0, buffer, offset, (int) length);
+				offset += RecordConstants.NAME_SIZE;
+
+				// Set record status code
+				byte status = 1;
+				buffer[offset] = status;
+				offset += RecordConstants.STATUS_SIZE;
+
+				if (offset == buffer.length) {
+
+					// flush full buffer
+					os.write(buffer, 0, offset);
+					os.flush();
+
+					buffer = new byte[RecordConstants.FULL_SIZE * BATCH_SIZE];
+					offset = 0;
+				}
+			}
+
+			// final flush
+			// from 0 to offset - 1
+			os.write(buffer, 0, offset);
+			os.flush();
+		}
+
+		catch (IOException e) {
+			e.printStackTrace();
+		}
+
+	}
+	
 	/**
 	 * Creates directory relative to the repository root 
 	 */
@@ -80,7 +268,7 @@ public class BaseRepositoryOperations {
 	/**
 	 * Assign hidden attribute to the directory 
 	 */
-	//TODO: os dependent operation. Execute only on windows. On linux dir started with '.' is already hidden. 
+	//TODO(NORMAL): os dependent operation. Execute only on windows. On linux dir started with '.' is already hidden. 
 	public void hideDirectory(Path relativePath) {
 		try {
 			Files.setAttribute(repositoryRoot.resolve(relativePath), "dos:hidden", Boolean.TRUE, LinkOption.NOFOLLOW_LINKS);
@@ -161,11 +349,10 @@ public class BaseRepositoryOperations {
 	 * asynchrony - is a file that exists in data.repo and doesn't in slave file system
 	 * 				or vice versa.
 	 */
-	//TODO: Delete operation isn't implemented
+	//TODO(FUTURE): Delete operation isn't implemented
 	public class AsynchronySearcher implements Runnable {
 		
 		//Records that don't have corresponding file in the repository
-		//TODO: replace to synchronized queue
 		private Queue<RepositoryRecord> asynchronyBuffer;
 		
 		//max asynchrony buffer size

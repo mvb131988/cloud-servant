@@ -1,9 +1,9 @@
-package protocol.file;
+package transformer;
 
 /**
  * File size value limitation 2^63 byte 
  */
-public class FrameProcessor {
+public class LongTransformer {
 
 	private final int BYTE_IN_BITS = 8;
 	
@@ -19,8 +19,7 @@ public class FrameProcessor {
 	//Don't want to touch sign bit to avoid negative long
 	private long SEVENTH_BYTE = SIXTH_BYTE << BYTE_IN_BITS - 1;
 
-	//TODO: rename both methods 
-	public long extractSize(byte[] disassembledSize) {
+	public long extractLong(byte[] disassembledSize) {
 		long size = 0;
 		
 		size = ((long) disassembledSize[0] & INT_EXTENSION) + 
@@ -35,7 +34,7 @@ public class FrameProcessor {
 		return size;
 	}
 
-	public byte[] packSize(long size) {
+	public byte[] packLong(long size) {
 		byte[] disassembledSize = new byte[8];
 		
 		disassembledSize[0] = (byte)(size & ZERO_BYTE);

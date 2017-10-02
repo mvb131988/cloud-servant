@@ -8,13 +8,12 @@ import java.util.List;
 import file.repository.metadata.RecordConstants;
 import file.repository.metadata.RepositoryRecord;
 import protocol.context.FileContext;
-import protocol.file.FrameProcessor;
 
 public class FilesContextTransformer {
 
-	private FrameProcessor frameProcessor;
+	private LongTransformer frameProcessor;
 	
-	public FilesContextTransformer(FrameProcessor frameProcessor) {
+	public FilesContextTransformer(LongTransformer frameProcessor) {
 		super();
 		this.frameProcessor = frameProcessor;
 	}
@@ -42,12 +41,12 @@ public class FilesContextTransformer {
 
 			byte[] bId = new byte[RecordConstants.ID_SIZE];
 			System.arraycopy(bytes, offset, bId, 0, RecordConstants.ID_SIZE);
-			long id = frameProcessor.extractSize(bId);
+			long id = frameProcessor.extractLong(bId);
 			offset += RecordConstants.ID_SIZE;
 
 			byte[] bSize = new byte[RecordConstants.NAME_LENGTH_SIZE];
 			System.arraycopy(bytes, offset, bSize, 0, RecordConstants.NAME_LENGTH_SIZE);
-			long length = frameProcessor.extractSize(bSize);
+			long length = frameProcessor.extractLong(bSize);
 			offset += RecordConstants.NAME_LENGTH_SIZE;
 
 			byte[] bFileName = new byte[(int) RecordConstants.NAME_SIZE];

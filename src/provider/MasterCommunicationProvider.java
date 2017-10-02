@@ -47,7 +47,7 @@ public class MasterCommunicationProvider {
 			logger.info("[" + this.getClass().getSimpleName() + "] started");
 			
 			boolean isStartup = true;
-			//TODO: Define schedule rules
+			//TODO(NORMAL): Define schedule rules
 			boolean isScheduled = false;
 
 			RepositoryScaner repositoryScaner = repositoryManager.getScaner();

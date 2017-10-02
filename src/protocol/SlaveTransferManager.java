@@ -68,7 +68,7 @@ public class SlaveTransferManager {
 			}
 		}
 		
-		// TODO: run this on schedule
+		// TODO(NORMAL): run this on schedule
 
 		ffto.executeAsSlave(os, is);
 	}
