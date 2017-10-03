@@ -9,6 +9,7 @@ import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import exception.FilePathMaxLengthException;
 import main.AppProperties;
 
 /**
@@ -38,28 +39,24 @@ public class MasterRepositoryManager {
 	/**
 	 * Rescans the whole repository and recreates repository data.repo where the
 	 * records corresponding to all files are.
+	 * @throws IOException 
 	 */
-	private List<String> scan() {
+	private List<String> scan() throws IOException {
 		repositoryVisitor.reset();
-		try {
-			Files.walkFileTree(repositoryRoot, repositoryVisitor);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		Files.walkFileTree(repositoryRoot, repositoryVisitor);
 		return repositoryVisitor.getFilesList();
 	}
 
 	/**
 	 * Initializes Recreates data.repo file. Existed file is replaced by an
 	 * empty one.
+	 * @throws IOException 
 	 */
-	private void init() {
+	private void init() throws IOException {
 		Path configPath = repositoryRoot.resolve("data.repo");
 		try (OutputStream os = Files.newOutputStream(configPath);) {
 
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		} 
 	}
 
 	/**
@@ -67,8 +64,10 @@ public class MasterRepositoryManager {
 	 * 
 	 * @param fileNames
 	 *            - list of files(relative names) to be written into data.repo
+	 * @throws FilePathMaxLengthException 
+	 * @throws IOException 
 	 */
-	private void writeAll(List<String> fileNames) {
+	private void writeAll(List<String> fileNames) throws IOException, FilePathMaxLengthException {
 		bro.writeAll(fileNames, 0);
 	}
 
@@ -95,22 +94,22 @@ public class MasterRepositoryManager {
 		
 		@Override
 		public void run() {
-			for(;;) {
-				if(status == RepositoryScannerStatus.BUSY) {
-					logger.info("[" + this.getClass().getSimpleName() + "] scan started");
-				
-					init();
-					writeAll(scan());
-				
-					status = RepositoryScannerStatus.READY;
-					logger.info("[" + this.getClass().getSimpleName() + "] scan ended");
-				}
-				
-				try {
+			try {
+				for(;;) {
+					if(status == RepositoryScannerStatus.BUSY) {
+						logger.info("[" + this.getClass().getSimpleName() + "] scan started");
+					
+						init();
+						writeAll(scan());
+					
+						status = RepositoryScannerStatus.READY;
+						logger.info("[" + this.getClass().getSimpleName() + "] scan ended");
+					}
 					Thread.sleep(1000);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
 				}
+			}
+			catch (Exception e) {
+				//TODO: Log exception
 			}
 		}
 

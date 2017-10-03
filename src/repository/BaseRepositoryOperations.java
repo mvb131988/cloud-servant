@@ -30,46 +30,41 @@ public class BaseRepositoryOperations {
 	private final static int BATCH_SIZE = 10000;
 
 	private LongTransformer frameProcessor;
-	
+
 	private FilesContextTransformer fct;
-	
-	public BaseRepositoryOperations(LongTransformer frameProcessor, FilesContextTransformer fct, AppProperties appProperties) {
+
+	public BaseRepositoryOperations(LongTransformer frameProcessor, FilesContextTransformer fct,
+			AppProperties appProperties) {
 		super();
 		this.frameProcessor = frameProcessor;
 		this.fct = fct;
-		
+
 		this.repositoryRoot = appProperties.getRepositoryRoot();
 	}
-	
-	//--------------------------------------------------------------------------------------------------------------------------------
-	//	Set of unused methods which are suitable for investigation purpose 
-	//--------------------------------------------------------------------------------------------------------------------------------
-	
+
+	// --------------------------------------------------------------------------------------------------------------------------------
+	// Set of unused methods which are suitable for investigation purpose
+	// --------------------------------------------------------------------------------------------------------------------------------
+
 	@SuppressWarnings("unused")
-	public long countRecords() {
+	public long countRecords() throws Exception {
 		long counter = -1;
 
 		Path configPath = repositoryRoot.resolve("master.repo");
-		try {
-			long size = Files.readAttributes(configPath, BasicFileAttributes.class).size();
-			counter = size / RecordConstants.FULL_SIZE;
-			long remainder = size % RecordConstants.FULL_SIZE;
+		long size = Files.readAttributes(configPath, BasicFileAttributes.class).size();
+		counter = size / RecordConstants.FULL_SIZE;
+		long remainder = size % RecordConstants.FULL_SIZE;
 
-			// File is corrupted
-			if (remainder != 0) {
-				throw new Exception("File is corrupted");
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (Exception e) {
-			e.printStackTrace();
+		// File is corrupted
+		if (remainder != 0) {
+			throw new Exception("File is corrupted");
 		}
 
 		return counter;
 	}
-	
+
 	@SuppressWarnings("unused")
-	public void write(int baseAddr, int id, String name, byte status) {
+	public void write(int baseAddr, int id, String name, byte status) throws FileNotFoundException, IOException {
 		Path configPath = repositoryRoot.resolve("master.repo");
 		try (RandomAccessFile file = new RandomAccessFile(configPath.toString(), "rw")) {
 
@@ -94,16 +89,11 @@ public class BaseRepositoryOperations {
 			file.write(status);
 			offset += 1;
 
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e1) {
-			e1.printStackTrace();
 		}
-
 	}
 
 	@SuppressWarnings("unused")
-	public RepositoryRecord read(int baseAddr) {
+	public RepositoryRecord read(int baseAddr) throws FileNotFoundException, IOException {
 		RepositoryRecord repositoryRecord = new RepositoryRecord();
 
 		int offset = baseAddr;
@@ -136,34 +126,34 @@ public class BaseRepositoryOperations {
 			repositoryRecord.setFileameSize(length);
 			repositoryRecord.setStatus((byte) status);
 
-		} catch (IOException e) {
-			e.printStackTrace();
 		}
 
 		return repositoryRecord;
 	}
 
-	//--------------------------------------------------------------------------------------------------------------------------------
-	//	Unused finished 
-	//--------------------------------------------------------------------------------------------------------------------------------
-	
+	// --------------------------------------------------------------------------------------------------------------------------------
+	// Unused finished
+	// --------------------------------------------------------------------------------------------------------------------------------
+
 	/**
 	 * Writes the list of files into data.repo Much more faster than random
 	 * access file
 	 *
-	 * Record format(defined by RecordConstants)-------------------------- 
-	 * | 8 bytes| 8 bytes          | 500 bytes| 1 byte     |
-	 * ------------------------------------------------------------------- 
-	 * | fileId | size of fileName | fileName | fileStatus |
-	 * -------------------------------------------------------------------	 
+	 * Record format(defined by RecordConstants)-------------------------- | 8
+	 * bytes| 8 bytes | 500 bytes| 1 byte |
+	 * ------------------------------------------------------------------- |
+	 * fileId | size of fileName | fileName | fileStatus |
+	 * -------------------------------------------------------------------
 	 *
 	 * @param fileNames
 	 *            - list of files(relative names) to be written into data.repo
 	 * @param startId
 	 *            - number used as starting to generate(increment sequence)
 	 *            unique ids for all files from fileNames
+	 * @throws IOException
+	 * @throws FilePathMaxLengthException
 	 */
-	public void writeAll(List<String> fileNames, int startId) {
+	public void writeAll(List<String> fileNames, int startId) throws IOException, FilePathMaxLengthException {
 		byte[] buffer = new byte[RecordConstants.FULL_SIZE * BATCH_SIZE];
 		int offset = 0;
 
@@ -188,15 +178,14 @@ public class BaseRepositoryOperations {
 				offset += RecordConstants.NAME_LENGTH_SIZE;
 
 				// Set maximum number of bytes for file name
-				// In the worst case file path could contain RecordConstants.NAME_SIZE/2 cyrillic symbols(2 bytes per cyrilic symbol)
+				// In the worst case file path could contain
+				// RecordConstants.NAME_SIZE/2 cyrillic symbols(2 bytes per
+				// cyrilic symbol)
 				byte[] bFileName = fileName.getBytes("UTF-8");
-				//TODO(MAJOR): Propagate higher when exception handling is ready
-				if(bFileName.length > RecordConstants.NAME_SIZE) {
-					try {
-						throw new FilePathMaxLengthException();
-					} catch (FilePathMaxLengthException e) {
-						e.printStackTrace();
-					}
+				// TODO(MAJOR): Propagate higher when exception handling is
+				// ready
+				if (bFileName.length > RecordConstants.NAME_SIZE) {
+					throw new FilePathMaxLengthException();
 				}
 				System.arraycopy(bFileName, 0, buffer, offset, (int) length);
 				offset += RecordConstants.NAME_SIZE;
@@ -223,223 +212,198 @@ public class BaseRepositoryOperations {
 			os.flush();
 		}
 
-		catch (IOException e) {
-			e.printStackTrace();
-		}
-
 	}
-	
+
 	/**
-	 * Creates directory relative to the repository root 
+	 * Creates directory relative to the repository root
+	 * 
+	 * @throws IOException
 	 */
-	public void createDirectoryIfNotExist(Path relativePath) {
+	public void createDirectoryIfNotExist(Path relativePath) throws IOException {
 		if (relativePath != null) {
-			try {
-				Path newPath = repositoryRoot.resolve(relativePath);
-				if (!Files.exists(newPath)) {
-					Files.createDirectories(newPath);
-				}
-			} catch (IOException e) {
-				e.printStackTrace();
+			Path newPath = repositoryRoot.resolve(relativePath);
+			if (!Files.exists(newPath)) {
+				Files.createDirectories(newPath);
 			}
 		}
 	}
-	
-	public long getSize(Path relativePath) {
+
+	public long getSize(Path relativePath) throws IOException {
 		long size = 0;
-		try {
-			size = Files.readAttributes(repositoryRoot.resolve(relativePath), BasicFileAttributes.class).size();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		size = Files.readAttributes(repositoryRoot.resolve(relativePath), BasicFileAttributes.class).size();
 		return size;
 	}
-	
-	public long getCreationDateTime(Path relativePath) {
+
+	public long getCreationDateTime(Path relativePath) throws IOException {
 		long creationDateTime = 0;
-		try {
-			creationDateTime = Files.readAttributes(repositoryRoot.resolve(relativePath), BasicFileAttributes.class).creationTime().toMillis();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		creationDateTime = Files.readAttributes(repositoryRoot.resolve(relativePath), BasicFileAttributes.class)
+								.creationTime().toMillis();
 		return creationDateTime;
 	}
-	
+
 	/**
-	 * Assign hidden attribute to the directory 
+	 * Assign hidden attribute to the directory
+	 * @throws IOException 
 	 */
-	//TODO(NORMAL): os dependent operation. Execute only on windows. On linux dir started with '.' is already hidden. 
-	public void hideDirectory(Path relativePath) {
-		try {
-			Files.setAttribute(repositoryRoot.resolve(relativePath), "dos:hidden", Boolean.TRUE, LinkOption.NOFOLLOW_LINKS);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+	// TODO(NORMAL): os dependent operation. Execute only on windows. On linux
+	// dir started with '.' is already hidden.
+	public void hideDirectory(Path relativePath) throws IOException {
+		Files.setAttribute(repositoryRoot.resolve(relativePath), "dos:hidden", Boolean.TRUE,
+																			   LinkOption.NOFOLLOW_LINKS);
 	}
 
 	/**
 	 * Move newly received file form temp directory to actual location
 	 * 
-	 * @param relativeFilePath - file name with intermediate directories. When moved to repository file will be saved in intermediate directories
+	 * @param relativeFilePath
+	 *            - file name with intermediate directories. When moved to
+	 *            repository file will be saved in intermediate directories
 	 * @param creationDateTime
+	 * @throws IOException 
 	 */
-	public void fromTempToRepository(Path relativeFilePath, long creationDateTime) {
-		try {
-			Path src = repositoryRoot.resolve(".temp").resolve(relativeFilePath.getFileName());
-			Path dstn = repositoryRoot.resolve(relativeFilePath).normalize();
-			Files.copy(src, dstn, StandardCopyOption.REPLACE_EXISTING);
-			Files.delete(src);
-			
-			//If service crashes here creation date could be lost
-			Files.setAttribute(dstn, "creationTime", FileTime.fromMillis(creationDateTime));
-			Files.setAttribute(dstn, "lastModifiedTime", FileTime.fromMillis(creationDateTime));
-			Files.setAttribute(dstn, "lastAccessTime", FileTime.fromMillis(creationDateTime));
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+	public void fromTempToRepository(Path relativeFilePath, long creationDateTime) throws IOException {
+		Path src = repositoryRoot.resolve(".temp").resolve(relativeFilePath.getFileName());
+		Path dstn = repositoryRoot.resolve(relativeFilePath).normalize();
+		Files.copy(src, dstn, StandardCopyOption.REPLACE_EXISTING);
+		Files.delete(src);
+
+		// If service crashes here creation date could be lost
+		Files.setAttribute(dstn, "creationTime", FileTime.fromMillis(creationDateTime));
+		Files.setAttribute(dstn, "lastModifiedTime", FileTime.fromMillis(creationDateTime));
+		Files.setAttribute(dstn, "lastAccessTime", FileTime.fromMillis(creationDateTime));
 	}
-	
+
 	public boolean existsFile(Path relativePath) {
 		return Files.exists(repositoryRoot.resolve(relativePath));
 	}
-	
+
 	/**
-	 * Open data.repo main repository config and return input stream associated with it.   
+	 * Open data.repo main repository config and return input stream associated
+	 * with it.
+	 * @throws IOException 
 	 */
-	private InputStream openDataRepo() {
+	private InputStream openDataRepo() throws IOException {
 		Path configPath = repositoryRoot.resolve("data.repo");
 		InputStream is = null;
-		try {
-			is = Files.newInputStream(configPath);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		is = Files.newInputStream(configPath);
 		return is;
 	}
-	
+
 	/**
-	 * Open input stream associated with data.repo main repository config.   
+	 * Open input stream associated with data.repo main repository config.
+	 * @throws IOException 
 	 */
-	private void closeDataRepo(InputStream is) {
-		try {
-			is.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+	private void closeDataRepo(InputStream is) throws IOException {
+		is.close();
 	}
-	
+
 	/**
-	 * Returns next bytes chunk(it contains exactly number of bytes corresponding to batch_size RepositoryRecords) 
-	 * from the input stream associated with data.repo main repository config. 
+	 * Returns next bytes chunk(it contains exactly number of bytes
+	 * corresponding to batch_size RepositoryRecords) from the input stream
+	 * associated with data.repo main repository config.
 	 * 
 	 * Returns number of read bytes or -1 if end of stream reached
+	 * @throws IOException 
 	 */
-	private int next(InputStream is, byte[] buffer) {
+	private int next(InputStream is, byte[] buffer) throws IOException {
 		int readBytes = 0;
-		try {
-			readBytes = is.read(buffer);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		readBytes = is.read(buffer);
 		return readBytes;
 	}
-	
-	
+
 	/**
-	 * asynchrony - is a file that exists in data.repo and doesn't in slave file system
-	 * 				or vice versa.
+	 * asynchrony - is a file that exists in data.repo and doesn't in slave file
+	 * system or vice versa.
 	 */
-	//TODO(FUTURE): Delete operation isn't implemented
+	// TODO(FUTURE): Delete operation isn't implemented
 	public class AsynchronySearcher implements Runnable {
-		
-		//Records that don't have corresponding file in the repository
+
+		// Records that don't have corresponding file in the repository
 		private Queue<RepositoryRecord> asynchronyBuffer;
-		
-		//max asynchrony buffer size
+
+		// max asynchrony buffer size
 		private final int asynchronyBufferMaxSize = 500;
-		
+
 		private AsynchronySearcherStatus asynchronySearcherStatus;
-		
+
 		private Lock lock = new ReentrantLock();
-		
-		private AsynchronySearcher() { 
+
+		private AsynchronySearcher() {
 			asynchronyBuffer = new ArrayBlockingQueue<>(asynchronyBufferMaxSize);
 			asynchronySearcherStatus = AsynchronySearcherStatus.READY;
 		}
-		
+
 		@Override
 		public void run() {
-			asynchronySearcherStatus = AsynchronySearcherStatus.BUSY;
-			
-			byte[] buffer = new byte[RecordConstants.FULL_SIZE * BATCH_SIZE];
-
-			InputStream is = openDataRepo();
-			int readBytes = 0;
-			while((readBytes = next(is, buffer)) != -1){
-				List<RepositoryRecord> records = fct.transform(buffer, readBytes);
-				for(RepositoryRecord rr: records) {
-					
-					//Set current record path to be used for file transfer
-					if(!existsFile(Paths.get(rr.getFileName()))) {
-						//if previous read asynchrony isn't consumed wait until it is consumed
-						while(bufferFull()) {
-							try {
+			try{
+				asynchronySearcherStatus = AsynchronySearcherStatus.BUSY;
+	
+				byte[] buffer = new byte[RecordConstants.FULL_SIZE * BATCH_SIZE];
+	
+				InputStream is = openDataRepo();
+				int readBytes = 0;
+				while ((readBytes = next(is, buffer)) != -1) {
+					List<RepositoryRecord> records = fct.transform(buffer, readBytes);
+					for (RepositoryRecord rr : records) {
+	
+						// Set current record path to be used for file transfer
+						if (!existsFile(Paths.get(rr.getFileName()))) {
+							// if previous read asynchrony isn't consumed wait until
+							// it is consumed
+							while (bufferFull()) {
 								Thread.sleep(1000);
-							} catch (InterruptedException e) {
-								e.printStackTrace();
 							}
+							setAsynchrony(rr);
 						}
-						setAsynchrony(rr);
-					}
-					
-					//If file for record exists skip it move to next one
-					if(existsFile(Paths.get(rr.getFileName()))) {
-						// log as existed one
+	
+						// If file for record exists skip it move to next one
+						if (existsFile(Paths.get(rr.getFileName()))) {
+							// log as existed one
+						}
 					}
 				}
-			}
-			closeDataRepo(is);
-			
-			//Last read. Wait until last read record isn't consumed.
-			while(!bufferEmpty()) {
-				try {
+				closeDataRepo(is);
+	
+				// Last read. Wait until last read record isn't consumed.
+				while (!bufferEmpty()) {
 					Thread.sleep(1000);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
 				}
+	
+				asynchronySearcherStatus = AsynchronySearcherStatus.TERMINATED;
+			} 
+			catch(Exception e) {
+				//TODO: Log exception
 			}
-			
-			asynchronySearcherStatus = AsynchronySearcherStatus.TERMINATED;
 		}
-		
+
 		/**
 		 * @return true if buffer size exceeds asynchronyBufferMaxSize
 		 */
 		private boolean bufferFull() {
 			return asynchronyBuffer.size() == asynchronyBufferMaxSize;
 		}
-		
+
 		/**
 		 * @return true when buffer size is zero
 		 */
 		private boolean bufferEmpty() {
 			return asynchronyBuffer.size() == 0;
 		}
-		
+
 		public RepositoryRecord nextAsynchrony() {
 			return asynchronyBuffer.poll();
 		}
-		
+
 		private void setAsynchrony(RepositoryRecord rr) {
 			asynchronyBuffer.offer(rr);
 		}
-		
+
 		public AsynchronySearcherStatus getStatus() {
 			return asynchronySearcherStatus;
 		}
-		
+
 	}
-	
+
 	public AsynchronySearcher getAsynchronySearcher() {
 		return new AsynchronySearcher();
 	}

@@ -31,8 +31,9 @@ public class FilesContextTransformer {
 	 * @param bytes
 	 * @param bytesSize
 	 * @return
+	 * @throws UnsupportedEncodingException 
 	 */
-	public List<RepositoryRecord> transform(byte[] bytes, int bytesSize) {
+	public List<RepositoryRecord> transform(byte[] bytes, int bytesSize) throws UnsupportedEncodingException {
 		List<RepositoryRecord> records = new ArrayList<>();
 		
 		// build RepositoryRecord
@@ -52,12 +53,7 @@ public class FilesContextTransformer {
 			byte[] bFileName = new byte[(int) RecordConstants.NAME_SIZE];
 			System.arraycopy(bytes, offset, bFileName, 0, (int) length);
 			
-			String fileName = null;
-			try {
-				fileName = new String(bFileName, 0, (int) length, "UTF-8");
-			} catch (UnsupportedEncodingException e) {
-				e.printStackTrace();
-			}
+			String fileName = new String(bFileName, 0, (int) length, "UTF-8");
 			
 			offset += RecordConstants.NAME_SIZE;
 

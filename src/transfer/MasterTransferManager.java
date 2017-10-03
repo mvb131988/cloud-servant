@@ -75,20 +75,17 @@ public class MasterTransferManager {
 	/**
 	 * Establishes connection with the slave and passes client socket to a
 	 * separate thread of execution
+	 * @throws IOException 
 	 */
-	private void acceptSlave() {
+	private void acceptSlave() throws IOException {
 		Socket slave;
-		try {
-			logger.info("[" + this.getClass().getSimpleName() + "] waiting for slave to connect");
-			slave = master.accept();
-			logger.info("[" + this.getClass().getSimpleName() + "] slave connected");
+		logger.info("[" + this.getClass().getSimpleName() + "] waiting for slave to connect");
+		slave = master.accept();
+		logger.info("[" + this.getClass().getSimpleName() + "] slave connected");
 
-			// Pass os and is to an allocated thread, initial status
-			MasterSlaveCommunicationThread communication = new MasterSlaveCommunicationThread(slave);
-			slaveThreadPool.execute(communication);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		// Pass os and is to an allocated thread, initial status
+		MasterSlaveCommunicationThread communication = new MasterSlaveCommunicationThread(slave);
+		slaveThreadPool.execute(communication);
 	}
 
 	/**
@@ -152,15 +149,17 @@ public class MasterTransferManager {
 
 	/**
 	 * Entry point to start full transfer operation 
+	 * @throws IOException 
 	 */
-	private void transfer(OutputStream os, InputStream is) {
+	private void transfer(OutputStream os, InputStream is) throws IOException {
 		ffto.executeAsMaster(os, is);
 	}
 	
 	/**
 	 * Entry point to send status message
+	 * @throws IOException 
 	 */
-	private void transferBusy(OutputStream os, InputStream is) {
+	private void transferBusy(OutputStream os, InputStream is) throws IOException {
 		sto.executeAsMaster(os, is, MasterStatus.BUSY);
 	}
 
@@ -179,28 +178,29 @@ public class MasterTransferManager {
 		
 		@Override
 		public void run() {
-			logger.info("[" + this.getClass().getSimpleName() + "] start");
-			for (;;) {
-				acceptSlave();
-				// sleep
+			try {
+				logger.info("[" + this.getClass().getSimpleName() + "] start");
+				for (;;) {
+					acceptSlave();
+					// sleep
+				}
+			} catch (Exception e) {
+				//TODO: Log exception
 			}
 		}
 
 		/**
 		 * Blocks until all communications are not paused  
+		 * @throws InterruptedException 
 		 */
-		public void pause() {
+		public void pause() throws InterruptedException {
 			logger.info("[" + this.getClass().getSimpleName() + "] pausing start");
 			
 			if (status() != MasterTransferThreadStatus.EMPTY) {
 				// Connections that come after this invocation are already in BUSY
 				pauseSlaves();
 				while (status() != MasterTransferThreadStatus.BUSY) {
-					try {
-						Thread.sleep(10000);
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
+					Thread.sleep(10000);
 				}
 			}
 			
@@ -212,8 +212,9 @@ public class MasterTransferManager {
 		 *
 		 * resume(), pause() and status() are not invoked simultaneous, only
 		 * consequently
+		 * @throws InterruptedException 
 		 */
-		public void resume() {
+		public void resume() throws InterruptedException {
 			logger.info("[" + this.getClass().getSimpleName() + "] resuming start");
 			
 			if (status() != MasterTransferThreadStatus.EMPTY) {
@@ -224,11 +225,8 @@ public class MasterTransferManager {
 					// 3. new communication BUSY is ADDED
 					// 4. status() return BUSY forever because resumeSlave() doesn't consider new communication
 					resumeSlaves();
-					try {
-						Thread.sleep(10000);
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
+					
+					Thread.sleep(10000);
 				}
 			}
 			
@@ -269,7 +267,7 @@ public class MasterTransferManager {
 				this.os = slave.getOutputStream();
 				this.is = slave.getInputStream();
 			} catch (IOException e) {
-				e.printStackTrace();
+				//TODO: Log exception
 			}
 
 			logger.info("[" + this.getClass().getSimpleName() + "] initialization end");
@@ -299,14 +297,10 @@ public class MasterTransferManager {
 						actualStatus = MasterSlaveCommunicationStatus.READY;
 					}
 
-					try {
-						Thread.sleep(30000);
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
+					Thread.sleep(30000);
 				}
 			} catch (Exception e) {
-				logger.error("[" + this.getClass().getSimpleName() + "] "  +  e);
+				logger.error("[" + this.getClass().getSimpleName() + "] ", e);
 			}
 			finally {
 				try {
@@ -319,8 +313,7 @@ public class MasterTransferManager {
 					logger.info("[" + this.getClass().getSimpleName() + "] [MasterSlaveCommunicationThread] connection is closed");
 				} 
 				catch (IOException e) {
-					logger.error("[" + this.getClass().getSimpleName() + "] can't close io-streams / socket",
-							e.getMessage());
+					logger.error("[" + this.getClass().getSimpleName() + "] can't close io-streams / socket", e);
 				}
 			}
 		}

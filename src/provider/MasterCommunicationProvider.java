@@ -44,50 +44,49 @@ public class MasterCommunicationProvider {
 
 		@Override
 		public void run() {
-			logger.info("[" + this.getClass().getSimpleName() + "] started");
-			
-			boolean isStartup = true;
-			//TODO(NORMAL): Define schedule rules
-			boolean isScheduled = false;
-
-			RepositoryScaner repositoryScaner = repositoryManager.getScaner();
-			MasterTransferThread mtt = masterTransferManager.getMasterTransferThread();
-
-			Thread t1 = new Thread(repositoryScaner);
-			t1.setName("RepositoryScaner");
-			Thread t2 = new Thread(mtt);
-			t2.setName("MasterTransferThread");
-
-			for (;;) {
-				// startup/schedule part
-				if (isStartup) {
-					t1.start();
-					repositoryScaner.reset();
-					
-					t2.start();
-					isStartup = false;
-				} 
-				else if (isScheduled && repositoryScaner.getStatus() == RepositoryScannerStatus.READY) {
-					mtt.pause();
-					
-					repositoryScaner.reset();
-					
-					isScheduled = false;
-				}
+			try {
+				logger.info("[" + this.getClass().getSimpleName() + "] started");
 				
-				//As soon as repository was scanned and data.repo created make all waiting communications
-				//ready for transfer
-				if (repositoryScaner.getStatus() == RepositoryScannerStatus.READY) {
-					mtt.resume();
-				}
-				
-				try {
+				boolean isStartup = true;
+				//TODO(NORMAL): Define schedule rules
+				boolean isScheduled = false;
+	
+				RepositoryScaner repositoryScaner = repositoryManager.getScaner();
+				MasterTransferThread mtt = masterTransferManager.getMasterTransferThread();
+	
+				Thread t1 = new Thread(repositoryScaner);
+				t1.setName("RepositoryScaner");
+				Thread t2 = new Thread(mtt);
+				t2.setName("MasterTransferThread");
+	
+				for (;;) {
+					// startup/schedule part
+					if (isStartup) {
+						t1.start();
+						repositoryScaner.reset();
+						
+						t2.start();
+						isStartup = false;
+					} 
+					else if (isScheduled && repositoryScaner.getStatus() == RepositoryScannerStatus.READY) {
+						mtt.pause();
+						
+						repositoryScaner.reset();
+						
+						isScheduled = false;
+					}
+					
+					//As soon as repository was scanned and data.repo created make all waiting communications
+					//ready for transfer
+					if (repositoryScaner.getStatus() == RepositoryScannerStatus.READY) {
+						mtt.resume();
+					}
+					
 					Thread.sleep(30000);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
 				}
+			} catch(Exception e) {
+				//TODO: Log exception
 			}
-
 		}
 
 	}

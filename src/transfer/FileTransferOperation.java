@@ -1,5 +1,6 @@
 package transfer;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Path;
@@ -34,7 +35,7 @@ public class FileTransferOperation {
 		this.repositoryRoot = appProperties.getRepositoryRoot();
 	}
 
-	public void executeAsMaster(OutputStream os, InputStream is){
+	public void executeAsMaster(OutputStream os, InputStream is) throws IOException{
 		//Receive request for a file
 		OperationType ot = bto.receiveOperationType(is);
 		if(ot != OperationType.REQUEST_FILE_START) {
@@ -60,7 +61,7 @@ public class FileTransferOperation {
 		logger.trace("[" + this.getClass().getSimpleName() + "] file[" + relativePath + "] size[" + size + "bytes] was sent");
 	}
 
-	public void executeAsSlave(OutputStream os, InputStream is, FileContext fc){
+	public void executeAsSlave(OutputStream os, InputStream is, FileContext fc) throws IOException{
 		bto.sendOperationType(os, OperationType.REQUEST_FILE_START);	
 		bto.sendRelativePath(os, fc.getRelativePath());
 		bto.sendOperationType(os, OperationType.REQUEST_FILE_END);

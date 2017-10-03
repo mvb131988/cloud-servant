@@ -2,6 +2,7 @@ package transfer;
 
 import static transfer.constant.OperationType.REQUEST_BATCH_END;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PushbackInputStream;
@@ -48,7 +49,7 @@ public class BatchFilesTransferOperation {
 		this.sto = sto;
 	}
 
-	public void executeAsMaster(OutputStream os, PushbackInputStream pushbackInputStream) {
+	public void executeAsMaster(OutputStream os, PushbackInputStream pushbackInputStream) throws IOException {
 		OperationType ot = null;
 		while (REQUEST_BATCH_END != (ot=bto.checkOperationType(pushbackInputStream))) {
 			if(ot == null) {
@@ -83,7 +84,7 @@ public class BatchFilesTransferOperation {
 		logger.info("[" + this.getClass().getSimpleName() + "] sent batch transfer end operation accept");
 	}
 
-	public void executeAsSlave(OutputStream os, InputStream is) {
+	public void executeAsSlave(OutputStream os, InputStream is) throws InterruptedException, IOException {
 		// 1. Send start batch flag
 		bto.sendOperationType(os, OperationType.REQUEST_BATCH_START);
 		logger.info("[" + this.getClass().getSimpleName() + "] sent batch transfer start operation request");
@@ -106,11 +107,7 @@ public class BatchFilesTransferOperation {
 				// TODO: must be READY any time but may be logged for testing purposes   
 				sto.executeAsSlave(os, is);
 				
-				try {
-					Thread.sleep(1000);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
+				Thread.sleep(1000);
 			}
 		}
 		

@@ -31,10 +31,15 @@ public class SlaveRepositoryManager {
 	}
 
 	public void init() {
-		// Create temporary folder where incoming files firstly will be saved
-		Path temp = Paths.get(".temp");
-		bro.createDirectoryIfNotExist(temp);
-		bro.hideDirectory(temp);
+		try {
+			// Create temporary folder where incoming files firstly will be saved
+			Path temp = Paths.get(".temp");
+			bro.createDirectoryIfNotExist(temp);
+			bro.hideDirectory(temp);
+		} 
+		catch (Exception e) {
+			//TODO: Log exception
+		}
 	}
 	
 	/**

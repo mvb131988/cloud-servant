@@ -1,5 +1,6 @@
 package transfer;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
@@ -15,7 +16,7 @@ public class StatusTransferOperation {
 		this.bto = bto;
 	}
 
-	public void executeAsMaster(OutputStream os, InputStream is, MasterStatus ms){
+	public void executeAsMaster(OutputStream os, InputStream is, MasterStatus ms) throws IOException{
 		OperationType ot = bto.receiveOperationType(is);
 		if (ot != OperationType.REQUEST_MASTER_STATUS_START) {
 			// error detected
@@ -31,7 +32,7 @@ public class StatusTransferOperation {
 		bto.sendOperationType(os, OperationType.RESPONSE_MASTER_STATUS_END);
 	}
 	
-	public MasterStatus executeAsSlave(OutputStream os, InputStream is){
+	public MasterStatus executeAsSlave(OutputStream os, InputStream is) throws IOException{
 		bto.sendOperationType(os, OperationType.REQUEST_MASTER_STATUS_START);
 		OperationType ot = bto.receiveOperationType(is);
 		if (ot != OperationType.RESPONSE_MASTER_STATUS_START) {

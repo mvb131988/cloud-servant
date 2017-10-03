@@ -2,6 +2,7 @@ package transfer;
 
 import static transfer.constant.OperationType.REQUEST_TRANSFER_END;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PushbackInputStream;
@@ -42,7 +43,7 @@ public class FullFileTransferOperation {
 		this.bfto = bfto;
 	}
 
-	public void executeAsMaster(OutputStream os, InputStream is) {
+	public void executeAsMaster(OutputStream os, InputStream is) throws IOException {
 		PushbackInputStream pushbackInputStream = new PushbackInputStream(is);
 
 		OperationType ot = null;
@@ -87,7 +88,7 @@ public class FullFileTransferOperation {
 		logger.info("[" + this.getClass().getSimpleName() + "] sent transfer end operation accept");
 	}
 	
-	public void executeAsSlave(OutputStream os, InputStream is) {
+	public void executeAsSlave(OutputStream os, InputStream is) throws InterruptedException, IOException {
 		bto.sendOperationType(os, OperationType.REQUEST_TRANSFER_START);
 		logger.info("[" + this.getClass().getSimpleName() + "] sent transfer start operation request");
 		

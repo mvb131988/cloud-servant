@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.net.UnknownHostException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -40,32 +41,24 @@ public class SlaveTransferManager {
 		//stop SlaveTransferThread
 	}
 	
-	private void connect() {
+	private void connect() throws UnknownHostException, IOException {
 		Socket master = null;
 		String ip = "172.16.42.210";
 		int port = 22222;
 		
-		try {
-			logger.info("[" + this.getClass().getSimpleName() + "] opening socket to " + ip + ":" + port);
-			master = new Socket(ip, port);
-			logger.info("[" + this.getClass().getSimpleName() + "]  socket to " + ip + ":" + port + " opened");
-		} catch (IOException e) {
-			logger.error("[" + this.getClass().getSimpleName() + "] error opening socket to " + ip + ":" + port);
-		}
+		logger.info("[" + this.getClass().getSimpleName() + "] opening socket to " + ip + ":" + port);
+		master = new Socket(ip, port);
+		logger.info("[" + this.getClass().getSimpleName() + "]  socket to " + ip + ":" + port + " opened");
 		
 		Thread thread = new Thread(new SlaveMasterCommunicationThread(master));
 		thread.setName("SlaveTransferThread");
 		thread.start();
 	}
 	
-	private void transfer(OutputStream os, InputStream is) {
+	private void transfer(OutputStream os, InputStream is) throws InterruptedException, IOException {
 		MasterStatus status = null;
 		while((status = sto.executeAsSlave(os, is)) == MasterStatus.BUSY) {
-			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
+			Thread.sleep(1000);
 		}
 		
 		// TODO(NORMAL): run this on schedule
@@ -88,7 +81,11 @@ public class SlaveTransferManager {
 
 		@Override
 		public void run() {
-			connect();
+			try {
+				connect();
+			} catch (Exception e) {
+				//TODO: Log exception
+			}
 		}
 		
 	}
@@ -110,20 +107,20 @@ public class SlaveTransferManager {
 				this.os = master.getOutputStream();
 				this.is = master.getInputStream();
 			} catch (IOException e) {
-				e.printStackTrace();
+				//TODO: Log exception
 			}
 		}
 
 		@Override
 		public void run() {
-			transfer(os, is);
-
 			try {
+				transfer(os, is);
+				
 				os.close();
 				is.close();
 				master.close();
-			} catch (IOException e) {
-				e.printStackTrace();
+			} catch (Exception e) {
+				//TODO: Log exception
 			}
 		}
 
