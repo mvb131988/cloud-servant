@@ -109,7 +109,7 @@ public class MasterRepositoryManager {
 				}
 			}
 			catch (Exception e) {
-				//TODO: Log exception
+				logger.error("[" + this.getClass().getSimpleName() + "] thread fail", e);
 			}
 		}
 

@@ -9,6 +9,7 @@ import java.net.UnknownHostException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import exception.MasterNotReadyDuringBatchTransfer;
 import repository.BaseRepositoryOperations;
 import transfer.constant.MasterStatus;
 import transformer.FilesContextTransformer;
@@ -55,7 +56,7 @@ public class SlaveTransferManager {
 		thread.start();
 	}
 	
-	private void transfer(OutputStream os, InputStream is) throws InterruptedException, IOException {
+	private void transfer(OutputStream os, InputStream is) throws InterruptedException, IOException, MasterNotReadyDuringBatchTransfer {
 		MasterStatus status = null;
 		while((status = sto.executeAsSlave(os, is)) == MasterStatus.BUSY) {
 			Thread.sleep(1000);
@@ -84,7 +85,7 @@ public class SlaveTransferManager {
 			try {
 				connect();
 			} catch (Exception e) {
-				//TODO: Log exception
+				logger.error("[" + this.getClass().getSimpleName() + "] thread fail", e);
 			}
 		}
 		
@@ -107,7 +108,7 @@ public class SlaveTransferManager {
 				this.os = master.getOutputStream();
 				this.is = master.getInputStream();
 			} catch (IOException e) {
-				//TODO: Log exception
+				logger.error("[" + this.getClass().getSimpleName() + "] initialization fail", e);
 			}
 		}
 
@@ -120,7 +121,7 @@ public class SlaveTransferManager {
 				is.close();
 				master.close();
 			} catch (Exception e) {
-				//TODO: Log exception
+				logger.error("[" + this.getClass().getSimpleName() + "] thread fail", e);
 			}
 		}
 

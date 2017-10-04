@@ -85,7 +85,7 @@ public class MasterCommunicationProvider {
 					Thread.sleep(30000);
 				}
 			} catch(Exception e) {
-				//TODO: Log exception
+				logger.error("[" + this.getClass().getSimpleName() + "] thread fail", e);
 			}
 		}
 

@@ -18,6 +18,9 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import exception.FilePathMaxLengthException;
 import main.AppProperties;
 import repository.status.AsynchronySearcherStatus;
@@ -26,6 +29,8 @@ import transformer.LongTransformer;
 
 public class BaseRepositoryOperations {
 
+	private Logger logger = LogManager.getRootLogger();
+	
 	private Path repositoryRoot;
 	private final static int BATCH_SIZE = 10000;
 
@@ -182,8 +187,6 @@ public class BaseRepositoryOperations {
 				// RecordConstants.NAME_SIZE/2 cyrillic symbols(2 bytes per
 				// cyrilic symbol)
 				byte[] bFileName = fileName.getBytes("UTF-8");
-				// TODO(MAJOR): Propagate higher when exception handling is
-				// ready
 				if (bFileName.length > RecordConstants.NAME_SIZE) {
 					throw new FilePathMaxLengthException();
 				}
@@ -372,7 +375,7 @@ public class BaseRepositoryOperations {
 				asynchronySearcherStatus = AsynchronySearcherStatus.TERMINATED;
 			} 
 			catch(Exception e) {
-				//TODO: Log exception
+				logger.error("[" + this.getClass().getSimpleName() + "] thread fail", e);
 			}
 		}
 

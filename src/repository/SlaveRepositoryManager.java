@@ -38,7 +38,7 @@ public class SlaveRepositoryManager {
 			bro.hideDirectory(temp);
 		} 
 		catch (Exception e) {
-			//TODO: Log exception
+			logger.error("[" + this.getClass().getSimpleName() + "] initialization fail", e);
 		}
 	}
 	

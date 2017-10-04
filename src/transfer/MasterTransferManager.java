@@ -60,7 +60,7 @@ public class MasterTransferManager {
 		try {
 			this.master = new ServerSocket(22222);
 		} catch (IOException e) {
-			logger.error("[" + this.getClass().getSimpleName() + "] initialization fail", e.getMessage());
+			logger.error("[" + this.getClass().getSimpleName() + "] initialization fail", e);
 		}
 
 		logger.info("[" + this.getClass().getSimpleName() + "] initialization end");
@@ -185,7 +185,7 @@ public class MasterTransferManager {
 					// sleep
 				}
 			} catch (Exception e) {
-				//TODO: Log exception
+				logger.error("[" + this.getClass().getSimpleName() + "] thread fail", e);
 			}
 		}
 
@@ -267,7 +267,7 @@ public class MasterTransferManager {
 				this.os = slave.getOutputStream();
 				this.is = slave.getInputStream();
 			} catch (IOException e) {
-				//TODO: Log exception
+				logger.error("[" + this.getClass().getSimpleName() + "] initialization fail", e);
 			}
 
 			logger.info("[" + this.getClass().getSimpleName() + "] initialization end");

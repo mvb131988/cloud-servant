@@ -10,6 +10,7 @@ import java.io.PushbackInputStream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import exception.MasterNotReadyDuringBatchTransfer;
 import repository.RepositoryRecord;
 import repository.SlaveRepositoryManager;
 import repository.status.SlaveRepositoryManagerStatus;
@@ -84,7 +85,7 @@ public class BatchFilesTransferOperation {
 		logger.info("[" + this.getClass().getSimpleName() + "] sent batch transfer end operation accept");
 	}
 
-	public void executeAsSlave(OutputStream os, InputStream is) throws InterruptedException, IOException {
+	public void executeAsSlave(OutputStream os, InputStream is) throws InterruptedException, IOException, MasterNotReadyDuringBatchTransfer {
 		// 1. Send start batch flag
 		bto.sendOperationType(os, OperationType.REQUEST_BATCH_START);
 		logger.info("[" + this.getClass().getSimpleName() + "] sent batch transfer start operation request");
@@ -104,8 +105,11 @@ public class BatchFilesTransferOperation {
 				fto.executeAsSlave(os, is, fct.transform(rr));
 			} else {
 				// send status check message
-				// TODO: must be READY any time but may be logged for testing purposes   
-				sto.executeAsSlave(os, is);
+				// must be READY any time but may be logged for testing purposes   
+				MasterStatus status = sto.executeAsSlave(os, is);
+				if(MasterStatus.READY != status) {
+					throw new MasterNotReadyDuringBatchTransfer();
+				}
 				
 				Thread.sleep(1000);
 			}
