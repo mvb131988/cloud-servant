@@ -115,13 +115,22 @@ public class SlaveTransferManager {
 		@Override
 		public void run() {
 			try {
-				transfer(os, is);
-				
-				os.close();
-				is.close();
-				master.close();
+				for(;;) {
+					transfer(os, is);
+					Thread.sleep(30000);
+				}
 			} catch (Exception e) {
 				logger.error("[" + this.getClass().getSimpleName() + "] thread fail", e);
+			}
+			finally {
+				try {
+					os.close();
+					is.close();
+					master.close();
+				} catch (IOException e) {
+					logger.error("[" + this.getClass().getSimpleName() + "] can't close io-streams / socket", e);
+				}
+				
 			}
 		}
 
