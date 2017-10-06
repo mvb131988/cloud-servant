@@ -11,6 +11,13 @@
 
 	<build>
 		<sourceDirectory>src</sourceDirectory>
+		<resources>
+			<resource>
+				<directory>resources</directory>
+				<filtering>true</filtering>
+			</resource>
+		</resources>
+		
 		<plugins>
 
 			<!-- download source code in Eclipse, best practice -->
@@ -24,6 +31,23 @@
 				</configuration>
 			</plugin>
 
+<!-- 			<plugin> -->
+<!-- 				<artifactId>maven-assembly-plugin</artifactId> -->
+<!-- 				<executions> -->
+<!-- 					<execution> -->
+<!-- 						<phase>package</phase> -->
+<!-- 						<goals> -->
+<!-- 							<goal>single</goal> -->
+<!-- 						</goals> -->
+<!-- 					</execution> -->
+<!-- 				</executions> -->
+<!-- 				<configuration> -->
+<!-- 					<descriptorRefs> -->
+<!-- 						<descriptorRef>jar-with-dependencies</descriptorRef> -->
+<!-- 					</descriptorRefs> -->
+<!-- 				</configuration> -->
+<!-- 			</plugin> -->
+			
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>3.5.1</version>
@@ -33,26 +57,67 @@
 				</configuration>
 			</plugin>
 
-			<!-- Make this jar executable -->
 			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-jar-plugin</artifactId>
+				<artifactId>maven-assembly-plugin</artifactId>
 				<configuration>
+					<finalName>cloud-servant</finalName>
+					<archive>
+						<manifest>
+							<mainClass>main.Main</mainClass>
+						</manifest>
+					</archive>
+					<descriptorRefs>
+						<descriptorRef>jar-with-dependencies</descriptorRef>
+					</descriptorRefs>
+					<appendAssemblyId>false</appendAssemblyId>
+				</configuration>
+			</plugin>
+
+
+			<!-- Make this jar executable -->
+<!-- 			<plugin> -->
+<!-- 				<groupId>org.apache.maven.plugins</groupId> -->
+<!-- 				<artifactId>maven-jar-plugin</artifactId> -->
+<!-- 				<configuration> -->
 					<!-- DO NOT include log4j.properties file in your Jar -->
 <!-- 					<excludes> -->
 <!-- 						<exclude>**/log4j.properties</exclude> -->
 <!-- 					</excludes> -->
-					<archive>
-						<manifest>
-							<!-- Jar file entry point -->
-							<mainClass>main.Main</mainClass>
-						</manifest>
-					</archive>
-				</configuration>
-			</plugin>
+<!-- 					<archive> -->
+<!-- 						<manifest> -->
+<!-- 							<addClasspath>true</addClasspath> -->
+<!-- 							Jar file entry point -->
+<!-- 							<mainClass>main.Main</mainClass> -->
+<!-- 						</manifest> -->
+<!-- 					</archive> -->
+<!-- 				</configuration> -->
+<!-- 			</plugin> -->
 
 		</plugins>
 	</build>
+
+	<profiles>
+		<profile>
+			<id>master</id>
+			<properties>
+				<root>D:/temp</root>
+				<master>true</master>
+				<master.ip>172.16.42.210</master.ip>
+				<master.port>22222</master.port>
+				<log>D:/temp1</log>
+			</properties>
+		</profile>
+		<profile>
+			<id>slave</id>
+			<properties>
+				<root>D:/temp</root>
+				<master>true</master>
+				<master.ip>172.16.42.210</master.ip>
+				<master.port>22222</master.port>
+				<log>D:/temp1</log>
+			</properties>
+		</profile>
+	</profiles>
 
 	<dependencies>
 		<dependency>

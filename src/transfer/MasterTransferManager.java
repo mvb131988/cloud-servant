@@ -12,6 +12,7 @@ import java.util.concurrent.Executors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import main.AppProperties;
 import transfer.constant.MasterSlaveCommunicationStatus;
 import transfer.constant.MasterStatus;
 import transfer.constant.MasterTransferThreadStatus;
@@ -45,7 +46,8 @@ public class MasterTransferManager {
 	public void init(FullFileTransferOperation ffto,
 					 StatusTransferOperation sto,
 					 MasterSlaveCommunicationPool scp,
-					 ProtocolStatusMapper sm) 
+					 ProtocolStatusMapper sm,
+					 AppProperties ap) 
 	{
 		logger.info("[" + this.getClass().getSimpleName() + "] initialization start");
 
@@ -58,7 +60,7 @@ public class MasterTransferManager {
 		this.slaveThreadPool = Executors.newCachedThreadPool();
 
 		try {
-			this.master = new ServerSocket(22222);
+			this.master = new ServerSocket(ap.getMasterPort());
 		} catch (IOException e) {
 			logger.error("[" + this.getClass().getSimpleName() + "] initialization fail", e);
 		}

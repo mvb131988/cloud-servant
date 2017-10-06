@@ -10,9 +10,15 @@ public class AppProperties {
 	
 	private Path repositoryRoot;
 	
+	private String masterIp;
+	
+	private Integer masterPort;
+	
 	public AppProperties() {
 		repositoryRoot = Paths.get(ResourceBundle.getBundle("app").getString("root"));
-		isMaster = Boolean.parseBoolean(ResourceBundle.getBundle("app").getString("master"));	
+		isMaster = Boolean.parseBoolean(ResourceBundle.getBundle("app").getString("master"));
+		masterIp = ResourceBundle.getBundle("app").getString("master.ip");
+		masterPort = Integer.parseInt(ResourceBundle.getBundle("app").getString("master.port"));
 	}
 
 	public boolean isMaster() {
@@ -21,6 +27,14 @@ public class AppProperties {
 
 	public Path getRepositoryRoot() {
 		return repositoryRoot;
+	}
+
+	public String getMasterIp() {
+		return masterIp;
+	}
+
+	public Integer getMasterPort() {
+		return masterPort;
 	}
 	
 }

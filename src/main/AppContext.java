@@ -97,7 +97,8 @@ public class AppContext {
 		masterTransferManager.init(getFullFileTransferOperation(), 
 								   getStatusTransferOperation(),
 								   getMasterSlaveCommunicationPool(), 
-								   getProtocolStatusMapper());
+								   getProtocolStatusMapper(),
+								   appProperties);
 		masterRepositoryManager = new MasterRepositoryManager(getRepositoryVisitor(), getBaseRepositoryOperations(), appProperties);
 		
 		//Top layer: layer 0 
@@ -139,10 +140,9 @@ public class AppContext {
 		
 		//Top layer: layer 0 
 		slaveTransferManager = new SlaveTransferManager();
-		slaveTransferManager.init(getBaseRepositoryOperations(), 
-				 				  getFilesContextTransformer(), 
-				 				  getFullFileTransferOperation(),
-				 				  getStatusTransferOperation());
+		slaveTransferManager.init(getFullFileTransferOperation(),
+				 				  getStatusTransferOperation(),
+				 				  appProperties);
 	}
 	
 	public void start() {

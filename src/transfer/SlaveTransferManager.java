@@ -10,31 +10,26 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import exception.MasterNotReadyDuringBatchTransfer;
-import repository.BaseRepositoryOperations;
+import main.AppProperties;
 import transfer.constant.MasterStatus;
-import transformer.FilesContextTransformer;
 
 public class SlaveTransferManager {
 	
 	private Logger logger = LogManager.getRootLogger();
 	
-	private BaseRepositoryOperations bro;
-	
-	private FilesContextTransformer fct;
-	
 	private FullFileTransferOperation ffto;
 	
 	private StatusTransferOperation sto;
 	
-	public void init(BaseRepositoryOperations bro,  
-					 FilesContextTransformer fct, 
-					 FullFileTransferOperation ffto,
-					 StatusTransferOperation sto) 
+	private AppProperties ap;
+	
+	public void init(FullFileTransferOperation ffto,
+					 StatusTransferOperation sto,
+					 AppProperties ap) 
 	{
-		this.bro = bro;
-		this.fct = fct;
 		this.ffto = ffto;
 		this.sto = sto;
+		this.ap = ap;
 	}
 
 	public void destroy() {
@@ -44,8 +39,8 @@ public class SlaveTransferManager {
 	
 	private void connect() throws UnknownHostException, IOException {
 		Socket master = null;
-		String ip = "172.16.42.210";
-		int port = 22222;
+		String ip = ap.getMasterIp();
+		int port = ap.getMasterPort();
 		
 		logger.info("[" + this.getClass().getSimpleName() + "] opening socket to " + ip + ":" + port);
 		master = new Socket(ip, port);
