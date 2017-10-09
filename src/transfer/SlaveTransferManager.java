@@ -37,7 +37,7 @@ public class SlaveTransferManager {
 		//stop SlaveTransferThread
 	}
 	
-	private void connect() throws UnknownHostException, IOException {
+	private Thread connect() throws UnknownHostException, IOException {
 		Socket master = null;
 		String ip = ap.getMasterIp();
 		int port = ap.getMasterPort();
@@ -49,6 +49,9 @@ public class SlaveTransferManager {
 		Thread thread = new Thread(new SlaveMasterCommunicationThread(master));
 		thread.setName("SlaveTransferThread");
 		thread.start();
+		
+		// return thread that represents SlaveMasterCommunicationThread in order to join on it
+		return thread;
 	}
 	
 	private void transfer(OutputStream os, InputStream is) throws InterruptedException, IOException, MasterNotReadyDuringBatchTransfer {
@@ -77,10 +80,15 @@ public class SlaveTransferManager {
 
 		@Override
 		public void run() {
-			try {
-				connect();
-			} catch (Exception e) {
-				logger.error("[" + this.getClass().getSimpleName() + "] thread fail", e);
+			for(;;) {
+				try {
+					Thread t = connect();
+					t.join();
+					Thread.sleep(30000);
+				} catch (Exception e) {
+					logger.error("[" + this.getClass().getSimpleName() + "] thread fail", e);
+				}
+				//After slave master communication is broken try to reconnect
 			}
 		}
 		

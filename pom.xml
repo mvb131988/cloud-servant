@@ -110,11 +110,11 @@
 		<profile>
 			<id>slave</id>
 			<properties>
-				<root>D:/temp</root>
-				<master>true</master>
+				<root>C:/temp</root>
+				<master>false</master>
 				<master.ip>172.16.42.210</master.ip>
 				<master.port>22222</master.port>
-				<log>D:/temp1</log>
+				<log>C:/temp1</log>
 			</properties>
 		</profile>
 	</profiles>
