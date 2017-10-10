@@ -23,12 +23,17 @@ public class MasterCommunicationProvider {
 	private MasterTransferManager masterTransferManager;
 
 	private Thread masterCommunicationProviderThread;
+	
+	private MasterRepositoryScheduler masterRepositoryScheduler;
 
 	public MasterCommunicationProvider(MasterRepositoryManager repositoryManager,
-			MasterTransferManager masterTransferManager) {
+									   MasterTransferManager masterTransferManager,
+									   MasterRepositoryScheduler masterRepositoryScheduler) 
+	{
 		super();
 		this.repositoryManager = repositoryManager;
 		this.masterTransferManager = masterTransferManager;
+		this.masterRepositoryScheduler = masterRepositoryScheduler;
 	}
 
 	/**
@@ -48,8 +53,6 @@ public class MasterCommunicationProvider {
 				logger.info("[" + this.getClass().getSimpleName() + "] started");
 				
 				boolean isStartup = true;
-				//TODO(NORMAL): Define schedule rules
-				boolean isScheduled = false;
 	
 				RepositoryScaner repositoryScaner = repositoryManager.getScaner();
 				MasterTransferThread mtt = masterTransferManager.getMasterTransferThread();
@@ -68,12 +71,10 @@ public class MasterCommunicationProvider {
 						t2.start();
 						isStartup = false;
 					} 
-					else if (isScheduled && repositoryScaner.getStatus() == RepositoryScannerStatus.READY) {
+					else if (repositoryScaner.getStatus() == RepositoryScannerStatus.READY && masterRepositoryScheduler.isScheduled()) {
+						logger.info("[" + this.getClass().getSimpleName() + "] Master repository scan is scheduled");
 						mtt.pause();
-						
 						repositoryScaner.reset();
-						
-						isScheduled = false;
 					}
 					
 					//As soon as repository was scanned and data.repo created make all waiting communications

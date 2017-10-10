@@ -4,6 +4,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import provider.MasterCommunicationProvider;
+import provider.MasterRepositoryScheduler;
+import provider.SlaveTransferScheduler;
 import repository.BaseRepositoryOperations;
 import repository.MasterRepositoryManager;
 import repository.RepositoryVisitor;
@@ -63,6 +65,10 @@ public class AppContext {
 	
 	private LongTransformer frameProcessor;
 	
+	private MasterRepositoryScheduler masterRepositoryScheduler;
+	
+	private SlaveTransferScheduler slaveTransferScheduler;
+	
 	public void initAsMaster() {
 		//Others
 		frameProcessor = new LongTransformer();
@@ -100,10 +106,12 @@ public class AppContext {
 								   getProtocolStatusMapper(),
 								   appProperties);
 		masterRepositoryManager = new MasterRepositoryManager(getRepositoryVisitor(), getBaseRepositoryOperations(), appProperties);
+
+		masterRepositoryScheduler = new MasterRepositoryScheduler();
 		
 		//Top layer: layer 0 
 		masterCommunicationProvider = 
-				new MasterCommunicationProvider(getMasterRepositoryManager(), getMasterTransferManager());
+				new MasterCommunicationProvider(getMasterRepositoryManager(), getMasterTransferManager(), getMasterRepositoryScheduler());
 	}
 	
 	public void initAsSlave() {
@@ -136,12 +144,13 @@ public class AppContext {
 																  getFileTransferOperation(),
 																  getStatusTransferOperation(),
 																  getBatchFilesTransferOperation());
-		
+		slaveTransferScheduler = new SlaveTransferScheduler();
 		
 		//Top layer: layer 0 
 		slaveTransferManager = new SlaveTransferManager();
 		slaveTransferManager.init(getFullFileTransferOperation(),
 				 				  getStatusTransferOperation(),
+				 				  getSlaveTransferScheduler(),
 				 				  appProperties);
 	}
 	
@@ -222,6 +231,14 @@ public class AppContext {
 
 	public RepositoryStatusMapper getRepositoryStatusMapper() {
 		return repositoryStatusMapper;
+	}
+
+	public MasterRepositoryScheduler getMasterRepositoryScheduler() {
+		return masterRepositoryScheduler;
+	}
+
+	public SlaveTransferScheduler getSlaveTransferScheduler() {
+		return slaveTransferScheduler;
 	}
 	
 }

@@ -11,11 +11,14 @@ import org.apache.logging.log4j.Logger;
 
 import exception.MasterNotReadyDuringBatchTransfer;
 import main.AppProperties;
+import provider.SlaveTransferScheduler;
 import transfer.constant.MasterStatus;
 
 public class SlaveTransferManager {
 	
 	private Logger logger = LogManager.getRootLogger();
+	
+	private SlaveTransferScheduler scheduler;
 	
 	private FullFileTransferOperation ffto;
 	
@@ -25,8 +28,10 @@ public class SlaveTransferManager {
 	
 	public void init(FullFileTransferOperation ffto,
 					 StatusTransferOperation sto,
+					 SlaveTransferScheduler sts,
 					 AppProperties ap) 
 	{
+		this.scheduler = sts;
 		this.ffto = ffto;
 		this.sto = sto;
 		this.ap = ap;
@@ -55,14 +60,11 @@ public class SlaveTransferManager {
 	}
 	
 	private void transfer(OutputStream os, InputStream is) throws InterruptedException, IOException, MasterNotReadyDuringBatchTransfer {
-		MasterStatus status = null;
-		while((status = sto.executeAsSlave(os, is)) == MasterStatus.BUSY) {
-			Thread.sleep(1000);
+		//get status request(also used as health check)
+		MasterStatus status = sto.executeAsSlave(os, is);
+		if(status == MasterStatus.READY && scheduler.isScheduled()) {
+			ffto.executeAsSlave(os, is);
 		}
-		
-		// TODO(NORMAL): run this on schedule
-
-		ffto.executeAsSlave(os, is);
 	}
 
 	public Thread getSlaveTransferThread() {
