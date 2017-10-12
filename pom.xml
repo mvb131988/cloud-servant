@@ -104,6 +104,7 @@
 				<master>true</master>
 				<master.ip>172.16.42.210</master.ip>
 				<master.port>22222</master.port>
+				<admin.port>22223</admin.port>
 				<log>D:/temp1</log>
 			</properties>
 		</profile>
@@ -114,6 +115,7 @@
 				<master>false</master>
 				<master.ip>172.16.42.210</master.ip>
 				<master.port>22222</master.port>
+				<admin.port>22223</admin.port>
 				<log>C:/temp1</log>
 			</properties>
 		</profile>

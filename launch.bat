@@ -1,2 +1,4 @@
 @REM Run as a javaw process outside command line
-javaw -jar cloud-servant-0.0.1-SNAPSHOT-jar-with-dependencies.jar
+@REM D is unused parameter listed by jps tool
+
+javaw -jar -Dcloud-servant cloud-servant.jar start

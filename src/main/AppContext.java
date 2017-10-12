@@ -69,7 +69,13 @@ public class AppContext {
 	
 	private SlaveTransferScheduler slaveTransferScheduler;
 	
+	private MasterShutdownThread masterShutdownThread;
+	
 	public void initAsMaster() {
+		//Separate thread intended for (master-side) application shutdown
+		masterShutdownThread = new MasterShutdownThread(appProperties);
+		masterShutdownThread.start();
+		
 		//Others
 		frameProcessor = new LongTransformer();
 		protocolStatusMapper = new ProtocolStatusMapper();
@@ -154,9 +160,9 @@ public class AppContext {
 				 				  appProperties);
 	}
 	
-	public void start() {
-		appProperties = new AppProperties();
-		if (appProperties.isMaster()) {
+	public void start(AppProperties appProperties) {
+		this.appProperties = appProperties;
+		if (this.appProperties.isMaster()) {
 			initAsMaster();
 			getMasterCommunicationProvider().init();
 		} else {
