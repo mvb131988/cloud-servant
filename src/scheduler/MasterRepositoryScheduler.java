@@ -1,4 +1,6 @@
-package provider;
+package scheduler;
+
+import main.AppProperties;
 
 /**
  * Defines a rule(point in a time) when repository scan process
@@ -7,8 +9,8 @@ package provider;
  */
 public class MasterRepositoryScheduler extends AbstractScheduler {
 
-	public MasterRepositoryScheduler() {
-		minutesInterval = 1;
+	public MasterRepositoryScheduler(AppProperties appProperties) {
+		minutesInterval = appProperties.getMasterRepositoryScheduleInterval();
 	}
 	
 }

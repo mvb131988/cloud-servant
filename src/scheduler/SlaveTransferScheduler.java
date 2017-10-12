@@ -1,4 +1,6 @@
-package provider;
+package scheduler;
+
+import main.AppProperties;
 
 /**
  * Defines a rule(point in a time) when slave communication thread requested 
@@ -7,8 +9,8 @@ package provider;
  */
 public class SlaveTransferScheduler extends AbstractScheduler {
 
-	public SlaveTransferScheduler() {
-		minutesInterval = 5;
+	public SlaveTransferScheduler(AppProperties appProperties) {
+		minutesInterval = appProperties.getSlaveTransferScheduleInterval();
 	}
 	
 }

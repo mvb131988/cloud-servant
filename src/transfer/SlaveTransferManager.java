@@ -11,7 +11,7 @@ import org.apache.logging.log4j.Logger;
 
 import exception.MasterNotReadyDuringBatchTransfer;
 import main.AppProperties;
-import provider.SlaveTransferScheduler;
+import scheduler.SlaveTransferScheduler;
 import transfer.constant.MasterStatus;
 
 public class SlaveTransferManager {

@@ -4,13 +4,13 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import provider.MasterCommunicationProvider;
-import provider.MasterRepositoryScheduler;
-import provider.SlaveTransferScheduler;
 import repository.BaseRepositoryOperations;
 import repository.MasterRepositoryManager;
 import repository.RepositoryVisitor;
 import repository.SlaveRepositoryManager;
 import repository.status.RepositoryStatusMapper;
+import scheduler.MasterRepositoryScheduler;
+import scheduler.SlaveTransferScheduler;
 import transfer.BaseTransferOperations;
 import transfer.BatchFilesTransferOperation;
 import transfer.FileTransferOperation;
@@ -113,7 +113,7 @@ public class AppContext {
 								   appProperties);
 		masterRepositoryManager = new MasterRepositoryManager(getRepositoryVisitor(), getBaseRepositoryOperations(), appProperties);
 
-		masterRepositoryScheduler = new MasterRepositoryScheduler();
+		masterRepositoryScheduler = new MasterRepositoryScheduler(appProperties);
 		
 		//Top layer: layer 0 
 		masterCommunicationProvider = 
@@ -150,7 +150,7 @@ public class AppContext {
 																  getFileTransferOperation(),
 																  getStatusTransferOperation(),
 																  getBatchFilesTransferOperation());
-		slaveTransferScheduler = new SlaveTransferScheduler();
+		slaveTransferScheduler = new SlaveTransferScheduler(appProperties);
 		
 		//Top layer: layer 0 
 		slaveTransferManager = new SlaveTransferManager();

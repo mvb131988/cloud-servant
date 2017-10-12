@@ -106,6 +106,8 @@
 				<master.port>22222</master.port>
 				<admin.port>22223</admin.port>
 				<log>D:/temp1</log>
+				<schedule.master.repository>1</schedule.master.repository>
+				<schedule.slave.transfer>5</schedule.slave.transfer>
 			</properties>
 		</profile>
 		<profile>
@@ -117,6 +119,8 @@
 				<master.port>22222</master.port>
 				<admin.port>22223</admin.port>
 				<log>C:/temp1</log>
+				<schedule.slave.transfer>1</schedule.slave.transfer>
+				<schedule.slave.transfer>5</schedule.slave.transfer>
 			</properties>
 		</profile>
 	</profiles>

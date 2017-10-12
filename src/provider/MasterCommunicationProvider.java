@@ -6,6 +6,7 @@ import org.apache.logging.log4j.Logger;
 import repository.MasterRepositoryManager;
 import repository.RepositoryScannerStatus;
 import repository.MasterRepositoryManager.RepositoryScaner;
+import scheduler.MasterRepositoryScheduler;
 import transfer.MasterTransferManager;
 import transfer.MasterTransferManager.MasterTransferThread;
 
