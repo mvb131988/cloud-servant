@@ -53,6 +53,7 @@ public class FullFileTransferOperation {
 		//Otherwise thread will return status check(and in this time it couldn't be paused), 
 		//until full file transfer operation isn't received. If full file transfer operation is scheduled
 		// to be performed once in a day it will block RepositoryScanner thread.
+		//TODO(MAJOR): instead of REQUEST_MASTER_STATUS_START create new HEALTHCHECK REQUEST
 		if(ot == REQUEST_MASTER_STATUS_START) {
 			sto.executeAsMaster(os, pushbackInputStream, MasterStatus.READY);
 			logger.info("[" + this.getClass().getSimpleName() + "] slave requested status");

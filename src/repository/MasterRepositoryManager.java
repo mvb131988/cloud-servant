@@ -19,6 +19,8 @@ import main.AppProperties;
  */
 public class MasterRepositoryManager {
 
+	private final int smallTimeout;
+	
 	private Logger logger = LogManager.getRootLogger();
 	
 	private Path repositoryRoot;
@@ -34,6 +36,7 @@ public class MasterRepositoryManager {
 		
 		this.bro = bro;
 		this.repositoryVisitor = repositoryVisitor;
+		this.smallTimeout = appProperties.getSmallPoolingTimeout();
 	}
 	
 	/**
@@ -105,7 +108,9 @@ public class MasterRepositoryManager {
 						status = RepositoryScannerStatus.READY;
 						logger.info("[" + this.getClass().getSimpleName() + "] scan ended");
 					}
-					Thread.sleep(1000);
+					//Thread idle timeout.
+					//Wait 1 second to avoid resources overconsumption.
+					Thread.sleep(smallTimeout);
 				}
 			}
 			catch (Exception e) {

@@ -96,7 +96,8 @@ public class AppContext {
 																 getFileTransferOperation(),
 																 getStatusTransferOperation(),
 																 null,
-																 getFilesContextTransformer());
+																 getFilesContextTransformer(),
+																 appProperties);
 		
 		fullFileTransferOperation = new FullFileTransferOperation(getBaseTransferOperations(),
 																  getFileTransferOperation(),
@@ -105,7 +106,7 @@ public class AppContext {
 		
 		//Layer 1
 		masterSlaveCommunicationPool = new MasterSlaveCommunicationPool();
-		masterTransferManager = new MasterTransferManager();
+		masterTransferManager = new MasterTransferManager(appProperties);
 		masterTransferManager.init(getFullFileTransferOperation(), 
 								   getStatusTransferOperation(),
 								   getMasterSlaveCommunicationPool(), 
@@ -116,8 +117,10 @@ public class AppContext {
 		masterRepositoryScheduler = new MasterRepositoryScheduler(appProperties);
 		
 		//Top layer: layer 0 
-		masterCommunicationProvider = 
-				new MasterCommunicationProvider(getMasterRepositoryManager(), getMasterTransferManager(), getMasterRepositoryScheduler());
+		masterCommunicationProvider = new MasterCommunicationProvider(getMasterRepositoryManager(), 
+																	  getMasterTransferManager(), 
+																	  getMasterRepositoryScheduler(),
+																	  appProperties);
 	}
 	
 	public void initAsSlave() {
@@ -145,7 +148,8 @@ public class AppContext {
 				 												 getFileTransferOperation(),
 				 												 getStatusTransferOperation(),
 				 												 getSlaveRepositoryManager(),
-				 												 getFilesContextTransformer());
+				 												 getFilesContextTransformer(),
+				 												 appProperties);
 		fullFileTransferOperation = new FullFileTransferOperation(getBaseTransferOperations(),
 																  getFileTransferOperation(),
 																  getStatusTransferOperation(),
@@ -153,7 +157,7 @@ public class AppContext {
 		slaveTransferScheduler = new SlaveTransferScheduler(appProperties);
 		
 		//Top layer: layer 0 
-		slaveTransferManager = new SlaveTransferManager();
+		slaveTransferManager = new SlaveTransferManager(appProperties);
 		slaveTransferManager.init(getFullFileTransferOperation(),
 				 				  getStatusTransferOperation(),
 				 				  getSlaveTransferScheduler(),

@@ -21,6 +21,10 @@ public class AppProperties {
 	
 	private Integer slaveTransferScheduleInterval;
 	
+	private Integer smallPoolingTimeout;
+	
+	private Integer bigPoolingTimeout;
+	
 	public AppProperties() {
 		repositoryRoot = Paths.get(ResourceBundle.getBundle("app").getString("root"));
 		isMaster = Boolean.parseBoolean(ResourceBundle.getBundle("app").getString("master"));
@@ -29,6 +33,8 @@ public class AppProperties {
 		adminPort = Integer.parseInt(ResourceBundle.getBundle("app").getString("admin.port"));
 		masterRepositoryScheduleInterval = Integer.parseInt(ResourceBundle.getBundle("app").getString("schedule.master.repository"));
 		slaveTransferScheduleInterval = Integer.parseInt(ResourceBundle.getBundle("app").getString("schedule.slave.transfer"));
+		smallPoolingTimeout = Integer.parseInt(ResourceBundle.getBundle("app").getString("timeout.pooling.small"));
+		bigPoolingTimeout = Integer.parseInt(ResourceBundle.getBundle("app").getString("timeout.pooling.big"));
 	}
 
 	public boolean isMaster() {
@@ -57,6 +63,14 @@ public class AppProperties {
 
 	public Integer getSlaveTransferScheduleInterval() {
 		return slaveTransferScheduleInterval;
+	}
+
+	public Integer getSmallPoolingTimeout() {
+		return smallPoolingTimeout;
+	}
+
+	public Integer getBigPoolingTimeout() {
+		return bigPoolingTimeout;
 	}
 	
 }

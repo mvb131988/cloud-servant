@@ -11,6 +11,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import exception.MasterNotReadyDuringBatchTransfer;
+import main.AppProperties;
 import repository.RepositoryRecord;
 import repository.SlaveRepositoryManager;
 import repository.status.SlaveRepositoryManagerStatus;
@@ -24,6 +25,8 @@ import transformer.FilesContextTransformer;
  */
 public class BatchFilesTransferOperation {
 
+	private final int smallTimeout;
+	
 	private Logger logger = LogManager.getRootLogger();
 	
 	private FileTransferOperation fto;
@@ -40,7 +43,8 @@ public class BatchFilesTransferOperation {
 									   FileTransferOperation fto, 
 									   StatusTransferOperation sto, 
 									   SlaveRepositoryManager srm,
-									   FilesContextTransformer fct) 
+									   FilesContextTransformer fct,
+									   AppProperties appProperties) 
 	{
 		super();
 		this.fto = fto;
@@ -48,6 +52,7 @@ public class BatchFilesTransferOperation {
 		this.fct = fct;
 		this.srm = srm;
 		this.sto = sto;
+		this.smallTimeout = appProperties.getSmallPoolingTimeout();
 	}
 
 	public void executeAsMaster(OutputStream os, PushbackInputStream pushbackInputStream) throws IOException {
@@ -96,7 +101,7 @@ public class BatchFilesTransferOperation {
 		}
 		logger.info("[" + this.getClass().getSimpleName() + "] master responded batch transfer start");
 
-		//2. Get next file path for corresponding file need to be transfered and
+		//2. Get next file path(for corresponding file) that is needed to be transfered and
 		// send file transfer request to master
 		srm.reset();
 		while(srm.getStatus() != SlaveRepositoryManagerStatus.TERMINATED) {
@@ -105,13 +110,16 @@ public class BatchFilesTransferOperation {
 				fto.executeAsSlave(os, is, fct.transform(rr));
 			} else {
 				// send status check message
-				// must be READY any time but may be logged for testing purposes   
+				// must be READY at any time  
 				MasterStatus status = sto.executeAsSlave(os, is);
 				if(MasterStatus.READY != status) {
 					throw new MasterNotReadyDuringBatchTransfer();
 				}
 				
-				Thread.sleep(1000);
+				//If all records from the buffer of AsynchronySearcher are consumed and buffer is empty,
+				//but AsynchronySearcher isn't terminated wait until it adds new records to the buffer.
+				//Wait 1 second to avoid resources overconsumption.
+				Thread.sleep(smallTimeout);
 			}
 		}
 		

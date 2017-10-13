@@ -3,6 +3,7 @@ package provider;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import main.AppProperties;
 import repository.MasterRepositoryManager;
 import repository.RepositoryScannerStatus;
 import repository.MasterRepositoryManager.RepositoryScaner;
@@ -17,6 +18,8 @@ import transfer.MasterTransferManager.MasterTransferThread;
  */
 public class MasterCommunicationProvider {
 
+	private final int bigTimeout;
+	
 	private Logger logger = LogManager.getRootLogger();
 	
 	private MasterRepositoryManager repositoryManager;
@@ -29,12 +32,14 @@ public class MasterCommunicationProvider {
 
 	public MasterCommunicationProvider(MasterRepositoryManager repositoryManager,
 									   MasterTransferManager masterTransferManager,
-									   MasterRepositoryScheduler masterRepositoryScheduler) 
+									   MasterRepositoryScheduler masterRepositoryScheduler,
+									   AppProperties appProperties) 
 	{
 		super();
 		this.repositoryManager = repositoryManager;
 		this.masterTransferManager = masterTransferManager;
 		this.masterRepositoryScheduler = masterRepositoryScheduler;
+		this.bigTimeout = appProperties.getBigPoolingTimeout();
 	}
 
 	/**
@@ -81,13 +86,16 @@ public class MasterCommunicationProvider {
 					//As soon as repository was scanned and data.repo created make all waiting communications
 					//ready for transfer
 					if (repositoryScaner.getStatus() == RepositoryScannerStatus.READY) {
+						logger.info("[" + this.getClass().getSimpleName() + "] Master repository scan is done");
 						mtt.resume();
 					}
 					
-					Thread.sleep(30000);
+					//One iteration of the loop in a minute is sufficient for synchronization purpose.
+					//Wait 1 minute to avoid resources overconsumption.
+					Thread.sleep(bigTimeout);
 				}
 			} catch(Exception e) {
-				logger.error("[" + this.getClass().getSimpleName() + "] thread fail", e);
+				logger.error("[" + this.getClass().getSimpleName() + "] thread fail. Master application is in wrong state.", e);
 			}
 		}
 

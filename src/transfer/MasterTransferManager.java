@@ -25,6 +25,10 @@ import transfer.constant.ProtocolStatusMapper;
  */
 public class MasterTransferManager {
 
+	private final int smallTimeout;
+	
+	private final int bigTimeout;
+	
 	private Logger logger = LogManager.getRootLogger();
 
 	private FullFileTransferOperation ffto;
@@ -43,6 +47,11 @@ public class MasterTransferManager {
 
 	private MasterTransferThread masterTransferThread;
 
+	public MasterTransferManager(AppProperties ap) {
+		this.smallTimeout = ap.getSmallPoolingTimeout();
+		this.bigTimeout = ap.getBigPoolingTimeout();
+	}
+	
 	public void init(FullFileTransferOperation ffto,
 					 StatusTransferOperation sto,
 					 MasterSlaveCommunicationPool scp,
@@ -184,7 +193,6 @@ public class MasterTransferManager {
 				logger.info("[" + this.getClass().getSimpleName() + "] start");
 				for (;;) {
 					acceptSlave();
-					// sleep
 				}
 			} catch (Exception e) {
 				logger.error("[" + this.getClass().getSimpleName() + "] thread fail", e);
@@ -212,7 +220,9 @@ public class MasterTransferManager {
 						break;
 					}
 					
-					Thread.sleep(10000);
+					//Pausing of threads can take much time. Wait until all threads are not paused.
+					//Wait 1 minute to avoid resources overconsumption.
+					Thread.sleep(bigTimeout);
 				}
 			}
 			
@@ -238,7 +248,9 @@ public class MasterTransferManager {
 					// 4. status() return BUSY forever because resumeSlave() doesn't consider new communication
 					resumeSlaves();
 					
-					Thread.sleep(10000);
+					//Starting of threads can take much time. Wait until all threads are not started.
+					//Wait 1 minute to avoid resources overconsumption.
+					Thread.sleep(smallTimeout);
 				}
 			}
 			
@@ -309,7 +321,9 @@ public class MasterTransferManager {
 						actualStatus = MasterSlaveCommunicationStatus.READY;
 					}
 
-					Thread.sleep(30000);
+					//One iteration of the loop in a minute is sufficient for thread status check.
+					//Wait 1 minute to avoid resources overconsumption.
+					Thread.sleep(bigTimeout);
 				}
 			} catch (Exception e) {
 				logger.error("[" + this.getClass().getSimpleName() + "] ", e);

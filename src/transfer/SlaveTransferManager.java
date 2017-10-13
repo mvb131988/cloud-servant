@@ -16,6 +16,8 @@ import transfer.constant.MasterStatus;
 
 public class SlaveTransferManager {
 	
+	private final int bigTimeout;
+	
 	private Logger logger = LogManager.getRootLogger();
 	
 	private SlaveTransferScheduler scheduler;
@@ -25,6 +27,10 @@ public class SlaveTransferManager {
 	private StatusTransferOperation sto;
 	
 	private AppProperties ap;
+	
+	public SlaveTransferManager(AppProperties ap) {
+		this.bigTimeout = ap.getBigPoolingTimeout();
+	}
 	
 	public void init(FullFileTransferOperation ffto,
 					 StatusTransferOperation sto,
@@ -121,8 +127,10 @@ public class SlaveTransferManager {
 			try {
 				for(;;) {
 					transfer(os, is);
-					//TODO: Add pooling interval into properties
-					Thread.sleep(30000);
+					
+					//Determines frequency of health check.
+					//Wait 1 minute to avoid resources overconsumption.
+					Thread.sleep(bigTimeout);
 				}
 			} catch (Exception e) {
 				logger.error("[" + this.getClass().getSimpleName() + "] thread fail", e);

@@ -15,8 +15,6 @@ import java.nio.file.attribute.FileTime;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -29,6 +27,8 @@ import transformer.LongTransformer;
 
 public class BaseRepositoryOperations {
 
+	private final int smallTimeout;
+	
 	private Logger logger = LogManager.getRootLogger();
 	
 	private Path repositoryRoot;
@@ -38,13 +38,13 @@ public class BaseRepositoryOperations {
 
 	private FilesContextTransformer fct;
 
-	public BaseRepositoryOperations(LongTransformer frameProcessor, FilesContextTransformer fct,
-			AppProperties appProperties) {
+	public BaseRepositoryOperations(LongTransformer frameProcessor, FilesContextTransformer fct, AppProperties appProperties) {
 		super();
 		this.frameProcessor = frameProcessor;
 		this.fct = fct;
 
 		this.repositoryRoot = appProperties.getRepositoryRoot();
+		this.smallTimeout = appProperties.getSmallPoolingTimeout();
 	}
 
 	// --------------------------------------------------------------------------------------------------------------------------------
@@ -144,10 +144,11 @@ public class BaseRepositoryOperations {
 	 * Writes the list of files into data.repo Much more faster than random
 	 * access file
 	 *
-	 * Record format(defined by RecordConstants)-------------------------- | 8
-	 * bytes| 8 bytes | 500 bytes| 1 byte |
-	 * ------------------------------------------------------------------- |
-	 * fileId | size of fileName | fileName | fileStatus |
+	 * Record format(defined by RecordConstants)
+	 * ------------------------------------------------------------------- 
+	 * | 8bytes| 8 bytes 		  | 500 bytes| 	   1 byte |
+	 * ------------------------------------------------------------------- 
+	 * |fileId | size of fileName | fileName | fileStatus |
 	 * -------------------------------------------------------------------
 	 *
 	 * @param fileNames
@@ -329,8 +330,6 @@ public class BaseRepositoryOperations {
 
 		private AsynchronySearcherStatus asynchronySearcherStatus;
 
-		private Lock lock = new ReentrantLock();
-
 		private AsynchronySearcher() {
 			asynchronyBuffer = new ArrayBlockingQueue<>(asynchronyBufferMaxSize);
 			asynchronySearcherStatus = AsynchronySearcherStatus.READY;
@@ -351,10 +350,13 @@ public class BaseRepositoryOperations {
 	
 						// Set current record path to be used for file transfer
 						if (!existsFile(Paths.get(rr.getFileName()))) {
+							
 							// if previous read asynchrony isn't consumed wait until
 							// it is consumed
 							while (bufferFull()) {
-								Thread.sleep(1000);
+								//Waiting for SlaveMasterCommunicationThread to consume a record from a buffer.
+								//Wait 1 second to avoid resources overconsumption.
+								Thread.sleep(smallTimeout);
 							}
 							setAsynchrony(rr);
 						}
@@ -369,7 +371,10 @@ public class BaseRepositoryOperations {
 	
 				// Last read. Wait until last read record isn't consumed.
 				while (!bufferEmpty()) {
-					Thread.sleep(1000);
+					
+					//Waiting for SlaveMasterCommunicationThread to consume all records from a buffer.
+					//Wait 1 second to avoid resources overconsumption.
+					Thread.sleep(smallTimeout);
 				}
 	
 				asynchronySearcherStatus = AsynchronySearcherStatus.TERMINATED;
