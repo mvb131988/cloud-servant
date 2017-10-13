@@ -202,6 +202,16 @@ public class MasterTransferManager {
 				// Connections that come after this invocation are already in BUSY
 				pauseSlaves();
 				while (status() != MasterTransferThreadStatus.BUSY) {
+					
+					//Corner case:
+					//At the moment when status is going to be invoked all
+					//communication threads crash that leads to MaterCommunicationProvider
+					//blocking in pause method, until new connection comes.
+					//To avoid this exit the method is communication pool is empty
+					if(status() == MasterTransferThreadStatus.EMPTY) {
+						break;
+					}
+					
 					Thread.sleep(10000);
 				}
 			}

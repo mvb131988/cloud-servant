@@ -86,7 +86,6 @@ public class SlaveTransferManager {
 				try {
 					Thread t = connect();
 					t.join();
-					Thread.sleep(30000);
 				} catch (Exception e) {
 					logger.error("[" + this.getClass().getSimpleName() + "] thread fail", e);
 				}
@@ -122,6 +121,7 @@ public class SlaveTransferManager {
 			try {
 				for(;;) {
 					transfer(os, is);
+					//TODO: Add pooling interval into properties
 					Thread.sleep(30000);
 				}
 			} catch (Exception e) {

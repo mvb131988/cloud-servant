@@ -1,6 +1,6 @@
 package transfer;
 
-import static transfer.constant.OperationType.REQUEST_TRANSFER_END;
+import static transfer.constant.OperationType.*;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -47,7 +47,18 @@ public class FullFileTransferOperation {
 	public void executeAsMaster(OutputStream os, InputStream is) throws IOException {
 		PushbackInputStream pushbackInputStream = new PushbackInputStream(is);
 
-		OperationType ot = null;
+		OperationType ot = bto.checkOperationType(pushbackInputStream);
+		
+		//If first received operation is status check, return the status and leave immediately.
+		//Otherwise thread will return status check(and in this time it couldn't be paused), 
+		//until full file transfer operation isn't received. If full file transfer operation is scheduled
+		// to be performed once in a day it will block RepositoryScanner thread.
+		if(ot == REQUEST_MASTER_STATUS_START) {
+			sto.executeAsMaster(os, pushbackInputStream, MasterStatus.READY);
+			logger.info("[" + this.getClass().getSimpleName() + "] slave requested status");
+			return;
+		}
+		
 		while (REQUEST_TRANSFER_END != (ot = bto.checkOperationType(pushbackInputStream))) {
 			if (ot == null) {
 				// if connection is aborted
