@@ -13,6 +13,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import exception.MasterNotReadyDuringBatchTransfer;
+import exception.WrongOperationException;
 import transfer.constant.MasterStatus;
 import transfer.constant.OperationType;
 import transfer.context.FileContext;
@@ -44,7 +45,7 @@ public class FullFileTransferOperation {
 		this.bfto = bfto;
 	}
 
-	public void executeAsMaster(OutputStream os, InputStream is) throws IOException {
+	public void executeAsMaster(OutputStream os, InputStream is) throws IOException, WrongOperationException {
 		PushbackInputStream pushbackInputStream = new PushbackInputStream(is);
 
 		OperationType ot = bto.checkOperationType(pushbackInputStream);
@@ -88,8 +89,7 @@ public class FullFileTransferOperation {
 				logger.info("[" + this.getClass().getSimpleName() + "] file transfer ended");
 				break;
 			default:
-				// error detected
-				break;
+				throw new WrongOperationException();
 			}
 		}
 		// read REQUEST_TRANSFER_END byte
@@ -100,13 +100,13 @@ public class FullFileTransferOperation {
 		logger.info("[" + this.getClass().getSimpleName() + "] sent transfer end operation accept");
 	}
 	
-	public void executeAsSlave(OutputStream os, InputStream is) throws InterruptedException, IOException, MasterNotReadyDuringBatchTransfer {
+	public void executeAsSlave(OutputStream os, InputStream is) throws InterruptedException, IOException, MasterNotReadyDuringBatchTransfer, WrongOperationException {
 		bto.sendOperationType(os, OperationType.REQUEST_TRANSFER_START);
 		logger.info("[" + this.getClass().getSimpleName() + "] sent transfer start operation request");
 		
 		OperationType ot = bto.receiveOperationType(is);
 		if (ot != OperationType.RESPONSE_TRANSFER_START) {
-			// error detected
+			throw new WrongOperationException("Expected: " + OperationType.RESPONSE_TRANSFER_START + " Actual: " + ot);
 		}
 		logger.info("[" + this.getClass().getSimpleName() + "] master responded transfer start");
 		
@@ -125,7 +125,7 @@ public class FullFileTransferOperation {
 		
 		ot = bto.receiveOperationType(is);
 		if (ot != OperationType.RESPONSE_TRANSFER_END) {
-			// error detected
+			throw new WrongOperationException("Expected: " + OperationType.RESPONSE_TRANSFER_END + " Actual: " + ot);
 		}
 		logger.info("[" + this.getClass().getSimpleName() + "] master responded transfer end");
 	}

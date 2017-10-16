@@ -10,6 +10,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import exception.MasterNotReadyDuringBatchTransfer;
+import exception.WrongOperationException;
 import main.AppProperties;
 import scheduler.SlaveTransferScheduler;
 import transfer.constant.MasterStatus;
@@ -65,7 +66,7 @@ public class SlaveTransferManager {
 		return thread;
 	}
 	
-	private void transfer(OutputStream os, InputStream is) throws InterruptedException, IOException, MasterNotReadyDuringBatchTransfer {
+	private void transfer(OutputStream os, InputStream is) throws InterruptedException, IOException, MasterNotReadyDuringBatchTransfer, WrongOperationException {
 		//get status request(also used as health check)
 		MasterStatus status = sto.executeAsSlave(os, is);
 		if(status == MasterStatus.READY && scheduler.isScheduled()) {

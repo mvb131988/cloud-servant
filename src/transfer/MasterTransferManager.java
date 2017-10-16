@@ -12,6 +12,7 @@ import java.util.concurrent.Executors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import exception.WrongOperationException;
 import main.AppProperties;
 import transfer.constant.MasterSlaveCommunicationStatus;
 import transfer.constant.MasterStatus;
@@ -161,16 +162,18 @@ public class MasterTransferManager {
 	/**
 	 * Entry point to start full transfer operation 
 	 * @throws IOException 
+	 * @throws WrongOperationException 
 	 */
-	private void transfer(OutputStream os, InputStream is) throws IOException {
+	private void transfer(OutputStream os, InputStream is) throws IOException, WrongOperationException {
 		ffto.executeAsMaster(os, is);
 	}
 	
 	/**
 	 * Entry point to send status message
 	 * @throws IOException 
+	 * @throws WrongOperationException 
 	 */
-	private void transferBusy(OutputStream os, InputStream is) throws IOException {
+	private void transferBusy(OutputStream os, InputStream is) throws IOException, WrongOperationException {
 		sto.executeAsMaster(os, is, MasterStatus.BUSY);
 	}
 

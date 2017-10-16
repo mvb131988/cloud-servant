@@ -8,6 +8,7 @@ import java.nio.file.Path;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import exception.WrongOperationException;
 import main.AppProperties;
 import repository.BaseRepositoryOperations;
 import transfer.constant.OperationType;
@@ -35,18 +36,18 @@ public class FileTransferOperation {
 		this.repositoryRoot = appProperties.getRepositoryRoot();
 	}
 
-	public void executeAsMaster(OutputStream os, InputStream is) throws IOException{
+	public void executeAsMaster(OutputStream os, InputStream is) throws IOException, WrongOperationException{
 		//Receive request for a file
 		OperationType ot = bto.receiveOperationType(is);
 		if(ot != OperationType.REQUEST_FILE_START) {
-			//error detected
+			throw new WrongOperationException("Expected: " + OperationType.REQUEST_FILE_START + " Actual: " + ot);
 		}
 		logger.trace("[" + this.getClass().getSimpleName() + "] slave requested file start operation");
 		
 		Path relativePath = bto.receiveRelativePath(is);
 		ot = bto.receiveOperationType(is);
 		if(ot != OperationType.REQUEST_FILE_END) {
-			//error detected
+			throw new WrongOperationException("Expected: " + OperationType.REQUEST_FILE_END + " Actual: " + ot);
 		}
 		
 		//Send the requested file back
@@ -61,7 +62,7 @@ public class FileTransferOperation {
 		logger.trace("[" + this.getClass().getSimpleName() + "] file[" + relativePath + "] size[" + size + "bytes] was sent");
 	}
 
-	public void executeAsSlave(OutputStream os, InputStream is, FileContext fc) throws IOException{
+	public void executeAsSlave(OutputStream os, InputStream is, FileContext fc) throws IOException, WrongOperationException{
 		bto.sendOperationType(os, OperationType.REQUEST_FILE_START);	
 		bto.sendRelativePath(os, fc.getRelativePath());
 		bto.sendOperationType(os, OperationType.REQUEST_FILE_END);
@@ -69,7 +70,7 @@ public class FileTransferOperation {
 		
 		OperationType ot = bto.receiveOperationType(is);
 		if(ot != OperationType.RESPONSE_FILE_START) {
-			//error detected
+			throw new WrongOperationException("Expected: " + OperationType.RESPONSE_FILE_START + " Actual: " + ot);
 		}
 		long size = bto.receiveSize(is);
 		Path relativePath = bto.receiveRelativePath(is);
@@ -77,7 +78,7 @@ public class FileTransferOperation {
 		bto.receiveFile(is, size, repositoryRoot, relativePath, creationDateTime);
 		ot = bto.receiveOperationType(is);
 		if(ot != OperationType.RESPONSE_FILE_END) {
-			//error detected
+			throw new WrongOperationException("Expected: " + OperationType.RESPONSE_FILE_END + " Actual: " + ot);
 		}
 		
 		logger.trace("[" + this.getClass().getSimpleName() + "] file[" + relativePath + "] size[" + size + "bytes] received");

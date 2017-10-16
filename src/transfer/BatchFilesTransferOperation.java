@@ -11,6 +11,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import exception.MasterNotReadyDuringBatchTransfer;
+import exception.WrongOperationException;
 import main.AppProperties;
 import repository.RepositoryRecord;
 import repository.SlaveRepositoryManager;
@@ -55,7 +56,7 @@ public class BatchFilesTransferOperation {
 		this.smallTimeout = appProperties.getSmallPoolingTimeout();
 	}
 
-	public void executeAsMaster(OutputStream os, PushbackInputStream pushbackInputStream) throws IOException {
+	public void executeAsMaster(OutputStream os, PushbackInputStream pushbackInputStream) throws IOException, WrongOperationException {
 		OperationType ot = null;
 		while (REQUEST_BATCH_END != (ot=bto.checkOperationType(pushbackInputStream))) {
 			if(ot == null) {
@@ -78,8 +79,7 @@ public class BatchFilesTransferOperation {
 				fto.executeAsMaster(os, pushbackInputStream);
 				break;
 			default:
-				// error detected
-				break;
+				throw new WrongOperationException();
 			}
 		}
 		//read REQUEST_BATCH_END byte
@@ -90,14 +90,14 @@ public class BatchFilesTransferOperation {
 		logger.info("[" + this.getClass().getSimpleName() + "] sent batch transfer end operation accept");
 	}
 
-	public void executeAsSlave(OutputStream os, InputStream is) throws InterruptedException, IOException, MasterNotReadyDuringBatchTransfer {
+	public void executeAsSlave(OutputStream os, InputStream is) throws InterruptedException, IOException, MasterNotReadyDuringBatchTransfer, WrongOperationException {
 		// 1. Send start batch flag
 		bto.sendOperationType(os, OperationType.REQUEST_BATCH_START);
 		logger.info("[" + this.getClass().getSimpleName() + "] sent batch transfer start operation request");
 
 		OperationType ot = bto.receiveOperationType(is);
 		if (ot != OperationType.RESPONSE_BATCH_START) {
-			// error detected
+			throw new WrongOperationException("Expected: " + OperationType.RESPONSE_BATCH_START + " Actual: " + ot);
 		}
 		logger.info("[" + this.getClass().getSimpleName() + "] master responded batch transfer start");
 
@@ -129,7 +129,7 @@ public class BatchFilesTransferOperation {
 
 		ot = bto.receiveOperationType(is);
 		if (ot != OperationType.RESPONSE_BATCH_END) {
-			// error detected
+			throw new WrongOperationException("Expected: " + OperationType.RESPONSE_BATCH_END + " Actual: " + ot);
 		}
 		logger.info("[" + this.getClass().getSimpleName() + "] master responded batch transfer end");
 	}
