@@ -117,7 +117,6 @@ public class FullFileTransferOperation {
 				.setRelativePath(relativePath)
 				.build(); 
 		fto.executeAsSlave(os, is, fc);
-		logger.info("[" + this.getClass().getSimpleName() + "] data.repo received");
 		
 		// batch transfer
 		bfto.executeAsSlave(os, is);
