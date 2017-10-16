@@ -69,7 +69,6 @@ public class FullFileTransferOperation {
 			switch (ot) {
 			case REQUEST_MASTER_STATUS_START: 
 				sto.executeAsMaster(os, pushbackInputStream, MasterStatus.READY);
-				logger.info("[" + this.getClass().getSimpleName() + "] slave requested status");
 				break;
 			case REQUEST_TRANSFER_START:
 				bto.receiveOperationType(pushbackInputStream);
