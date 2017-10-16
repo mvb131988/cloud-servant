@@ -65,7 +65,7 @@ public class FileTransferOperation {
 		bto.sendOperationType(os, OperationType.REQUEST_FILE_START);	
 		bto.sendRelativePath(os, fc.getRelativePath());
 		bto.sendOperationType(os, OperationType.REQUEST_FILE_END);
-		logger.info("[" + this.getClass().getSimpleName() + "] sent request for file [" + fc.getRelativePath() + "]" );
+		logger.trace("[" + this.getClass().getSimpleName() + "] sent request for file [" + fc.getRelativePath() + "]" );
 		
 		OperationType ot = bto.receiveOperationType(is);
 		if(ot != OperationType.RESPONSE_FILE_START) {
@@ -80,7 +80,7 @@ public class FileTransferOperation {
 			//error detected
 		}
 		
-		logger.info("[" + this.getClass().getSimpleName() + "] file[" + relativePath + "] size[" + size + "bytes] received");
+		logger.trace("[" + this.getClass().getSimpleName() + "] file[" + relativePath + "] size[" + size + "bytes] received");
 	}
 	
 }
