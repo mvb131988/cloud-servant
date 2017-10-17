@@ -34,8 +34,8 @@ public class HealthCheckOperation {
 		bto.sendMasterStatus(os, ms);
 		
 		ot = bto.receiveOperationType(is);
-		if (ot != OperationType.REQUEST_HEALTHCHECK_END) {
-			throw new WrongOperationException("Expected: " + OperationType.REQUEST_HEALTHCHECK_END + " Actual: " + ot);
+		if (ot != OperationType.RESPONSE_HEALTHCHECK_START) {
+			throw new WrongOperationException("Expected: " + OperationType.RESPONSE_HEALTHCHECK_START + " Actual: " + ot);
 		}
 		bto.sendOperationType(os, OperationType.RESPONSE_HEALTHCHECK_END);
 	}
@@ -45,14 +45,14 @@ public class HealthCheckOperation {
 		logger.info("[" + this.getClass().getSimpleName() + "] request MASTER healthcheck");
 		
 		OperationType ot = bto.receiveOperationType(is);
-		if (ot != OperationType.RESPONSE_HEALTHCHECK_START) {
+		if (ot != OperationType.REQUEST_HEALTHCHECK_END) {
 			throw new WrongOperationException("Expected: " + OperationType.REQUEST_HEALTHCHECK_END + " Actual: " + ot);
 		}
 		
 		MasterStatus ms = bto.receiveMasterStatus(is);
 		logger.info("[" + this.getClass().getSimpleName() + "] MASTER status is : " + ms);
 		
-		bto.sendOperationType(os, OperationType.REQUEST_HEALTHCHECK_END);
+		bto.sendOperationType(os, OperationType.RESPONSE_HEALTHCHECK_START);
 		ot = bto.receiveOperationType(is);
 		if (ot != OperationType.RESPONSE_HEALTHCHECK_END) {
 			throw new WrongOperationException("Expected: " + OperationType.RESPONSE_HEALTHCHECK_END + " Actual: " + ot);

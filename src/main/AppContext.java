@@ -149,6 +149,7 @@ public class AppContext {
 														  getBaseRepositoryOperations(),
 														  appProperties);
 		statusTransferOperation = new StatusTransferOperation(getBaseTransferOperations());
+		healthCheckOperation = new HealthCheckOperation(getBaseTransferOperations());
 		batchTransferOperation = new BatchFilesTransferOperation(getBaseTransferOperations(),
 				 												 getFileTransferOperation(),
 				 												 getStatusTransferOperation(),
