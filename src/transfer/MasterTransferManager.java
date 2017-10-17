@@ -35,6 +35,8 @@ public class MasterTransferManager {
 	private FullFileTransferOperation ffto;
 	
 	private StatusTransferOperation sto;
+	
+	private HealthCheckOperation hco;
 
 	private MasterSlaveCommunicationPool slaveCommunicationPool;
 
@@ -55,6 +57,7 @@ public class MasterTransferManager {
 	
 	public void init(FullFileTransferOperation ffto,
 					 StatusTransferOperation sto,
+					 HealthCheckOperation hco,
 					 MasterSlaveCommunicationPool scp,
 					 ProtocolStatusMapper sm,
 					 AppProperties ap) 
@@ -63,6 +66,7 @@ public class MasterTransferManager {
 
 		this.ffto = ffto;
 		this.sto = sto;
+		this.hco = hco;
 		this.slaveCommunicationPool = scp;
 		this.statusMapper = sm;
 
@@ -144,16 +148,28 @@ public class MasterTransferManager {
 		
 		List<MasterSlaveCommunicationThread> list = slaveCommunicationPool.get();
 		if (list.size() > 0) {
+			
 			MasterSlaveCommunicationStatus baseValue = list.get(0).getActualStatus();
+			logger.trace("[" + this.getClass().getSimpleName() + "] MasterSlaveCommunicationStatus of MasterSlaveCommunication[0] "
+					+ " is: " + baseValue);
+			
 			status = statusMapper.map(baseValue);
 
 			if (list.size() > 1) {
-				for (MasterSlaveCommunicationThread communication : list) {
+				for(int i=1; i<list.size(); i++) {
+					MasterSlaveCommunicationThread communication = list.get(i);
+					
+					logger.trace("[" + this.getClass().getSimpleName() + "] MasterSlaveCommunicationStatus of "
+							+ "MasterSlaveCommunication["+ i + "] is: " + communication.getActualStatus());
+					
 					if (communication.getActualStatus() != baseValue) {
 						status = MasterTransferThreadStatus.TRANSIENT;
 					}
 				}
 			}
+		} 
+		else {
+			logger.trace("[" + this.getClass().getSimpleName() + "] Slave communication pool is empty");
 		}
 		
 		return status;
@@ -174,7 +190,7 @@ public class MasterTransferManager {
 	 * @throws WrongOperationException 
 	 */
 	private void transferBusy(OutputStream os, InputStream is) throws IOException, WrongOperationException {
-		sto.executeAsMaster(os, is, MasterStatus.BUSY);
+		hco.executeAsMaster(os, is, MasterStatus.BUSY);
 	}
 
 	public MasterTransferThread getMasterTransferThread() {

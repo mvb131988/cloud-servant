@@ -27,6 +27,8 @@ public class SlaveTransferManager {
 	
 	private StatusTransferOperation sto;
 	
+	private HealthCheckOperation hco;
+	
 	private AppProperties ap;
 	
 	public SlaveTransferManager(AppProperties ap) {
@@ -35,12 +37,14 @@ public class SlaveTransferManager {
 	
 	public void init(FullFileTransferOperation ffto,
 					 StatusTransferOperation sto,
+					 HealthCheckOperation hco,
 					 SlaveTransferScheduler sts,
 					 AppProperties ap) 
 	{
 		this.scheduler = sts;
 		this.ffto = ffto;
 		this.sto = sto;
+		this.hco = hco;
 		this.ap = ap;
 	}
 
@@ -67,10 +71,20 @@ public class SlaveTransferManager {
 	}
 	
 	private void transfer(OutputStream os, InputStream is) throws InterruptedException, IOException, MasterNotReadyDuringBatchTransfer, WrongOperationException {
-		//get status request(also used as health check)
-		MasterStatus status = sto.executeAsSlave(os, is);
+		//healthcheck returns MATER status
+		MasterStatus status = hco.executeAsSlave(os, is);
 		if(status == MasterStatus.READY && scheduler.isScheduled()) {
-			ffto.executeAsSlave(os, is);
+			
+			//MASTER status request grabs transfer operation on MASTER
+			//if READY is returned MASTER is waiting for start transfer request
+			//however it plausible that between healthcheck and status check oprations
+			//MASTER changes its status from READY TO BUSY
+			status = sto.executeAsSlave(os, is);
+			if(status == MasterStatus.READY) {
+				ffto.executeAsSlave(os, is);
+				scheduler.scheduleNext();
+			}
+			
 		}
 	}
 

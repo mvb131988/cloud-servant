@@ -34,15 +34,20 @@ public class FullFileTransferOperation {
 	
 	private BatchFilesTransferOperation bfto;
 	
+	private HealthCheckOperation hco;
+	
 	public FullFileTransferOperation(BaseTransferOperations bto, 
 									 FileTransferOperation fto, 
 									 StatusTransferOperation sto,
-									 BatchFilesTransferOperation bfto) {
+									 HealthCheckOperation hco,
+									 BatchFilesTransferOperation bfto) 
+	{
 		super();
 		this.bto = bto;
 		this.fto = fto;
 		this.sto = sto;
 		this.bfto = bfto;
+		this.hco = hco;
 	}
 
 	public void executeAsMaster(OutputStream os, InputStream is) throws IOException, WrongOperationException {
@@ -55,9 +60,9 @@ public class FullFileTransferOperation {
 		//until full file transfer operation isn't received. If full file transfer operation is scheduled
 		// to be performed once in a day it will block RepositoryScanner thread.
 		//TODO(MAJOR): instead of REQUEST_MASTER_STATUS_START create new HEALTHCHECK REQUEST
-		if(ot == REQUEST_MASTER_STATUS_START) {
-			sto.executeAsMaster(os, pushbackInputStream, MasterStatus.READY);
-			logger.info("[" + this.getClass().getSimpleName() + "] slave requested status");
+		if(ot == REQUEST_HEALTHCHECK_START) {
+			hco.executeAsMaster(os, pushbackInputStream, MasterStatus.READY);
+			logger.info("[" + this.getClass().getSimpleName() + "] slave requested healthcheck");
 			return;
 		}
 		

@@ -15,6 +15,7 @@ import transfer.BaseTransferOperations;
 import transfer.BatchFilesTransferOperation;
 import transfer.FileTransferOperation;
 import transfer.FullFileTransferOperation;
+import transfer.HealthCheckOperation;
 import transfer.MasterSlaveCommunicationPool;
 import transfer.MasterTransferManager;
 import transfer.SlaveTransferManager;
@@ -42,6 +43,8 @@ public class AppContext {
 	private RepositoryStatusMapper repositoryStatusMapper;
 	
 	private StatusTransferOperation statusTransferOperation;
+	
+	private HealthCheckOperation healthCheckOperation;
 	
 	private BatchFilesTransferOperation batchTransferOperation;
 	
@@ -92,16 +95,17 @@ public class AppContext {
 														  getBaseRepositoryOperations(),
 														  appProperties);
 		statusTransferOperation = new StatusTransferOperation(getBaseTransferOperations());
+		healthCheckOperation = new HealthCheckOperation(getBaseTransferOperations());
 		batchTransferOperation = new BatchFilesTransferOperation(getBaseTransferOperations(),
 																 getFileTransferOperation(),
 																 getStatusTransferOperation(),
 																 null,
 																 getFilesContextTransformer(),
 																 appProperties);
-		
 		fullFileTransferOperation = new FullFileTransferOperation(getBaseTransferOperations(),
 																  getFileTransferOperation(),
 																  getStatusTransferOperation(),
+																  getHealthCheckOperation(),
 																  getBatchFilesTransferOperation());
 		
 		//Layer 1
@@ -109,6 +113,7 @@ public class AppContext {
 		masterTransferManager = new MasterTransferManager(appProperties);
 		masterTransferManager.init(getFullFileTransferOperation(), 
 								   getStatusTransferOperation(),
+								   getHealthCheckOperation(),
 								   getMasterSlaveCommunicationPool(), 
 								   getProtocolStatusMapper(),
 								   appProperties);
@@ -153,6 +158,7 @@ public class AppContext {
 		fullFileTransferOperation = new FullFileTransferOperation(getBaseTransferOperations(),
 																  getFileTransferOperation(),
 																  getStatusTransferOperation(),
+																  getHealthCheckOperation(),
 																  getBatchFilesTransferOperation());
 		slaveTransferScheduler = new SlaveTransferScheduler(appProperties);
 		
@@ -160,6 +166,7 @@ public class AppContext {
 		slaveTransferManager = new SlaveTransferManager(appProperties);
 		slaveTransferManager.init(getFullFileTransferOperation(),
 				 				  getStatusTransferOperation(),
+				 				  getHealthCheckOperation(),
 				 				  getSlaveTransferScheduler(),
 				 				  appProperties);
 	}
@@ -249,6 +256,10 @@ public class AppContext {
 
 	public SlaveTransferScheduler getSlaveTransferScheduler() {
 		return slaveTransferScheduler;
+	}
+
+	public HealthCheckOperation getHealthCheckOperation() {
+		return healthCheckOperation;
 	}
 	
 }

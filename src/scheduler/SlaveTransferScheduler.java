@@ -1,5 +1,8 @@
 package scheduler;
 
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+
 import main.AppProperties;
 
 /**
@@ -9,8 +12,27 @@ import main.AppProperties;
  */
 public class SlaveTransferScheduler extends AbstractScheduler {
 
+	private boolean isScheduled = false;
+	
 	public SlaveTransferScheduler(AppProperties appProperties) {
 		minutesInterval = appProperties.getSlaveTransferScheduleInterval();
+	}
+	
+	public boolean isScheduled() {
+		if (lastRun == null) {
+			isScheduled = true;
+		}
+		else {
+			LocalDateTime now = LocalDateTime.now();
+			if (ChronoUnit.MINUTES.between(lastRun, now) > minutesInterval) {
+				isScheduled = true;
+			}
+		}
+		return isScheduled;
+	}
+	
+	public void scheduleNext() {
+		lastRun = LocalDateTime.now();
 	}
 	
 }
