@@ -37,6 +37,8 @@ public class MasterTransferManager {
 	private StatusTransferOperation sto;
 	
 	private HealthCheckOperation hco;
+	
+	private StatusAndHealthCheckOperation shco;
 
 	private MasterSlaveCommunicationPool slaveCommunicationPool;
 
@@ -58,6 +60,7 @@ public class MasterTransferManager {
 	public void init(FullFileTransferOperation ffto,
 					 StatusTransferOperation sto,
 					 HealthCheckOperation hco,
+					 StatusAndHealthCheckOperation shco,
 					 MasterSlaveCommunicationPool scp,
 					 ProtocolStatusMapper sm,
 					 AppProperties ap) 
@@ -67,6 +70,7 @@ public class MasterTransferManager {
 		this.ffto = ffto;
 		this.sto = sto;
 		this.hco = hco;
+		this.shco = shco;
 		this.slaveCommunicationPool = scp;
 		this.statusMapper = sm;
 
@@ -190,7 +194,7 @@ public class MasterTransferManager {
 	 * @throws WrongOperationException 
 	 */
 	private void transferBusy(OutputStream os, InputStream is) throws IOException, WrongOperationException {
-		hco.executeAsMaster(os, is, MasterStatus.BUSY);
+		shco.executeAsMaster(os, is, MasterStatus.BUSY);
 	}
 
 	public MasterTransferThread getMasterTransferThread() {

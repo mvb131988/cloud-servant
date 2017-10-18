@@ -55,11 +55,10 @@ public class FullFileTransferOperation {
 
 		OperationType ot = bto.checkOperationType(pushbackInputStream);
 		
-		//If first received operation is status check, return the status and leave immediately.
-		//Otherwise thread will return status check(and in this time it couldn't be paused), 
-		//until full file transfer operation isn't received. If full file transfer operation is scheduled
-		// to be performed once in a day it will block RepositoryScanner thread.
-		//TODO(MAJOR): instead of REQUEST_MASTER_STATUS_START create new HEALTHCHECK REQUEST
+		//If firstly health check request is coming(master slave communication thread in READY), then status is returned, but
+		//no transfer process is started. Immediately after that(if master slave communication thread remains READY) status
+		//check request is coming. This request grabs master slave communication thread(in this moment it status can't be changed
+		//until full file transfer is completed) and initiates full file transfer operation.
 		if(ot == REQUEST_HEALTHCHECK_START) {
 			hco.executeAsMaster(os, pushbackInputStream, MasterStatus.READY);
 			logger.info("[" + this.getClass().getSimpleName() + "] slave requested healthcheck");

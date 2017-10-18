@@ -19,6 +19,7 @@ import transfer.HealthCheckOperation;
 import transfer.MasterSlaveCommunicationPool;
 import transfer.MasterTransferManager;
 import transfer.SlaveTransferManager;
+import transfer.StatusAndHealthCheckOperation;
 import transfer.StatusTransferOperation;
 import transfer.constant.ProtocolStatusMapper;
 import transformer.FilesContextTransformer;
@@ -45,6 +46,8 @@ public class AppContext {
 	private StatusTransferOperation statusTransferOperation;
 	
 	private HealthCheckOperation healthCheckOperation;
+	
+	private StatusAndHealthCheckOperation statusAndHealthCheckOperation; 
 	
 	private BatchFilesTransferOperation batchTransferOperation;
 	
@@ -96,6 +99,9 @@ public class AppContext {
 														  appProperties);
 		statusTransferOperation = new StatusTransferOperation(getBaseTransferOperations());
 		healthCheckOperation = new HealthCheckOperation(getBaseTransferOperations());
+		statusAndHealthCheckOperation = new StatusAndHealthCheckOperation(getBaseTransferOperations(),
+																		  getHealthCheckOperation(), 
+																		  getStatusTransferOperation());
 		batchTransferOperation = new BatchFilesTransferOperation(getBaseTransferOperations(),
 																 getFileTransferOperation(),
 																 getStatusTransferOperation(),
@@ -114,6 +120,7 @@ public class AppContext {
 		masterTransferManager.init(getFullFileTransferOperation(), 
 								   getStatusTransferOperation(),
 								   getHealthCheckOperation(),
+								   getStatusAndHealthCheckOperation(),
 								   getMasterSlaveCommunicationPool(), 
 								   getProtocolStatusMapper(),
 								   appProperties);
@@ -261,6 +268,10 @@ public class AppContext {
 
 	public HealthCheckOperation getHealthCheckOperation() {
 		return healthCheckOperation;
+	}
+
+	public StatusAndHealthCheckOperation getStatusAndHealthCheckOperation() {
+		return statusAndHealthCheckOperation;
 	}
 	
 }
