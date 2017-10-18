@@ -19,6 +19,8 @@ public class SlaveTransferManager {
 	
 	private final int bigTimeout;
 	
+	private final int socketSoTimeout;
+	
 	private Logger logger = LogManager.getRootLogger();
 	
 	private SlaveTransferScheduler scheduler;
@@ -33,6 +35,7 @@ public class SlaveTransferManager {
 	
 	public SlaveTransferManager(AppProperties ap) {
 		this.bigTimeout = ap.getBigPoolingTimeout();
+		this.socketSoTimeout = ap.getSocketSoTimeout();
 	}
 	
 	public void init(FullFileTransferOperation ffto,
@@ -60,6 +63,7 @@ public class SlaveTransferManager {
 		
 		logger.info("[" + this.getClass().getSimpleName() + "] opening socket to " + ip + ":" + port);
 		master = new Socket(ip, port);
+		master.setSoTimeout(socketSoTimeout);
 		logger.info("[" + this.getClass().getSimpleName() + "]  socket to " + ip + ":" + port + " opened");
 		
 		Thread thread = new Thread(new SlaveMasterCommunicationThread(master));

@@ -30,6 +30,8 @@ public class MasterTransferManager {
 	
 	private final int bigTimeout;
 	
+	private final int socketSoTimeout;
+	
 	private Logger logger = LogManager.getRootLogger();
 
 	private FullFileTransferOperation ffto;
@@ -55,6 +57,7 @@ public class MasterTransferManager {
 	public MasterTransferManager(AppProperties ap) {
 		this.smallTimeout = ap.getSmallPoolingTimeout();
 		this.bigTimeout = ap.getBigPoolingTimeout();
+		this.socketSoTimeout = ap.getSocketSoTimeout();
 	}
 	
 	public void init(FullFileTransferOperation ffto,
@@ -101,6 +104,7 @@ public class MasterTransferManager {
 		Socket slave;
 		logger.info("[" + this.getClass().getSimpleName() + "] waiting for slave to connect");
 		slave = master.accept();
+		slave.setSoTimeout(socketSoTimeout);
 		logger.info("[" + this.getClass().getSimpleName() + "] slave connected");
 
 		// Pass os and is to an allocated thread, initial status

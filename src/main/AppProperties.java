@@ -25,6 +25,8 @@ public class AppProperties {
 	
 	private Integer bigPoolingTimeout;
 	
+	private Integer socketSoTimeout;
+	
 	public AppProperties() {
 		repositoryRoot = Paths.get(ResourceBundle.getBundle("app").getString("root"));
 		isMaster = Boolean.parseBoolean(ResourceBundle.getBundle("app").getString("master"));
@@ -35,6 +37,7 @@ public class AppProperties {
 		slaveTransferScheduleInterval = Integer.parseInt(ResourceBundle.getBundle("app").getString("schedule.slave.transfer"));
 		smallPoolingTimeout = Integer.parseInt(ResourceBundle.getBundle("app").getString("timeout.pooling.small"));
 		bigPoolingTimeout = Integer.parseInt(ResourceBundle.getBundle("app").getString("timeout.pooling.big"));
+		socketSoTimeout = Integer.parseInt(ResourceBundle.getBundle("app").getString("timeout.so.socket"));
 	}
 
 	public boolean isMaster() {
@@ -71,6 +74,10 @@ public class AppProperties {
 
 	public Integer getBigPoolingTimeout() {
 		return bigPoolingTimeout;
+	}
+
+	public Integer getSocketSoTimeout() {
+		return socketSoTimeout;
 	}
 	
 }
