@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
@@ -55,10 +56,21 @@ public class MasterRepositoryManager {
 	 * empty one.
 	 * @throws IOException 
 	 */
-	private void init() throws IOException {
+	public void init() {
+		try {
+			// Create log directory
+			Path log = Paths.get(".log");
+			bro.createDirectoryIfNotExist(log);
+			bro.hideDirectory(log);
+		} catch (IOException e) {
+			//TODO: logger here
+		} 
+		
 		Path configPath = repositoryRoot.resolve("data.repo");
 		try (OutputStream os = Files.newOutputStream(configPath);) {
 
+		} catch (IOException e) {
+			//TODO: logger here
 		} 
 	}
 
@@ -102,7 +114,6 @@ public class MasterRepositoryManager {
 					if(status == RepositoryScannerStatus.BUSY) {
 						logger.info("[" + this.getClass().getSimpleName() + "] scan started");
 					
-						init();
 						writeAll(scan());
 					
 						status = RepositoryScannerStatus.READY;

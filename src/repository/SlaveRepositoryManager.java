@@ -32,6 +32,11 @@ public class SlaveRepositoryManager {
 
 	public void init() {
 		try {
+			// Create log directory
+			Path log = Paths.get(".log");
+			bro.createDirectoryIfNotExist(log);
+			bro.hideDirectory(log);
+			
 			// Create temporary folder where incoming files firstly will be saved
 			Path temp = Paths.get(".temp");
 			bro.createDirectoryIfNotExist(temp);

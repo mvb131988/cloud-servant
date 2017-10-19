@@ -105,7 +105,7 @@
 				<master.ip>172.16.42.210</master.ip>
 				<master.port>22222</master.port>
 				<admin.port>22223</admin.port>
-				<log>D:/temp1</log>
+				<log>D:/temp/.log</log>
 				<schedule.master.repository>1</schedule.master.repository>
 				<schedule.slave.transfer>1</schedule.slave.transfer>
 			</properties>
@@ -118,7 +118,7 @@
 				<master.ip>172.16.42.210</master.ip>
 				<master.port>22222</master.port>
 				<admin.port>22223</admin.port>
-				<log>C:/temp1</log>
+				<log>C:/temp/.log</log>
 				<schedule.master.repository>1</schedule.master.repository>
 				<schedule.slave.transfer>1</schedule.slave.transfer>
 			</properties>

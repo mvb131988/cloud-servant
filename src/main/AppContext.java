@@ -125,7 +125,8 @@ public class AppContext {
 								   getProtocolStatusMapper(),
 								   appProperties);
 		masterRepositoryManager = new MasterRepositoryManager(getRepositoryVisitor(), getBaseRepositoryOperations(), appProperties);
-
+		masterRepositoryManager.init();
+		
 		masterRepositoryScheduler = new MasterRepositoryScheduler(appProperties);
 		
 		//Top layer: layer 0 

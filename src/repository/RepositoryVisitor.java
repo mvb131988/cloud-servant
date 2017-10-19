@@ -26,6 +26,10 @@ public class RepositoryVisitor implements FileVisitor<Path> {
 	
 	@Override
 	public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+		if(dir.getFileName().toString().equals(".log")) {
+			//filter out all system folders
+			return FileVisitResult.SKIP_SUBTREE;
+		}
 		return FileVisitResult.CONTINUE;
 	}
 
