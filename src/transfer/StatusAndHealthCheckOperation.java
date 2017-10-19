@@ -44,10 +44,7 @@ public class StatusAndHealthCheckOperation {
 		this.bto = bto;
 	}
 	
-	public void executeAsMaster(OutputStream os, InputStream is, MasterStatus ms) throws IOException, WrongOperationException {
-		//TODO: Refactor move pushbackInputStream higher to transfer manager
-		PushbackInputStream pushbackInputStream = new PushbackInputStream(is);
-
+	public void executeAsMaster(OutputStream os, PushbackInputStream pushbackInputStream, MasterStatus ms) throws IOException, WrongOperationException {
 		OperationType ot = bto.checkOperationType(pushbackInputStream);
 		switch (ot) {
 		case REQUEST_MASTER_STATUS_START: 

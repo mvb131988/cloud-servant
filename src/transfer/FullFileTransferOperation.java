@@ -50,9 +50,7 @@ public class FullFileTransferOperation {
 		this.hco = hco;
 	}
 
-	public void executeAsMaster(OutputStream os, InputStream is) throws IOException, WrongOperationException {
-		PushbackInputStream pushbackInputStream = new PushbackInputStream(is);
-
+	public void executeAsMaster(OutputStream os, PushbackInputStream pushbackInputStream) throws IOException, WrongOperationException {
 		OperationType ot = bto.checkOperationType(pushbackInputStream);
 		
 		//If firstly health check request is coming(master slave communication thread in READY), then status is returned, but

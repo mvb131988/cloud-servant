@@ -63,14 +63,14 @@ public class MasterRepositoryManager {
 			bro.createDirectoryIfNotExist(log);
 			bro.hideDirectory(log);
 		} catch (IOException e) {
-			//TODO: logger here
+			logger.error("[" + this.getClass().getSimpleName() + "] unable to create log file", e);
 		} 
 		
 		Path configPath = repositoryRoot.resolve("data.repo");
 		try (OutputStream os = Files.newOutputStream(configPath);) {
 
 		} catch (IOException e) {
-			//TODO: logger here
+			logger.error("[" + this.getClass().getSimpleName() + "] unable to create data.repo", e);
 		} 
 	}
 

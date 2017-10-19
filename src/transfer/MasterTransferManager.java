@@ -3,6 +3,7 @@ package transfer;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.PushbackInputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.List;
@@ -188,8 +189,8 @@ public class MasterTransferManager {
 	 * @throws IOException 
 	 * @throws WrongOperationException 
 	 */
-	private void transfer(OutputStream os, InputStream is) throws IOException, WrongOperationException {
-		ffto.executeAsMaster(os, is);
+	private void transfer(OutputStream os, PushbackInputStream pushbackInputStream) throws IOException, WrongOperationException {
+		ffto.executeAsMaster(os, pushbackInputStream);
 	}
 	
 	/**
@@ -197,8 +198,8 @@ public class MasterTransferManager {
 	 * @throws IOException 
 	 * @throws WrongOperationException 
 	 */
-	private void transferBusy(OutputStream os, InputStream is) throws IOException, WrongOperationException {
-		shco.executeAsMaster(os, is, MasterStatus.BUSY);
+	private void transferBusy(OutputStream os, PushbackInputStream pushbackInputStream) throws IOException, WrongOperationException {
+		shco.executeAsMaster(os, pushbackInputStream, MasterStatus.BUSY);
 	}
 
 	public MasterTransferThread getMasterTransferThread() {
@@ -296,7 +297,7 @@ public class MasterTransferManager {
 
 		private OutputStream os;
 
-		private InputStream is;
+		private PushbackInputStream pushbackInputStream;
 
 		// Status to be set. Requested by MasterCommunicationProvider.
 		private MasterSlaveCommunicationStatus requestedStatus;
@@ -316,7 +317,7 @@ public class MasterTransferManager {
 
 			try {
 				this.os = slave.getOutputStream();
-				this.is = slave.getInputStream();
+				this.pushbackInputStream = new PushbackInputStream(slave.getInputStream());
 			} catch (IOException e) {
 				logger.error("[" + this.getClass().getSimpleName() + "] initialization fail", e);
 			}
@@ -333,11 +334,11 @@ public class MasterTransferManager {
 				for (;;) {
 					if (actualStatus == MasterSlaveCommunicationStatus.READY) {
 						logger.info("[" + this.getClass().getSimpleName() + "] transfer start");
-						transfer(os, is);
+						transfer(os, pushbackInputStream);
 						logger.info("[" + this.getClass().getSimpleName() + "] transfer end");
 					} else if (actualStatus == MasterSlaveCommunicationStatus.BUSY) {
 						logger.info("[" + this.getClass().getSimpleName() + "] BUSY start");
-						transferBusy(os, is);
+						transferBusy(os, pushbackInputStream);
 						logger.info("[" + this.getClass().getSimpleName() + "] BUSY end");
 					}
 
@@ -361,7 +362,7 @@ public class MasterTransferManager {
 					removeSlave(this);
 					
 					os.close();
-					is.close();
+					pushbackInputStream.close();
 					slave.close();
 					logger.info("[" + this.getClass().getSimpleName() + "] [MasterSlaveCommunicationThread] connection is closed");
 				} 

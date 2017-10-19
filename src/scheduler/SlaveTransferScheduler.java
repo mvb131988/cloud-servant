@@ -10,9 +10,13 @@ import main.AppProperties;
  * transfer.
  * Interval has to be set in minutes.  
  */
-public class SlaveTransferScheduler extends AbstractScheduler {
+public class SlaveTransferScheduler {
 
 	private boolean isScheduled = false;
+
+	private int minutesInterval;
+
+	private LocalDateTime lastRun;
 	
 	public SlaveTransferScheduler(AppProperties appProperties) {
 		minutesInterval = appProperties.getSlaveTransferScheduleInterval();
