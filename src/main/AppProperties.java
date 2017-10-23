@@ -10,6 +10,8 @@ public class AppProperties {
 	
 	private Path repositoryRoot;
 	
+	//TODO: masterIp will be defined in several ways(first is scan of local network[will be default scenario]) 
+	//TODO: leave this property like it is and create a separate flow for manual setting(for debugging purposes)
 	private String masterIp;
 	
 	private Integer masterPort;
@@ -78,6 +80,10 @@ public class AppProperties {
 
 	public Integer getSocketSoTimeout() {
 		return socketSoTimeout;
+	}
+
+	public void setMasterIp(String masterIp) {
+		this.masterIp = masterIp;
 	}
 	
 }

@@ -3,6 +3,8 @@ package main;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import ipscanner.IpRangeAnalyzer;
+import ipscanner.IpScanner;
 import provider.MasterCommunicationProvider;
 import repository.BaseRepositoryOperations;
 import repository.MasterRepositoryManager;
@@ -77,6 +79,10 @@ public class AppContext {
 	
 	private MasterShutdownThread masterShutdownThread;
 	
+	private IpScanner ipScanner;
+	
+	private IpRangeAnalyzer ipRangeAnalyzer;
+	
 	public void initAsMaster() {
 		//Separate thread intended for (master-side) application shutdown
 		masterShutdownThread = new MasterShutdownThread(appProperties);
@@ -137,6 +143,10 @@ public class AppContext {
 	}
 	
 	public void initAsSlave() {
+		//Ip scanner
+		ipRangeAnalyzer = new IpRangeAnalyzer();
+		ipScanner = new IpScanner(getIpRangeAnalyzer(), appProperties);
+		
 		//Others
 		frameProcessor = new LongTransformer();
 		protocolStatusMapper = new ProtocolStatusMapper();
@@ -187,6 +197,19 @@ public class AppContext {
 			getMasterCommunicationProvider().init();
 		} else {
 			initAsSlave();
+			
+			//Master auto detecting mechanism here
+			//TODO: Testing implementation
+			String ip = ipScanner.scan();
+			if(ip != null) {
+				//reset ip
+				logger.info("[" + this.getClass().getSimpleName() + "] ip is reset to " + ip);
+				appProperties.setMasterIp(ip);
+			} else {
+				logger.info("[" + this.getClass().getSimpleName() + "] old ip remains " + appProperties.getMasterIp());
+			}
+			////////////////////////////////////////
+			
 			getSlaveTransferManager().getSlaveTransferThread().start();
 		}
 	}
@@ -273,6 +296,18 @@ public class AppContext {
 
 	public StatusAndHealthCheckOperation getStatusAndHealthCheckOperation() {
 		return statusAndHealthCheckOperation;
+	}
+
+	public IpScanner getIpScanner() {
+		return ipScanner;
+	}
+
+	public IpRangeAnalyzer getIpRangeAnalyzer() {
+		return ipRangeAnalyzer;
+	}
+
+	public void setIpRangeAnalyzer(IpRangeAnalyzer ipRangeAnalyzer) {
+		this.ipRangeAnalyzer = ipRangeAnalyzer;
 	}
 	
 }
