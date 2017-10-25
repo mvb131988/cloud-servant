@@ -9,6 +9,7 @@ import java.net.UnknownHostException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import exception.BatchFileTransferException;
 import exception.MasterNotReadyDuringBatchTransfer;
 import exception.WrongOperationException;
 import main.AppProperties;
@@ -74,7 +75,7 @@ public class SlaveTransferManager {
 		return thread;
 	}
 	
-	private void transfer(OutputStream os, InputStream is) throws InterruptedException, IOException, MasterNotReadyDuringBatchTransfer, WrongOperationException {
+	private void transfer(OutputStream os, InputStream is) throws InterruptedException, IOException, MasterNotReadyDuringBatchTransfer, WrongOperationException, BatchFileTransferException {
 		//healthcheck returns MATER status
 		MasterStatus status = hco.executeAsSlave(os, is);
 		if(status == MasterStatus.READY && scheduler.isScheduled()) {

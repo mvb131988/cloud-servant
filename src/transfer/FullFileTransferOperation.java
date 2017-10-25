@@ -12,6 +12,7 @@ import java.nio.file.Paths;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import exception.BatchFileTransferException;
 import exception.MasterNotReadyDuringBatchTransfer;
 import exception.WrongOperationException;
 import transfer.constant.MasterStatus;
@@ -102,7 +103,7 @@ public class FullFileTransferOperation {
 		logger.info("[" + this.getClass().getSimpleName() + "] sent transfer end operation accept");
 	}
 	
-	public void executeAsSlave(OutputStream os, InputStream is) throws InterruptedException, IOException, MasterNotReadyDuringBatchTransfer, WrongOperationException {
+	public void executeAsSlave(OutputStream os, InputStream is) throws InterruptedException, IOException, MasterNotReadyDuringBatchTransfer, WrongOperationException, BatchFileTransferException {
 		bto.sendOperationType(os, OperationType.REQUEST_TRANSFER_START);
 		logger.info("[" + this.getClass().getSimpleName() + "] sent transfer start operation request");
 		

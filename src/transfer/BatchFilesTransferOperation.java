@@ -10,6 +10,7 @@ import java.io.PushbackInputStream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import exception.BatchFileTransferException;
 import exception.MasterNotReadyDuringBatchTransfer;
 import exception.WrongOperationException;
 import main.AppProperties;
@@ -90,7 +91,7 @@ public class BatchFilesTransferOperation {
 		logger.info("[" + this.getClass().getSimpleName() + "] sent batch transfer end operation accept");
 	}
 
-	public void executeAsSlave(OutputStream os, InputStream is) throws InterruptedException, IOException, MasterNotReadyDuringBatchTransfer, WrongOperationException {
+	public void executeAsSlave(OutputStream os, InputStream is) throws InterruptedException, IOException, MasterNotReadyDuringBatchTransfer, WrongOperationException, BatchFileTransferException {
 		// 1. Send start batch flag
 		bto.sendOperationType(os, OperationType.REQUEST_BATCH_START);
 		logger.info("[" + this.getClass().getSimpleName() + "] sent batch transfer start operation request");
@@ -103,24 +104,34 @@ public class BatchFilesTransferOperation {
 
 		//2. Get next file path(for corresponding file) that is needed to be transfered and
 		// send file transfer request to master
-		srm.reset();
-		while(srm.getStatus() != SlaveRepositoryManagerStatus.TERMINATED) {
-			RepositoryRecord rr = srm.next();
-			if (rr != null) {
-				fto.executeAsSlave(os, is, fct.transform(rr));
-			} else {
-				// send status check message
-				// must be READY at any time  
-				MasterStatus status = sto.executeAsSlave(os, is);
-				if(MasterStatus.READY != status) {
-					throw new MasterNotReadyDuringBatchTransfer();
+		try {
+			srm.reset();
+			while(srm.getStatus() != SlaveRepositoryManagerStatus.TERMINATED) {
+				RepositoryRecord rr = srm.next();
+				if (rr != null) {
+					fto.executeAsSlave(os, is, fct.transform(rr));
+				} else {
+					// send status check message
+					// must be READY at any time  
+					MasterStatus status = sto.executeAsSlave(os, is);
+					if(MasterStatus.READY != status) {
+						throw new MasterNotReadyDuringBatchTransfer();
+					}
+					
+					//If all records from the buffer of AsynchronySearcher are consumed and buffer is empty,
+					//but AsynchronySearcher isn't terminated wait until it adds new records to the buffer.
+					//Wait 1 second to avoid resources overconsumption.
+					Thread.sleep(smallTimeout);
 				}
-				
-				//If all records from the buffer of AsynchronySearcher are consumed and buffer is empty,
-				//but AsynchronySearcher isn't terminated wait until it adds new records to the buffer.
-				//Wait 1 second to avoid resources overconsumption.
-				Thread.sleep(smallTimeout);
 			}
+		}
+		catch(Exception e) {
+			//Catch IOException, that happened during file transfer and terminate SlaveRepositoryManager(asynchrony thread)
+			while(srm.getStatus() != SlaveRepositoryManagerStatus.TERMINATED) {
+				//Read all. When no more records available asynchrony thread terminates
+				srm.next();
+			}
+			throw new BatchFileTransferException();
 		}
 		
 		// 3. Send end batch flag

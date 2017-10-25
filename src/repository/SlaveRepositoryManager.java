@@ -28,6 +28,7 @@ public class SlaveRepositoryManager {
 		this.sm = sm;
 		asynchronySearcher = bro.getAsynchronySearcher();
 		repositoryScanerThread = new Thread(asynchronySearcher);
+		repositoryScanerThread.setName("AsynchronySearcher");
 	}
 
 	public void init() {
@@ -64,6 +65,7 @@ public class SlaveRepositoryManager {
 		if(getStatus() == SlaveRepositoryManagerStatus.TERMINATED) {
 			asynchronySearcher = bro.getAsynchronySearcher();
 			repositoryScanerThread = new Thread(asynchronySearcher);
+			repositoryScanerThread.setName("AsynchronySearcher");
 			repositoryScanerThread.start();
 		}
 	}
