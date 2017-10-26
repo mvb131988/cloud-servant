@@ -17,6 +17,7 @@ public class LongTransformer {
 	private long FIFTH_BYTE = FOURTH_BYTE << BYTE_IN_BITS;
 	private long SIXTH_BYTE = FIFTH_BYTE << BYTE_IN_BITS;
 	//Don't want to touch sign bit to avoid negative long
+	//TODO: review this
 	private long SEVENTH_BYTE = SIXTH_BYTE << BYTE_IN_BITS - 1;
 
 	public long extractLong(byte[] disassembledSize) {

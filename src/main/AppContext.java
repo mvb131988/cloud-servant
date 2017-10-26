@@ -25,13 +25,12 @@ import transfer.StatusAndHealthCheckOperation;
 import transfer.StatusTransferOperation;
 import transfer.constant.ProtocolStatusMapper;
 import transformer.FilesContextTransformer;
+import transformer.IntegerTransformer;
 import transformer.LongTransformer;
 
 public class AppContext {
 
 	private Logger logger = LogManager.getRootLogger();
-
-	private LongTransformer fp = new LongTransformer();
 
 	private AppProperties appProperties;
 	
@@ -71,7 +70,9 @@ public class AppContext {
 	
 	private FilesContextTransformer filesContextTransformer;
 	
-	private LongTransformer frameProcessor;
+	private IntegerTransformer integerTransformer;
+	
+	private LongTransformer longTransformer;
 	
 	private MasterRepositoryScheduler masterRepositoryScheduler;
 	
@@ -89,16 +90,17 @@ public class AppContext {
 		masterShutdownThread.start();
 		
 		//Others
-		frameProcessor = new LongTransformer();
+		longTransformer = new LongTransformer();
 		protocolStatusMapper = new ProtocolStatusMapper();
-		filesContextTransformer = new FilesContextTransformer(getFrameProcessor());
+		filesContextTransformer = new FilesContextTransformer(getLongTransformer());
 		
 		//Repository operations
 		repositoryVisitor = new RepositoryVisitor(appProperties);
-		baseRepositoryOperations = new BaseRepositoryOperations(getFrameProcessor(), getFilesContextTransformer(), appProperties);
+		baseRepositoryOperations = new BaseRepositoryOperations(getLongTransformer(), getFilesContextTransformer(), appProperties);
 		
 		//Transfer operations
-		baseTransferOperations = new BaseTransferOperations(getFrameProcessor(), 
+		baseTransferOperations = new BaseTransferOperations(getIntegerTransformer(),
+															getLongTransformer(), 
 															getBaseRepositoryOperations());
 		fileTransferOperation = new FileTransferOperation(getBaseTransferOperations(), 
 														  getBaseRepositoryOperations(),
@@ -148,20 +150,21 @@ public class AppContext {
 		ipScanner = new IpScanner(getIpRangeAnalyzer(), appProperties);
 		
 		//Others
-		frameProcessor = new LongTransformer();
+		longTransformer = new LongTransformer();
 		protocolStatusMapper = new ProtocolStatusMapper();
-		filesContextTransformer = new FilesContextTransformer(getFrameProcessor());
+		filesContextTransformer = new FilesContextTransformer(getLongTransformer());
 		
 		//Repository operations
 		repositoryStatusMapper = new RepositoryStatusMapper();
 		repositoryVisitor = new RepositoryVisitor(appProperties);
-		baseRepositoryOperations = new BaseRepositoryOperations(getFrameProcessor(), getFilesContextTransformer(), appProperties);
+		baseRepositoryOperations = new BaseRepositoryOperations(getLongTransformer(), getFilesContextTransformer(), appProperties);
 		slaveRepositoryManager = new SlaveRepositoryManager(getBaseRepositoryOperations(), 
 															getRepositoryStatusMapper());
 		slaveRepositoryManager.init();
 		
 		//Transfer operations
-		baseTransferOperations = new BaseTransferOperations(getFrameProcessor(), 
+		baseTransferOperations = new BaseTransferOperations(getIntegerTransformer(),
+															getLongTransformer(), 
 															getBaseRepositoryOperations());
 		fileTransferOperation = new FileTransferOperation(getBaseTransferOperations(), 
 														  getBaseRepositoryOperations(),
@@ -214,8 +217,12 @@ public class AppContext {
 		}
 	}
 
-	private LongTransformer getFrameProcessor() {
-		return frameProcessor;
+	private IntegerTransformer getIntegerTransformer() {
+		return integerTransformer;
+	}
+	
+	private LongTransformer getLongTransformer() {
+		return longTransformer;
 	}
 	
 	private FilesContextTransformer getFilesContextTransformer() {

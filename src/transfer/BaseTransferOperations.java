@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PushbackInputStream;
-import java.io.UnsupportedEncodingException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -12,6 +11,7 @@ import java.nio.file.Paths;
 import repository.BaseRepositoryOperations;
 import transfer.constant.MasterStatus;
 import transfer.constant.OperationType;
+import transformer.IntegerTransformer;
 import transformer.LongTransformer;
 
 /**
@@ -19,13 +19,16 @@ import transformer.LongTransformer;
  */
 public class BaseTransferOperations {
 
-	private LongTransformer fp;
+	private IntegerTransformer it;
+	
+	private LongTransformer lt;
 	
 	private BaseRepositoryOperations bro;
 
-	public BaseTransferOperations(LongTransformer fp, BaseRepositoryOperations bro) {
+	public BaseTransferOperations(IntegerTransformer it, LongTransformer lt, BaseRepositoryOperations bro) {
 		super();
-		this.fp = fp;
+		this.it = it;
+		this.lt = lt;
 		this.bro = bro;
 	}
 
@@ -54,15 +57,27 @@ public class BaseTransferOperations {
 	}
 
 	public void sendLong(OutputStream os, long size) throws IOException {
-		os.write(fp.packLong(size));
+		os.write(lt.packLong(size));
 	}
 
 	public long receiveLong(InputStream is) throws IOException {
 		long assembledSize = -1;
 		byte[] size = new byte[8];
 		is.read(size);
-		assembledSize = fp.extractLong(size);
+		assembledSize = lt.extractLong(size);
 		return assembledSize;
+	}
+	
+	public void sendInteger(OutputStream os, int i) throws IOException {
+		os.write(it.pack(i));
+	}
+
+	public int receiveInteger(InputStream is) throws IOException {
+		int assembledI = -1;
+		byte[] i = new byte[4];
+		is.read(i);
+		assembledI = it.extract(i);
+		return assembledI;
 	}
 	
 	public void sendSize(OutputStream os, long size) throws IOException {
@@ -84,13 +99,13 @@ public class BaseTransferOperations {
 	public void sendRelativePath(OutputStream os, Path relativePath) throws IOException {
 		byte[] b = relativePath.toString().getBytes("UTF-8");
 		int length = b.length;
-		os.write(length);
+		sendInteger(os, length);
 		os.write(b);
 	}
 
 	public Path receiveRelativePath(InputStream is) throws IOException {
 		// relativePathSize
-		int rns = is.read();
+		int rns = receiveInteger(is);
 		// relativePath
 		byte[] rn = new byte[rns];
 		is.read(rn, 0, rns);
