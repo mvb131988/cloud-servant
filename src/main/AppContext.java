@@ -91,6 +91,7 @@ public class AppContext {
 		
 		//Others
 		longTransformer = new LongTransformer();
+		integerTransformer = new IntegerTransformer();
 		protocolStatusMapper = new ProtocolStatusMapper();
 		filesContextTransformer = new FilesContextTransformer(getLongTransformer());
 		
@@ -151,6 +152,7 @@ public class AppContext {
 		
 		//Others
 		longTransformer = new LongTransformer();
+		integerTransformer = new IntegerTransformer();
 		protocolStatusMapper = new ProtocolStatusMapper();
 		filesContextTransformer = new FilesContextTransformer(getLongTransformer());
 		
