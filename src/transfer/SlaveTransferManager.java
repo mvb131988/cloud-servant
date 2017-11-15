@@ -9,6 +9,7 @@ import java.net.UnknownHostException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import autodiscovery.SlaveAutodiscoveryAdapter;
 import exception.BatchFileTransferException;
 import exception.MasterNotReadyDuringBatchTransfer;
 import exception.WrongOperationException;
@@ -32,6 +33,8 @@ public class SlaveTransferManager {
 	
 	private HealthCheckOperation hco;
 	
+	private SlaveAutodiscoveryAdapter saa;
+	
 	private AppProperties ap;
 	
 	public SlaveTransferManager(AppProperties ap) {
@@ -43,12 +46,14 @@ public class SlaveTransferManager {
 					 StatusTransferOperation sto,
 					 HealthCheckOperation hco,
 					 SlaveTransferScheduler sts,
+					 SlaveAutodiscoveryAdapter saa,
 					 AppProperties ap) 
 	{
 		this.scheduler = sts;
 		this.ffto = ffto;
 		this.sto = sto;
 		this.hco = hco;
+		this.saa = saa;
 		this.ap = ap;
 	}
 
@@ -57,15 +62,13 @@ public class SlaveTransferManager {
 		//stop SlaveTransferThread
 	}
 	
-	private Thread connect() throws UnknownHostException, IOException {
+	private Thread connect(String masterIp, int masterPort) throws UnknownHostException, IOException {
 		Socket master = null;
-		String ip = ap.getMasterIp();
-		int port = ap.getMasterPort();
 		
-		logger.info("[" + this.getClass().getSimpleName() + "] opening socket to " + ip + ":" + port);
-		master = new Socket(ip, port);
+		logger.info("[" + this.getClass().getSimpleName() + "] opening socket to " + masterIp + ":" + masterPort);
+		master = new Socket(masterIp, masterPort);
 		master.setSoTimeout(socketSoTimeout);
-		logger.info("[" + this.getClass().getSimpleName() + "]  socket to " + ip + ":" + port + " opened");
+		logger.info("[" + this.getClass().getSimpleName() + "]  socket to " + masterIp + ":" + masterPort + " opened");
 		
 		Thread thread = new Thread(new SlaveMasterCommunicationThread(master));
 		thread.setName("SlaveTransferThread");
@@ -81,8 +84,8 @@ public class SlaveTransferManager {
 		if(status == MasterStatus.READY && scheduler.isScheduled()) {
 			
 			//MASTER status request grabs transfer operation on MASTER
-			//if READY is returned MASTER is waiting for start transfer request
-			//however it plausible that between healthcheck and status check oprations
+			//if READY is returned MASTER is waiting to start transfer request
+			//however it plausible that between healthcheck and status check operation
 			//MASTER changes its status from READY TO BUSY
 			status = sto.executeAsSlave(os, is);
 			if(status == MasterStatus.READY) {
@@ -108,12 +111,20 @@ public class SlaveTransferManager {
 
 		@Override
 		public void run() {
+			saa.startup();
+			
+			String masterIp = saa.getMasterIp();
+			int masterPort = ap.getMasterPort();
+			
 			for(;;) {
 				try {
-					Thread t = connect();
+					Thread t = connect(masterIp, masterPort);
 					t.join();
 				} catch (Exception e) {
 					logger.error("[" + this.getClass().getSimpleName() + "] thread fail", e);
+					
+					saa.failure();
+					masterIp = saa.getMasterIp();
 				}
 				//After slave master communication is broken try to reconnect
 			}

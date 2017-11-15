@@ -3,6 +3,7 @@ package main;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import autodiscovery.SlaveAutodiscoveryAdapter;
 import ipscanner.IpRangeAnalyzer;
 import ipscanner.IpScanner;
 import provider.MasterCommunicationProvider;
@@ -84,6 +85,8 @@ public class AppContext {
 	
 	private IpRangeAnalyzer ipRangeAnalyzer;
 	
+	private SlaveAutodiscoveryAdapter slaveAutodiscoveryAdapter;
+	
 	public void initAsMaster() {
 		//Separate thread intended for (master-side) application shutdown
 		masterShutdownThread = new MasterShutdownThread(appProperties);
@@ -146,6 +149,9 @@ public class AppContext {
 	}
 	
 	public void initAsSlave() {
+		//autodiscovering
+		slaveAutodiscoveryAdapter = new SlaveAutodiscoveryAdapter(appProperties);
+		
 		//Ip scanner
 		ipRangeAnalyzer = new IpRangeAnalyzer();
 		ipScanner = new IpScanner(getIpRangeAnalyzer(), appProperties);
@@ -192,6 +198,7 @@ public class AppContext {
 				 				  getStatusTransferOperation(),
 				 				  getHealthCheckOperation(),
 				 				  getSlaveTransferScheduler(),
+				 				  getSlaveAutodiscoveryAdapter(),
 				 				  appProperties);
 	}
 	
@@ -317,6 +324,10 @@ public class AppContext {
 
 	public void setIpRangeAnalyzer(IpRangeAnalyzer ipRangeAnalyzer) {
 		this.ipRangeAnalyzer = ipRangeAnalyzer;
+	}
+
+	public SlaveAutodiscoveryAdapter getSlaveAutodiscoveryAdapter() {
+		return slaveAutodiscoveryAdapter;
 	}
 	
 }
