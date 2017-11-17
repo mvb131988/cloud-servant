@@ -3,7 +3,11 @@ package main;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import autodiscovery.SlaveAutodiscoverer;
 import autodiscovery.SlaveAutodiscoveryAdapter;
+import autodiscovery.SlaveGlobalAutodiscoverer;
+import autodiscovery.SlaveLocalAutodiscoverer;
+import autodiscovery.SlaveLocalScheduler;
 import ipscanner.IpRangeAnalyzer;
 import ipscanner.IpScanner;
 import provider.MasterCommunicationProvider;
@@ -87,6 +91,22 @@ public class AppContext {
 	
 	private SlaveAutodiscoveryAdapter slaveAutodiscoveryAdapter;
 	
+	private SlaveLocalAutodiscoverer localDiscoverer;
+	
+	private SlaveGlobalAutodiscoverer globalDiscoverer;
+	
+	//============================================================
+	//	Prototypes. Classes with states go here 
+	//============================================================
+	public SlaveLocalScheduler getSlaveLocalScheduler() {
+		return new SlaveLocalScheduler();
+	}
+	
+	public SlaveAutodiscoverer getDiscoverer() {
+		return new SlaveAutodiscoverer(getLocalDiscoverer());
+	}
+	//============================================================
+	
 	public void initAsMaster() {
 		//Separate thread intended for (master-side) application shutdown
 		masterShutdownThread = new MasterShutdownThread(appProperties);
@@ -150,11 +170,11 @@ public class AppContext {
 	
 	public void initAsSlave() {
 		//autodiscovering
-		slaveAutodiscoveryAdapter = new SlaveAutodiscoveryAdapter(appProperties);
-		
-		//Ip scanner
 		ipRangeAnalyzer = new IpRangeAnalyzer();
 		ipScanner = new IpScanner(getIpRangeAnalyzer(), appProperties);
+		globalDiscoverer = new SlaveGlobalAutodiscoverer(appProperties);
+		localDiscoverer = new SlaveLocalAutodiscoverer(getGlobalDiscoverer(), getSlaveLocalScheduler(), getIpScanner(), appProperties);
+		slaveAutodiscoveryAdapter = new SlaveAutodiscoveryAdapter(getDiscoverer(), appProperties);
 		
 		//Others
 		longTransformer = new LongTransformer();
@@ -209,19 +229,6 @@ public class AppContext {
 			getMasterCommunicationProvider().init();
 		} else {
 			initAsSlave();
-			
-			//Master auto detecting mechanism here
-			//TODO: Testing implementation
-			String ip = ipScanner.scan();
-			if(ip != null) {
-				//reset ip
-				logger.info("[" + this.getClass().getSimpleName() + "] ip is reset to " + ip);
-				appProperties.setMasterIp(ip);
-			} else {
-				logger.info("[" + this.getClass().getSimpleName() + "] old ip remains " + appProperties.getMasterIp());
-			}
-			////////////////////////////////////////
-			
 			getSlaveTransferManager().getSlaveTransferThread().start();
 		}
 	}
@@ -328,6 +335,14 @@ public class AppContext {
 
 	public SlaveAutodiscoveryAdapter getSlaveAutodiscoveryAdapter() {
 		return slaveAutodiscoveryAdapter;
+	}
+
+	public SlaveLocalAutodiscoverer getLocalDiscoverer() {
+		return localDiscoverer;
+	}
+
+	public SlaveGlobalAutodiscoverer getGlobalDiscoverer() {
+		return globalDiscoverer;
 	}
 	
 }

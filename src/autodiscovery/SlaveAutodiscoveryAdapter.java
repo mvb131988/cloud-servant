@@ -6,39 +6,39 @@ import org.apache.logging.log4j.Logger;
 import main.AppProperties;
 
 /**
- * Has to be used in single thread only. Sequence of public methods must be failure() -> getMasterIp() 
+ * Supposed to be used in single thread only.
  */
 public class SlaveAutodiscoveryAdapter {
 
 	private Logger logger = LogManager.getRootLogger();
 	
+	private SlaveAutodiscoverer sa;
+	
 	private AppProperties ap;
 	
-	public SlaveAutodiscoveryAdapter(AppProperties ap) {
+	public SlaveAutodiscoveryAdapter(SlaveAutodiscoverer sa, AppProperties ap) {
 		this.ap = ap;
+		this.sa = sa;
 	}
 	
 	/**
 	 * Similar with failure, but invoked once at startup;
+	 * 
+	 * @return master ip address
 	 */
-	public void startup() {
-		failure();
+	public String startup(int failureCounter) {
+		return failure(failureCounter);
 	}
 	
 	/**
 	 * Signals that master-slave communication is broken.
 	 * Detects and saves failure time. Decides if autodiscovery process has to be initiated or not.
 	 * If autodiscovery process is initiated the method blocks until the process completes. 
-	 */
-	public void failure() {
-		
-	}
-	
-	/**
+	 * 
 	 * @return master ip address
 	 */
-	public String getMasterIp() {
-		return ap.getMasterIp();
+	public String failure(int failureCounter) {
+		return sa.discover(failureCounter);
 	}
 	
 }

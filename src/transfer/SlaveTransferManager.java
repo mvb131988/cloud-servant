@@ -109,22 +109,25 @@ public class SlaveTransferManager {
 	
 	private class SlaveTransferThread implements Runnable {
 
+		// counts consequent number of failures
+		private int failureCounter = 0;
+		
 		@Override
 		public void run() {
-			saa.startup();
-			
-			String masterIp = saa.getMasterIp();
+			String masterIp = saa.startup(failureCounter);
 			int masterPort = ap.getMasterPort();
 			
 			for(;;) {
 				try {
 					Thread t = connect(masterIp, masterPort);
+					
+					// if connection with master established reset failureCounter
+					failureCounter = 0;
+					
 					t.join();
 				} catch (Exception e) {
 					logger.error("[" + this.getClass().getSimpleName() + "] thread fail", e);
-					
-					saa.failure();
-					masterIp = saa.getMasterIp();
+					masterIp = saa.failure(++failureCounter);
 				}
 				//After slave master communication is broken try to reconnect
 			}
