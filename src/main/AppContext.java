@@ -99,7 +99,7 @@ public class AppContext {
 	//	Prototypes. Classes with states go here 
 	//============================================================
 	public SlaveLocalScheduler getSlaveLocalScheduler() {
-		return new SlaveLocalScheduler();
+		return new SlaveLocalScheduler(appProperties);
 	}
 	
 	public SlaveAutodiscoverer getDiscoverer() {

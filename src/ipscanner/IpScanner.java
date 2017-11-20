@@ -23,7 +23,7 @@ public class IpScanner {
 	public IpScanner(IpRangeAnalyzer ipRangeAnalyzer, AppProperties appProperties) {
 		this.ipRangeAnalyzer = ipRangeAnalyzer;
 		this.appProperties = appProperties;
-		this.masterPort = appProperties.getMasterPort();
+		this.masterPort = this.appProperties.getMasterPort();
 	}
 	
 	//Scans until not find first node(master or slave)

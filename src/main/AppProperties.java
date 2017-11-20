@@ -29,6 +29,8 @@ public class AppProperties {
 	
 	private Integer socketSoTimeout;
 	
+	private Integer localAutodetectionPeriod;
+	
 	public AppProperties() {
 		repositoryRoot = Paths.get(ResourceBundle.getBundle("app").getString("root"));
 		isMaster = Boolean.parseBoolean(ResourceBundle.getBundle("app").getString("master"));
@@ -40,6 +42,7 @@ public class AppProperties {
 		smallPoolingTimeout = Integer.parseInt(ResourceBundle.getBundle("app").getString("timeout.pooling.small"));
 		bigPoolingTimeout = Integer.parseInt(ResourceBundle.getBundle("app").getString("timeout.pooling.big"));
 		socketSoTimeout = Integer.parseInt(ResourceBundle.getBundle("app").getString("timeout.so.socket"));
+		localAutodetectionPeriod = Integer.parseInt(ResourceBundle.getBundle("app").getString("period.local"));
 	}
 
 	public boolean isMaster() {
@@ -84,6 +87,10 @@ public class AppProperties {
 
 	public void setMasterIp(String masterIp) {
 		this.masterIp = masterIp;
+	}
+
+	public Integer getLocalAutodetectionPeriod() {
+		return localAutodetectionPeriod;
 	}
 	
 }

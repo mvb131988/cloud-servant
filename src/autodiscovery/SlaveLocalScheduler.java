@@ -2,6 +2,8 @@ package autodiscovery;
 
 import java.time.ZonedDateTime;
 
+import main.AppProperties;
+
 /**
  * To cases of scheduling exist:
  * 
@@ -15,8 +17,12 @@ public class SlaveLocalScheduler implements SlaveScheduler {
 
 	private ZonedDateTime baseTime;
 	
-	//TODO: move to constants
-	private int scanPeriodInSeconds = 60;
+	// local autodetection period in seconds
+	private int autodetectionPeriod;
+	
+	public SlaveLocalScheduler(AppProperties ap) {
+		this.autodetectionPeriod = ap.getLocalAutodetectionPeriod();
+	}
 	
 	@Override
 	public boolean isScheduled(int failureCounter, String masterIp) {
@@ -28,7 +34,7 @@ public class SlaveLocalScheduler implements SlaveScheduler {
 		}
 		
 		// baseTime must be not null
-		if(failureCounter > 1 && ZonedDateTime.now().toInstant().isAfter(baseTime.plusSeconds(scanPeriodInSeconds).toInstant())) {
+		if(failureCounter > 1 && ZonedDateTime.now().toInstant().isAfter(baseTime.plusSeconds(autodetectionPeriod).toInstant())) {
 			isScheduled = true;
 		}
 		
@@ -43,7 +49,7 @@ public class SlaveLocalScheduler implements SlaveScheduler {
 	@Override
 	public boolean checkAndUpdateBaseTime(int failureCounter) {
 		if(failureCounter == 1) {
-			baseTime = ZonedDateTime.now().plusSeconds(scanPeriodInSeconds);
+			baseTime = ZonedDateTime.now().plusSeconds(autodetectionPeriod);
 			return true;
 		}
 		return false;
@@ -54,7 +60,7 @@ public class SlaveLocalScheduler implements SlaveScheduler {
 	 */
 	@Override
 	public void updateBaseTime() {
-		baseTime = ZonedDateTime.now().plusSeconds(scanPeriodInSeconds);
+		baseTime = ZonedDateTime.now().plusSeconds(autodetectionPeriod);
 	}
 	
 }

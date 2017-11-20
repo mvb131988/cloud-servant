@@ -47,11 +47,13 @@ public class SlaveLocalAutodiscoverer implements Autodiscovery {
 	}
 	
 	private String discoverInternally() {
-		//TODO: Testing implementation
 		String ip = ipScanner.scan();
+
+		//TODO: Testing implementation
 		if(ip == null) {
 			ip = ap.getMasterIp();
 		}
+		
 		return ip;
 	}
 
