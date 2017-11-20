@@ -3,6 +3,9 @@ package autodiscovery;
 import ipscanner.IpScanner;
 import main.AppProperties;
 
+/**
+ * Intended for master autodiscovering when master and slave runs in the same local network 
+ */
 public class SlaveLocalAutodiscoverer implements Autodiscovery {
 
 	private IpScanner ipScanner; 
@@ -30,10 +33,11 @@ public class SlaveLocalAutodiscoverer implements Autodiscovery {
 		boolean isLocalScheduled = slaveScheduler.isScheduled(failureCounter, masterIp);
 		if(isLocalScheduled) {
 			masterIp = discoverInternally();
+			slaveScheduler.updateBaseTime();
 		} 
 		
 		// Global autodiscovery
-		if((isLocalScheduled && masterIp == null) || !isLocalScheduled) {
+		if(masterIp == null || !isLocalScheduled) {
 			//is global scan scheduled
 			//invoke global autodiscoverer
 			masterIp = autodiscovery.discover(failureCounter);

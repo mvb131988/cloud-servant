@@ -6,7 +6,7 @@ import org.apache.logging.log4j.Logger;
 import main.AppProperties;
 
 /**
- * Supposed to be used in single thread only.
+ * Designed to be used in a single thread only.
  */
 public class SlaveAutodiscoveryAdapter {
 

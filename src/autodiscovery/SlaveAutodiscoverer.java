@@ -1,9 +1,8 @@
 package autodiscovery;
 
 /**
- * Entry point for autodiscovery. Discoverers list contains ordered collection of discoverers.
- * As soon as one of them finds master ip the whole process cancels.
- * 
+ * Entry point for autodiscovery.
+ *
  * Chain of responsibilities is used. SlaveAutodiscoverer -> SlaveLocalAutodiscoverer -> SlaveGlobalAutodiscoverer
  */
 public class SlaveAutodiscoverer implements Autodiscovery {
@@ -11,6 +10,7 @@ public class SlaveAutodiscoverer implements Autodiscovery {
 	// local autodiscoverer here
 	private Autodiscovery autodiscovery;
 	
+	// contains last found master ip or null otherwise
 	private String masterIp;
 	
 	public SlaveAutodiscoverer(Autodiscovery autodiscovery) {
