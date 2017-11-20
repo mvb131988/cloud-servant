@@ -80,7 +80,7 @@ public class IpFJPScanner {
 			super();
 			this.ipRangesAnalyzer = ipRangesAnalyzer;
 			this.ips = ips;
-			this.activeIps = new ArrayList<>();
+			this.activeIps = activeIps;
 			this.masterPort = masterPort;
 		}
 
