@@ -23,6 +23,7 @@ public class IpRangeAnalyzer {
 	private long current;
 	
 	public IpRangeAnalyzer() {
+		//TODO: Pass range as parameter
 		//Load home range. Contains single range
 		ranges = ResourceBundle.getBundle("ipranges").getString(ISP_HOME);
 		
@@ -70,52 +71,12 @@ public class IpRangeAnalyzer {
 		return null;
 	}
 	
-//	public static void main(String[] args) {
-//		
-//		String[] homeLocal = ResourceBundle.getBundle("ipranges").getString(ISP_HOME).split(";");
-//		String[] ipStartAndMask = homeLocal[0].split("/");
-//		
-//		//Input
-//		// 212.0.215.0/24
-//		String startIp = ipStartAndMask[0];
-//		int maskNumbers = Integer.parseInt(ipStartAndMask[1]);
-//		
-////		startIp = "212.0.215.0";
-////		maskNumbers = 24;
-//		
-//		String[] ipChunks = startIp.split("\\.");
-//		long start = (Long.parseLong(ipChunks[3]) 
-//				   + (Long.parseLong(ipChunks[2]) << 8) 
-//				   + (Long.parseLong(ipChunks[1]) << 16) 
-//				   + (Long.parseLong(ipChunks[0]) << 24));
-//		
-//		long end = 0;
-//		long current = start;
-//		
-//		//calculate end
-//		long highPartMask = 0;
-//		for(int i = 0; i < maskNumbers; i++) {
-//			highPartMask = (highPartMask << 1) + 1;
-//		}
-//		highPartMask = highPartMask << (32- maskNumbers); 
-//		
-//		//lowPartMask = lowPartNumber
-//		long lowPartMask = 0;
-//		for(int i = 0; i < 32 - maskNumbers; i++) {
-//			lowPartMask = (lowPartMask << 1) + 1;
-//		}
-//		
-//		end = (highPartMask & start) + lowPartMask;
-//		
-//		while(current <= end) {
-//			System.out.println(
-//										((current & chunk32Mask) >> 24) 
-//								+ "." + ((current & chunk24Mask) >> 16) 
-//								+ "." + ((current & chunk16Mask) >> 8) 
-//								+ "." + (current & chunk8Mask)
-//							  );
-//			current ++;
-//	    }
-//	}
+	public boolean hasNext() {
+		return current <= end;
+	}
+	
+	public void reset() {
+		current = start;
+	}
 	
 }

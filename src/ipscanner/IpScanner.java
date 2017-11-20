@@ -30,7 +30,11 @@ public class IpScanner {
 	//TODO: rename in findFirst. Add verification that found node is master
 	public String scan() {
 		String nextIp = null;
-		while ((nextIp = ipRangeAnalyzer.next())!=null) {
+		
+		ipRangeAnalyzer.reset();
+		
+		while (ipRangeAnalyzer.hasNext()) {
+			nextIp = ipRangeAnalyzer.next();
 			System.out.println(nextIp);
 			
 			try {
