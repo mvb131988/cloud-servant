@@ -4,7 +4,7 @@ import ipscanner.IpScanner;
 import main.AppProperties;
 
 /**
- * Intended for master autodiscovering when master and slave runs in the same local network 
+ * Intended for master autodiscovering when master and slave run in the same local network 
  */
 public class SlaveLocalAutodiscoverer implements Autodiscovery {
 
@@ -17,11 +17,14 @@ public class SlaveLocalAutodiscoverer implements Autodiscovery {
 	
 	private SlaveLocalScheduler slaveScheduler;
 	
+	private String localRanges;
+	
 	public SlaveLocalAutodiscoverer(Autodiscovery autodiscovery, SlaveLocalScheduler slaveScheduler, IpScanner ipScanner, AppProperties ap) {
 		this.autodiscovery = autodiscovery;
 		this.slaveScheduler = slaveScheduler;
 		this.ipScanner = ipScanner;
 		this.ap = ap;
+		this.localRanges = ap.getLocalRanges();
 	}
 	
 	@Override
@@ -47,7 +50,7 @@ public class SlaveLocalAutodiscoverer implements Autodiscovery {
 	}
 	
 	private String discoverInternally() {
-		String ip = ipScanner.scan();
+		String ip = ipScanner.scan(localRanges);
 
 		//TODO: Testing implementation
 		if(ip == null) {

@@ -1,34 +1,57 @@
 package ipscanner;
 
-import java.util.ResourceBundle;
+import autodiscovery.IpRangeIterator;
 
 /**
- * TODO: Is applicable only for one range. 
- * Wrap into IpRangesAnalyzer
+ * Inspects single ip range. 
+ * Range is represented by string in the following format:
+ * iii.iii.iii.iii/pp, where iii.iii.iii.iii base address, pp mask(shows how many bits are occupied)
  */
-public class IpRangeAnalyzer {
+public class IpRangeAnalyzer implements IpRangeIterator {
 
-	private String ISP_HOME = "homelocal";
-	
 	private final long chunk8Mask = 255;
 	private final long chunk16Mask = 65280;
 	private final long chunk24Mask = 16711680;
 	private final long chunk32Mask = 4278190080l;
 	
-	private String ranges;
-	
 	private long start;
-	private long end = 0;
-	
+	private long end;
 	private long current;
 	
-	public IpRangeAnalyzer() {
-		//TODO: Pass range as parameter
-		//Load home range. Contains single range
-		ranges = ResourceBundle.getBundle("ipranges").getString(ISP_HOME);
+	/**
+	 * @return next ip address from the given range 
+	 */
+	@Override
+	public String next() {
+		String nextIp = ((current & chunk32Mask) >> 24) 
+				+ "." + ((current & chunk24Mask) >> 16) 
+				+ "." + ((current & chunk16Mask) >> 8) 
+				+ "." + (current & chunk8Mask);
 		
-		String[] homeLocal = ranges.split(";");
-		String[] ipStartAndMask = homeLocal[0].split("/");
+		if(current <= end) {
+			current ++;
+			return nextIp;
+	    }
+		
+		return null;
+	}
+	
+	/**
+	 * @return true if in the given range exists not visited ip
+	 */
+	@Override
+	public boolean hasNext() {
+		return current <= end;
+	}
+	
+	/**
+	 * Sets start, end, current to initial state
+	 * 
+	 * @param ipRange - ip range to be analyzed
+	 */
+	@Override
+	public void reset(String ipRange) {
+		String[] ipStartAndMask = ipRange.split("/");
 		
 		String startIp = ipStartAndMask[0];
 		int maskNumbers = Integer.parseInt(ipStartAndMask[1]);
@@ -55,28 +78,6 @@ public class IpRangeAnalyzer {
 		}
 				
 		end = (highPartMask & start) + lowPartMask;
-	}
-	
-	public String next() {
-		String nextIp = ((current & chunk32Mask) >> 24) 
-				+ "." + ((current & chunk24Mask) >> 16) 
-				+ "." + ((current & chunk16Mask) >> 8) 
-				+ "." + (current & chunk8Mask);
-		
-		if(current <= end) {
-			current ++;
-			return nextIp;
-	    }
-		
-		return null;
-	}
-	
-	public boolean hasNext() {
-		return current <= end;
-	}
-	
-	public void reset() {
-		current = start;
 	}
 	
 }

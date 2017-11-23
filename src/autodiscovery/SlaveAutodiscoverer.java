@@ -22,6 +22,8 @@ public class SlaveAutodiscoverer implements Autodiscovery {
 	public String discover(int failureCounter) {
 		String newMasterIp = autodiscovery.discover(failureCounter);
 		
+		//if new master ip not found, use old value. If its value not null then it's the last found master ip.
+		//try it to reconnect to the master.
 		if(newMasterIp != null) {
 			masterIp = newMasterIp;
 		}

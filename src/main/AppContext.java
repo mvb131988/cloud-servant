@@ -9,6 +9,7 @@ import autodiscovery.SlaveGlobalAutodiscoverer;
 import autodiscovery.SlaveLocalAutodiscoverer;
 import autodiscovery.SlaveLocalScheduler;
 import ipscanner.IpRangeAnalyzer;
+import ipscanner.IpRangesAnalyzer;
 import ipscanner.IpScanner;
 import provider.MasterCommunicationProvider;
 import repository.BaseRepositoryOperations;
@@ -87,8 +88,6 @@ public class AppContext {
 	
 	private IpScanner ipScanner;
 	
-	private IpRangeAnalyzer ipRangeAnalyzer;
-	
 	private SlaveAutodiscoveryAdapter slaveAutodiscoveryAdapter;
 	
 	private SlaveLocalAutodiscoverer localDiscoverer;
@@ -105,6 +104,15 @@ public class AppContext {
 	public SlaveAutodiscoverer getDiscoverer() {
 		return new SlaveAutodiscoverer(getLocalDiscoverer());
 	}
+	
+	public IpRangeAnalyzer getIpRangeAnalyzer() {
+		return new IpRangeAnalyzer();
+	}
+	
+	public IpRangesAnalyzer getIpRangesAnalyzer() {
+		return new IpRangesAnalyzer(getIpRangeAnalyzer());
+	}
+	
 	//============================================================
 	
 	public void initAsMaster() {
@@ -170,8 +178,7 @@ public class AppContext {
 	
 	public void initAsSlave() {
 		//autodiscovering
-		ipRangeAnalyzer = new IpRangeAnalyzer();
-		ipScanner = new IpScanner(getIpRangeAnalyzer(), appProperties);
+		ipScanner = new IpScanner(getIpRangesAnalyzer(), appProperties);
 		globalDiscoverer = new SlaveGlobalAutodiscoverer(appProperties);
 		localDiscoverer = new SlaveLocalAutodiscoverer(getGlobalDiscoverer(), getSlaveLocalScheduler(), getIpScanner(), appProperties);
 		slaveAutodiscoveryAdapter = new SlaveAutodiscoveryAdapter(getDiscoverer(), appProperties);
@@ -323,14 +330,6 @@ public class AppContext {
 
 	public IpScanner getIpScanner() {
 		return ipScanner;
-	}
-
-	public IpRangeAnalyzer getIpRangeAnalyzer() {
-		return ipRangeAnalyzer;
-	}
-
-	public void setIpRangeAnalyzer(IpRangeAnalyzer ipRangeAnalyzer) {
-		this.ipRangeAnalyzer = ipRangeAnalyzer;
 	}
 
 	public SlaveAutodiscoveryAdapter getSlaveAutodiscoveryAdapter() {

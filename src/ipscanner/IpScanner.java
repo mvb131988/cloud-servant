@@ -14,27 +14,28 @@ public class IpScanner {
 
 	private Logger logger = LogManager.getRootLogger();
 	
-	private IpRangeAnalyzer ipRangeAnalyzer;
+	private IpRangesAnalyzer ipRangesAnalyzer;
 	
 	private AppProperties appProperties;
 	
 	private int masterPort; 
 	
-	public IpScanner(IpRangeAnalyzer ipRangeAnalyzer, AppProperties appProperties) {
-		this.ipRangeAnalyzer = ipRangeAnalyzer;
+	public IpScanner(IpRangesAnalyzer ipRangesAnalyzer, AppProperties appProperties) {
+		this.ipRangesAnalyzer = ipRangesAnalyzer;
 		this.appProperties = appProperties;
 		this.masterPort = this.appProperties.getMasterPort();
 	}
 	
 	//Scans until not find first node(master or slave)
 	//TODO: rename in findFirst. Add verification that found node is master
-	public String scan() {
+	public String scan(String ipRanges) {
 		String nextIp = null;
 		
-		ipRangeAnalyzer.reset();
+//		String ipRange = ipRanges.split(";")[0];
+		ipRangesAnalyzer.reset(ipRanges);
 		
-		while (ipRangeAnalyzer.hasNext()) {
-			nextIp = ipRangeAnalyzer.next();
+		while (ipRangesAnalyzer.hasNext()) {
+			nextIp = ipRangesAnalyzer.next();
 			System.out.println(nextIp);
 			
 			try {

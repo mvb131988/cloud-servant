@@ -5,7 +5,7 @@ import java.nio.file.Paths;
 import java.util.ResourceBundle;
 
 public class AppProperties {
-
+	
 	private boolean isMaster;
 	
 	private Path repositoryRoot;
@@ -31,6 +31,11 @@ public class AppProperties {
 	
 	private Integer localAutodetectionPeriod;
 	
+	// Autodetection properties
+	private String ISP_HOME = "homelocal";
+	
+	private String localRanges;
+	
 	public AppProperties() {
 		repositoryRoot = Paths.get(ResourceBundle.getBundle("app").getString("root"));
 		isMaster = Boolean.parseBoolean(ResourceBundle.getBundle("app").getString("master"));
@@ -43,6 +48,8 @@ public class AppProperties {
 		bigPoolingTimeout = Integer.parseInt(ResourceBundle.getBundle("app").getString("timeout.pooling.big"));
 		socketSoTimeout = Integer.parseInt(ResourceBundle.getBundle("app").getString("timeout.so.socket"));
 		localAutodetectionPeriod = Integer.parseInt(ResourceBundle.getBundle("app").getString("period.local"));
+		
+		localRanges = ResourceBundle.getBundle("ipranges").getString(ISP_HOME);
 	}
 
 	public boolean isMaster() {
@@ -91,6 +98,10 @@ public class AppProperties {
 
 	public Integer getLocalAutodetectionPeriod() {
 		return localAutodetectionPeriod;
+	}
+
+	public String getLocalRanges() {
+		return localRanges;
 	}
 	
 }
