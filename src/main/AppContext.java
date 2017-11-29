@@ -8,6 +8,7 @@ import autodiscovery.SlaveAutodiscoveryAdapter;
 import autodiscovery.SlaveGlobalAutodiscoverer;
 import autodiscovery.SlaveLocalAutodiscoverer;
 import autodiscovery.SlaveLocalScheduler;
+import ipscanner.IpFJPScanner;
 import ipscanner.IpRangeAnalyzer;
 import ipscanner.IpRangesAnalyzer;
 import ipscanner.IpScanner;
@@ -87,6 +88,8 @@ public class AppContext {
 	private MasterShutdownThread masterShutdownThread;
 	
 	private IpScanner ipScanner;
+	
+	private IpFJPScanner ipFJPScanner;
 	
 	private SlaveAutodiscoveryAdapter slaveAutodiscoveryAdapter;
 	
@@ -179,8 +182,9 @@ public class AppContext {
 	public void initAsSlave() {
 		//autodiscovering
 		ipScanner = new IpScanner(getIpRangesAnalyzer(), appProperties);
+		ipFJPScanner = new IpFJPScanner(getIpRangesAnalyzer(), appProperties);
 		globalDiscoverer = new SlaveGlobalAutodiscoverer(appProperties);
-		localDiscoverer = new SlaveLocalAutodiscoverer(getGlobalDiscoverer(), getSlaveLocalScheduler(), getIpScanner(), appProperties);
+		localDiscoverer = new SlaveLocalAutodiscoverer(getGlobalDiscoverer(), getSlaveLocalScheduler(), getIpFJPScanner(), appProperties);
 		slaveAutodiscoveryAdapter = new SlaveAutodiscoveryAdapter(getDiscoverer(), appProperties);
 		
 		//Others
@@ -332,6 +336,10 @@ public class AppContext {
 		return ipScanner;
 	}
 
+	public IpFJPScanner getIpFJPScanner() {
+		return ipFJPScanner;
+	}
+	
 	public SlaveAutodiscoveryAdapter getSlaveAutodiscoveryAdapter() {
 		return slaveAutodiscoveryAdapter;
 	}

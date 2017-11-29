@@ -1,6 +1,6 @@
 package autodiscovery;
 
-import ipscanner.IpScanner;
+import ipscanner.IpFJPScanner;
 import main.AppProperties;
 
 /**
@@ -8,7 +8,7 @@ import main.AppProperties;
  */
 public class SlaveLocalAutodiscoverer implements Autodiscovery {
 
-	private IpScanner ipScanner; 
+	private IpFJPScanner ipScanner; 
 	
 	private AppProperties ap;
 	
@@ -19,7 +19,7 @@ public class SlaveLocalAutodiscoverer implements Autodiscovery {
 	
 	private String localRanges;
 	
-	public SlaveLocalAutodiscoverer(Autodiscovery autodiscovery, SlaveLocalScheduler slaveScheduler, IpScanner ipScanner, AppProperties ap) {
+	public SlaveLocalAutodiscoverer(Autodiscovery autodiscovery, SlaveLocalScheduler slaveScheduler, IpFJPScanner ipScanner, AppProperties ap) {
 		this.autodiscovery = autodiscovery;
 		this.slaveScheduler = slaveScheduler;
 		this.ipScanner = ipScanner;
