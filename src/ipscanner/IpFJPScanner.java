@@ -19,7 +19,7 @@ public class IpFJPScanner {
 	private static Logger logger = LogManager.getRootLogger();
 	
 	// number of ips that a single worker has to try
-	private final static int WORK_PER_THREAD = 2;
+	private final static int WORK_PER_THREAD = 1000;
 	
 	private IpRangesAnalyzer ipRangesAnalyzer;
 	

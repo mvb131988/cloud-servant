@@ -13,7 +13,7 @@
 				<Charset>UTF-8</Charset>
 			</PatternLayout>
 			<Policies>
-				<SizeBasedTriggeringPolicy size="1 MB" />
+				<SizeBasedTriggeringPolicy size="10 MB" />
 			</Policies>
 			<DefaultRolloverStrategy max="5" />
 		</RollingFile>
