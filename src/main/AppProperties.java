@@ -31,6 +31,10 @@ public class AppProperties {
 	
 	private Integer localAutodetectionPeriod;
 	
+	private Integer workPerThread;
+	
+	private Integer fjpSize;
+	
 	// Autodetection properties
 	private String ISP_HOME = "homelocal";
 	
@@ -48,6 +52,9 @@ public class AppProperties {
 		bigPoolingTimeout = Integer.parseInt(ResourceBundle.getBundle("app").getString("timeout.pooling.big"));
 		socketSoTimeout = Integer.parseInt(ResourceBundle.getBundle("app").getString("timeout.so.socket"));
 		localAutodetectionPeriod = Integer.parseInt(ResourceBundle.getBundle("app").getString("period.local"));
+		
+		workPerThread = Integer.parseInt(ResourceBundle.getBundle("app").getString("autodiscovery.unit.value"));
+		fjpSize = Integer.parseInt(ResourceBundle.getBundle("app").getString("autodiscovery.pool.size"));
 		
 		localRanges = ResourceBundle.getBundle("ipranges").getString(ISP_HOME);
 	}
@@ -102,6 +109,14 @@ public class AppProperties {
 
 	public String getLocalRanges() {
 		return localRanges;
+	}
+
+	public Integer getWorkPerThread() {
+		return workPerThread;
+	}
+
+	public Integer getFjpSize() {
+		return fjpSize;
 	}
 	
 }

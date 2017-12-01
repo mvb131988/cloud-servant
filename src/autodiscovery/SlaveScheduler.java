@@ -5,7 +5,7 @@ package autodiscovery;
  */
 public interface SlaveScheduler {
 
-	boolean isScheduled(int failureCounter, String masterIp);
+	boolean isScheduled(int failureCounter);
 	
 	boolean checkAndUpdateBaseTime(int failureCounter);
 

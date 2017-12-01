@@ -25,15 +25,15 @@ public class SlaveLocalScheduler implements SlaveScheduler {
 	}
 	
 	@Override
-	public boolean isScheduled(int failureCounter, String masterIp) {
+	public boolean isScheduled(int failureCounter) {
 		boolean isScheduled = false;
 		
 		// First scan scheduling on startup only
-		if(failureCounter == 0 && masterIp == null) {
+		if(failureCounter == 0) {
 			isScheduled = true;
 		}
 		
-		// baseTime must be not null
+		// baseTime must not be null
 		if(failureCounter > 1 && ZonedDateTime.now().toInstant().isAfter(baseTime.plusSeconds(autodetectionPeriod).toInstant())) {
 			isScheduled = true;
 		}

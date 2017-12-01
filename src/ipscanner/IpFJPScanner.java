@@ -19,7 +19,10 @@ public class IpFJPScanner {
 	private static Logger logger = LogManager.getRootLogger();
 	
 	// number of ips that a single worker has to try
-	private final static int WORK_PER_THREAD = 1000;
+	private final int workPerThread;
+	
+	// thread pool size
+	private final int fjpSize;
 	
 	private IpRangesAnalyzer ipRangesAnalyzer;
 	
@@ -29,15 +32,19 @@ public class IpFJPScanner {
 		super();
 		this.ipRangesAnalyzer = ipRangesAnalyzer;
 		this.masterPort = appProperties.getMasterPort();
+		this.workPerThread = appProperties.getWorkPerThread();
+		this.fjpSize = appProperties.getFjpSize();
 	}
 
 	public String scan(String ipRanges) {
 		ipRangesAnalyzer.reset(ipRanges);
 		
 		//Run scan process in fork/join pool
-		IpAction ipAction = new IpAction(ipRangesAnalyzer, masterPort);
-		ForkJoinPool fjp = new ForkJoinPool(4);
+		IpAction ipAction = new IpAction(ipRangesAnalyzer, masterPort, workPerThread);
 		
+		ForkJoinPool fjp = new ForkJoinPool(fjpSize);
+		
+		logger.trace("[" + this.getClass().getSimpleName() + "] start scan for " + ipRanges);
 		long start = System.currentTimeMillis();
 		fjp.invoke(ipAction);
 		long end = System.currentTimeMillis();
@@ -52,7 +59,7 @@ public class IpFJPScanner {
 			masterIp = activeIps.get(0);
 		}
 		if(activeIps.size() > 1) {
-			// throw an exception
+			//TODO: throw an exception
 		}
 		
 		return masterIp;
@@ -61,6 +68,8 @@ public class IpFJPScanner {
 	private static class IpAction extends RecursiveAction {
 
 		private static final long serialVersionUID = 1L;
+		
+		private final int workPerThread;
 
 		private int masterPort;
 		
@@ -76,19 +85,22 @@ public class IpFJPScanner {
 		public IpAction(IpRangesAnalyzer ipRangesAnalyzer, 
 						List<String> ips, 
 						int masterPort, 
-						List<String> activeIps) {
+						List<String> activeIps,
+						int workPerThread) {
 			super();
 			this.ipRangesAnalyzer = ipRangesAnalyzer;
 			this.ips = ips;
 			this.activeIps = activeIps;
 			this.masterPort = masterPort;
+			this.workPerThread = workPerThread;
 		}
 
-		public IpAction(IpRangesAnalyzer ipRangesAnalyzer, int masterPort) {
+		public IpAction(IpRangesAnalyzer ipRangesAnalyzer, int masterPort, int workPerThread) {
 			super();
 			this.ipRangesAnalyzer = ipRangesAnalyzer;
 			this.activeIps = new ArrayList<>();
 			this.masterPort = masterPort;
+			this.workPerThread = workPerThread;
 		}
 
 		@Override
@@ -98,15 +110,15 @@ public class IpFJPScanner {
 				if (ipRangesAnalyzer.hasNext()) {
 					
 					//create unit of work that could be consumed by a worker thread
-					for (int i = 0; i < WORK_PER_THREAD; i++) {
+					for (int i = 0; i < workPerThread; i++) {
 						if (!ipRangesAnalyzer.hasNext()) {
 							break;
 						}
 						ipsUnitOfWork.add(ipRangesAnalyzer.next());
 					}
 
-					invokeAll(new IpAction(ipRangesAnalyzer, null, masterPort, activeIps),
-							  new IpAction(ipRangesAnalyzer, ipsUnitOfWork, masterPort, activeIps));
+					invokeAll(new IpAction(ipRangesAnalyzer, null, masterPort, activeIps, workPerThread),
+							  new IpAction(ipRangesAnalyzer, ipsUnitOfWork, masterPort, activeIps, workPerThread));
 					
 				}
 			} else {
@@ -120,9 +132,9 @@ public class IpFJPScanner {
 						
 						logger.trace("[" + this.getClass().getSimpleName() + "] connecting to " + ip);
 					} catch (UnknownHostException e) {
-						//logger.trace("[" + this.getClass().getSimpleName() + "] fail to connect to " + ip);
+						//Don't log, prevent too many expected exceptions to be logged  
 					} catch (IOException e) {
-						//logger.trace("[" + this.getClass().getSimpleName() + "] fail to connect to " + ip);
+						//Don't log, prevent too many expected exceptions to be logged  
 					}
 					finally {
 						try {

@@ -12,6 +12,8 @@ public class SlaveGlobalAutodiscoverer implements Autodiscovery {
 	
 	@Override
 	public String discover(int failureCounter) {
+		//TODO: implement masterIp persistence once master ip found
+		
 		return null;
 	}
 

@@ -105,7 +105,7 @@ public class AppContext {
 	}
 	
 	public SlaveAutodiscoverer getDiscoverer() {
-		return new SlaveAutodiscoverer(getLocalDiscoverer());
+		return new SlaveAutodiscoverer(getLocalDiscoverer(), appProperties);
 	}
 	
 	public IpRangeAnalyzer getIpRangeAnalyzer() {

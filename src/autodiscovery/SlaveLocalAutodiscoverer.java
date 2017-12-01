@@ -1,5 +1,8 @@
 package autodiscovery;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import ipscanner.IpFJPScanner;
 import main.AppProperties;
 
@@ -8,6 +11,8 @@ import main.AppProperties;
  */
 public class SlaveLocalAutodiscoverer implements Autodiscovery {
 
+	private static Logger logger = LogManager.getRootLogger();
+	
 	private IpFJPScanner ipScanner; 
 	
 	private AppProperties ap;
@@ -33,9 +38,13 @@ public class SlaveLocalAutodiscoverer implements Autodiscovery {
 		
 		// Local autodiscovery
 		slaveScheduler.checkAndUpdateBaseTime(failureCounter);
-		boolean isLocalScheduled = slaveScheduler.isScheduled(failureCounter, masterIp);
+		boolean isLocalScheduled = slaveScheduler.isScheduled(failureCounter);
 		if(isLocalScheduled) {
+			
+			logger.info("[" + this.getClass().getSimpleName() + "] local scan start");
 			masterIp = discoverInternally();
+			logger.info("[" + this.getClass().getSimpleName() + "] local scan finish with masterIp = " + masterIp);
+			
 			slaveScheduler.updateBaseTime();
 		} 
 		
@@ -53,6 +62,7 @@ public class SlaveLocalAutodiscoverer implements Autodiscovery {
 		String ip = ipScanner.scan(localRanges);
 
 		//TODO: Testing implementation
+		//Redundant remove after test is completed
 		if(ip == null) {
 			ip = ap.getMasterIp();
 		}
