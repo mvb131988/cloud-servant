@@ -1,0 +1,51 @@
+(1) cd ~/Downloads/
+
+(2) Download jdk 8u151
+wget --no-check-certificate -c --header "Cookie: oraclelicense=accept-securebackup-cookie" http://download.oracle.com/otn-pub/java/jdk/8u151-b12/e758a0de34e24606bca991d704f6dcbf/jdk-8u151-linux-x64.tar.gz
+
+(3) Extract
+tar -xvzf jdk-8u151-linux-x64.tar.gz
+
+(4) Copy to /usr/java
+
+from /user
+sudo mkdir /usr/java
+
+from ~/Downloads
+sudo cp -R jdk1.8.0_151/ /usr/java/
+sudo rm -R jdk1.8.0_151
+
+(5) Add JAVA_HOME and modifythe PATH (after logout)
+from /etc
+sudo nano environment 
+
+(6) Download maven
+
+cd ~/Downloads/
+
+wget "http://www-us.apache.org/dist/maven/maven-3/3.5.2/binaries/apache-maven-3.5.2-bin.tar.gz"
+
+(7) Extract
+tar -xvzf apache-maven-3.5.2-bin.tar.gz
+
+(8) Copy to /usr/maven
+
+from /user
+sudo mkdir /usr/maven
+
+from ~/Downloads
+sudo cp -R apache-maven-3.5.2/ /usr/maven/
+sudo rm -R apache-maven-3.5.2
+
+(9) Add MAVEN_HOME and modifythe PATH (after logout) (save ctrl+O; exit ctrl+X)
+from /etc
+sudo nano environment 
+
+(10) Install git
+sudo apt-get install git
+
+(11) Checkout
+from ~/workspace
+
+git clone https://github.com/mvb131988/cloud-servant.git
+
