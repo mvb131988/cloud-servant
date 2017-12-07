@@ -97,7 +97,10 @@ public class BaseTransferOperations {
 	}
 	
 	public void sendRelativePath(OutputStream os, Path relativePath) throws IOException {
-		byte[] b = relativePath.toString().getBytes("UTF-8");
+		//change to Linux compatible slashes
+		String sRelativePath = relativePath.toString().replaceAll("\\\\", "\\/");
+		
+		byte[] b = sRelativePath.getBytes("UTF-8");
 		int length = b.length;
 		sendInteger(os, length);
 		os.write(b);

@@ -128,6 +128,13 @@ public class SlaveTransferManager {
 				} catch (Exception e) {
 					logger.error("[" + this.getClass().getSimpleName() + "] thread fail", e);
 					masterIp = saa.failure(++failureCounter);
+					
+					//TODO: Put timeout here(protection for case when network fails)
+					try {
+						Thread.sleep(bigTimeout);
+					} catch (InterruptedException e1) {
+						//LOG exception
+					}
 				}
 				//After slave master communication is broken try to reconnect
 			}
