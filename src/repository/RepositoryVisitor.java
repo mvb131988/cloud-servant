@@ -39,7 +39,12 @@ public class RepositoryVisitor implements FileVisitor<Path> {
 			//filter out data.repo
 		}
 		else {
-			filesList.add(repositoryRoot.relativize(file).toString());
+			String path = repositoryRoot.relativize(file).toString();
+			
+			//change to Linux compatible slashes
+			path = path.replaceAll("\\\\", "\\/");
+			
+			filesList.add(path);
 		}
 		return FileVisitResult.CONTINUE;
 	}
