@@ -49,3 +49,18 @@ from ~/workspace
 
 git clone https://github.com/mvb131988/cloud-servant.git
 
+########################################################################################################
+###	Create Windows job(Win7) Automatic start on system startup
+########################################################################################################
+
+(1) Windows -> Search ("schedule") open Task Scheduler
+
+(2) Create task
+
+	General: Mark "Run whether user is logged on or not"
+	Triggers: Mark "At system startup"
+	Actions: Set "Start a program" and path to batch 
+	
+(3) !!! stop.bat doesn't work, because jps -v doesn't display process information
+
+########################################################################################################

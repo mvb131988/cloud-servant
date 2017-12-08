@@ -5,5 +5,8 @@
 @REM Control Panel -> Administrative Tools-> Task Scheduler  
 @REM and create a task that starts before log on. During task creation set path to launch.bat  
 
+@REM Change to the program path
+cd C:\Users\vminacov\eclipse-workspace\cloud-servant\target
+
 start javaw -jar -Dcloud-servant cloud-servant.jar start
 exit
