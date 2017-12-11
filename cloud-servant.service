@@ -1,0 +1,12 @@
+[Unit]
+Description=Cloud Servant
+
+[Service]
+ExecStart=/usr/java/jdk1.8.0_151/bin/java -jar -Dcloud-servant /home/mvb13/workspace/cloud-servant/target/cloud-servant.jar start
+StandardOutput=null
+StandardError=null
+User=mvb13
+
+[Install]
+WantedBy=multi-user.target
+Alias=cloud-servant.service
