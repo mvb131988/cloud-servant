@@ -5,7 +5,7 @@ Description=Cloud Servant
 ExecStart=/usr/java/jdk1.8.0_151/bin/java -jar -Dcloud-servant /home/mvb13/workspace/cloud-servant/target/cloud-servant.jar start
 StandardOutput=null
 StandardError=null
-User=mvb13
+User=pi
 
 [Install]
 WantedBy=multi-user.target

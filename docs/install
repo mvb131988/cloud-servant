@@ -1,7 +1,34 @@
+########################################################################################################
+### Pi setup
+########################################################################################################
+
+(1) Install RASPBIAN Os on SD card. Use Etcher only(command line tools don't write image correct)
+(2) Enable ssh (by default disabled) 
+	
+	default username: pi
+	standard password
+
+(3) Change pi password(by default raspberry)
+
+	Connect to raspberry via ssh and use command passwd in terminal:
+	passwd
+
+(4) In local network assign static ip(bind by MAC address) to raspberry
+(5) Configure port forwarding on the router. Necessary for external ssh access(port 22) as well as for 
+application communication(port from app configuration)
+
+########################################################################################################
+### Environment configuration
+########################################################################################################
+
 (1) cd ~/Downloads/
 
 (2) Download jdk 8u151
+!!!Desktop x64 only
 wget --no-check-certificate -c --header "Cookie: oraclelicense=accept-securebackup-cookie" http://download.oracle.com/otn-pub/java/jdk/8u151-b12/e758a0de34e24606bca991d704f6dcbf/jdk-8u151-linux-x64.tar.gz
+
+!!!ARM 32 bit version for raspberry
+wget --no-check-certificate -c --header "Cookie: oraclelicense=accept-securebackup-cookie" http://download.oracle.com/otn-pub/java/jdk/8u151-b12/e758a0de34e24606bca991d704f6dcbf/jdk-8u151-linux-arm32-vfp-hflt.tar.gz
 
 (3) Extract
 tar -xvzf jdk-8u151-linux-x64.tar.gz
@@ -17,13 +44,22 @@ sudo rm -R jdk1.8.0_151
 
 (5) Add JAVA_HOME and modifythe PATH (after logout)
 from /etc
-sudo nano environment 
+
+sudo nano environment
+Example:
+JAVA_HOME="/usr/java/jdk1.8.0_151"
+
+sudo nano profile 
+PATH="/usr/java/jdk1.8.0_151/bin:[existed path]" (first entry in the PATH to override other installed JDKs)
+
+restart with:
+sudo reboot
 
 (6) Download maven
 
 cd ~/Downloads/
 
-wget "http://www-us.apache.org/dist/maven/maven-3/3.5.2/binaries/apache-maven-3.5.2-bin.tar.gz"
+wget "http://mirrors.hostingromania.ro/apache.org/maven/maven-3/3.5.2/binaries/apache-maven-3.5.2-bin.tar.gz"
 
 (7) Extract
 tar -xvzf apache-maven-3.5.2-bin.tar.gz
@@ -39,7 +75,13 @@ sudo rm -R apache-maven-3.5.2
 
 (9) Add MAVEN_HOME and modifythe PATH (after logout) (save ctrl+O; exit ctrl+X)
 from /etc
+
 sudo nano environment 
+Example:
+MAVEN_HOME="/usr/maven/apache-maven-3.5.2"
+
+sudo nano profile 
+PATH="/usr/maven/apache-maven-3.5.2/bin:/usr/java/jdk1.8.0_151/bin:[existed path]"
 
 (10) Install git
 sudo apt-get install git
@@ -49,6 +91,26 @@ from ~/workspace
 
 git clone https://github.com/mvb131988/cloud-servant.git
 
+(12) Set slave repository paths:
+In pom.xml set:
+	- root /media/pi/seagate/repo
+	- log /media/pi/seagate/repo/.log
+	
+(13) Copy .jar to /usr/cloud-servant
+
+Run in background. Don't close on session disconnection
+nohup java -jar cloud-servant start >/dev/null &
+	
+########################################################################################################
+###	External storage
+########################################################################################################
+
+The default NTFS driver only supports read access.
+In order to be able to write to NTFS you need to install the ntfs-3g driver (which is a bit slower).
+
+	sudo apt-get update
+	sudo apt-get -y install ntfs-3g
+	
 ########################################################################################################
 ###	Create Windows job(Win7) Automatic start on system startup
 ########################################################################################################
