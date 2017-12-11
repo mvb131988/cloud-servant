@@ -64,3 +64,25 @@ git clone https://github.com/mvb131988/cloud-servant.git
 (3) !!! stop.bat doesn't work, because jps -v doesn't display process information
 
 ########################################################################################################
+
+
+########################################################################################################
+###	Create Linux job(using systemd) Automatic start on system startup
+########################################################################################################
+
+(1) Move to /lib/systemd/system
+
+(2) Copy cloud-servant.service into
+
+(3) Adjust ExecStart:
+	- set correct full java path
+	- set correct full cloud-servant path
+	
+(4) Start as service:
+	
+	sudo systemctl enable mouselogger.service
+	sudo systemctl start mouselogger.service
+	
+	To check servcie status:
+	
+	sudo systemctl status mouselogger.service
