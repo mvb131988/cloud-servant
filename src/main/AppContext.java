@@ -11,7 +11,6 @@ import autodiscovery.SlaveLocalScheduler;
 import ipscanner.IpFJPScanner;
 import ipscanner.IpRangeAnalyzer;
 import ipscanner.IpRangesAnalyzer;
-import ipscanner.IpScanner;
 import provider.MasterCommunicationProvider;
 import repository.BaseRepositoryOperations;
 import repository.MasterRepositoryManager;
@@ -87,27 +86,11 @@ public class AppContext {
 	
 	private MasterShutdownThread masterShutdownThread;
 	
-	private IpScanner ipScanner;
-	
-	private IpFJPScanner ipFJPScanner;
-	
 	private SlaveAutodiscoveryAdapter slaveAutodiscoveryAdapter;
-	
-	private SlaveLocalAutodiscoverer localDiscoverer;
-	
-	private SlaveGlobalAutodiscoverer globalDiscoverer;
 	
 	//============================================================
 	//	Prototypes. Classes with states go here 
 	//============================================================
-	public SlaveLocalScheduler getSlaveLocalScheduler() {
-		return new SlaveLocalScheduler(appProperties);
-	}
-	
-	public SlaveAutodiscoverer getDiscoverer() {
-		return new SlaveAutodiscoverer(getLocalDiscoverer(), appProperties);
-	}
-	
 	public IpRangeAnalyzer getIpRangeAnalyzer() {
 		return new IpRangeAnalyzer();
 	}
@@ -116,6 +99,25 @@ public class AppContext {
 		return new IpRangesAnalyzer(getIpRangeAnalyzer());
 	}
 	
+	public IpFJPScanner getIpFJPScanner() {
+		return new IpFJPScanner(getIpRangesAnalyzer(), appProperties);
+	}
+	
+	public SlaveLocalScheduler getSlaveLocalScheduler() {
+		return new SlaveLocalScheduler(appProperties);
+	}
+	
+	public SlaveGlobalAutodiscoverer getGlobalDiscoverer() {
+		return new SlaveGlobalAutodiscoverer(appProperties);
+	}
+	
+	public SlaveLocalAutodiscoverer getLocalDiscoverer() {
+		return new SlaveLocalAutodiscoverer(getGlobalDiscoverer(), getSlaveLocalScheduler(), getIpFJPScanner(), appProperties);
+	}
+	
+	public SlaveAutodiscoverer getDiscoverer() {
+		return new SlaveAutodiscoverer(getLocalDiscoverer(), appProperties);
+	}
 	//============================================================
 	
 	public void initAsMaster() {
@@ -181,10 +183,6 @@ public class AppContext {
 	
 	public void initAsSlave() {
 		//autodiscovering
-		ipScanner = new IpScanner(getIpRangesAnalyzer(), appProperties);
-		ipFJPScanner = new IpFJPScanner(getIpRangesAnalyzer(), appProperties);
-		globalDiscoverer = new SlaveGlobalAutodiscoverer(appProperties);
-		localDiscoverer = new SlaveLocalAutodiscoverer(getGlobalDiscoverer(), getSlaveLocalScheduler(), getIpFJPScanner(), appProperties);
 		slaveAutodiscoveryAdapter = new SlaveAutodiscoveryAdapter(getDiscoverer(), appProperties);
 		
 		//Others
@@ -331,25 +329,9 @@ public class AppContext {
 	public StatusAndHealthCheckOperation getStatusAndHealthCheckOperation() {
 		return statusAndHealthCheckOperation;
 	}
-
-	public IpScanner getIpScanner() {
-		return ipScanner;
-	}
-
-	public IpFJPScanner getIpFJPScanner() {
-		return ipFJPScanner;
-	}
 	
 	public SlaveAutodiscoveryAdapter getSlaveAutodiscoveryAdapter() {
 		return slaveAutodiscoveryAdapter;
-	}
-
-	public SlaveLocalAutodiscoverer getLocalDiscoverer() {
-		return localDiscoverer;
-	}
-
-	public SlaveGlobalAutodiscoverer getGlobalDiscoverer() {
-		return globalDiscoverer;
 	}
 	
 }

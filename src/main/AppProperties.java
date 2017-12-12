@@ -10,10 +10,6 @@ public class AppProperties {
 	
 	private Path repositoryRoot;
 	
-	//TODO: masterIp will be defined in several ways(first is scan of local network[will be default scenario]) 
-	//TODO: leave this property like it is and create a separate flow for manual setting(for debugging purposes)
-	private String masterIp;
-	
 	private Integer masterPort;
 	
 	//Admin port is common both for master and slave side.
@@ -43,7 +39,6 @@ public class AppProperties {
 	public AppProperties() {
 		repositoryRoot = Paths.get(ResourceBundle.getBundle("app").getString("root"));
 		isMaster = Boolean.parseBoolean(ResourceBundle.getBundle("app").getString("master"));
-		masterIp = ResourceBundle.getBundle("app").getString("master.ip");
 		masterPort = Integer.parseInt(ResourceBundle.getBundle("app").getString("master.port"));
 		adminPort = Integer.parseInt(ResourceBundle.getBundle("app").getString("admin.port"));
 		masterRepositoryScheduleInterval = Integer.parseInt(ResourceBundle.getBundle("app").getString("schedule.master.repository"));
@@ -65,10 +60,6 @@ public class AppProperties {
 
 	public Path getRepositoryRoot() {
 		return repositoryRoot;
-	}
-
-	public String getMasterIp() {
-		return masterIp;
 	}
 
 	public Integer getMasterPort() {
@@ -97,10 +88,6 @@ public class AppProperties {
 
 	public Integer getSocketSoTimeout() {
 		return socketSoTimeout;
-	}
-
-	public void setMasterIp(String masterIp) {
-		this.masterIp = masterIp;
 	}
 
 	public Integer getLocalAutodetectionPeriod() {

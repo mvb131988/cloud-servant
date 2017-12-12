@@ -1,5 +1,8 @@
 package autodiscovery;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import main.AppProperties;
 
 /**
@@ -9,6 +12,8 @@ import main.AppProperties;
  */
 public class SlaveAutodiscoverer implements Autodiscovery {
 
+	private Logger logger = LogManager.getRootLogger();
+	
 	private final int bigTimeout;
 	
 	// local autodiscoverer here
@@ -34,7 +39,7 @@ public class SlaveAutodiscoverer implements Autodiscovery {
 				try {
 					Thread.sleep(bigTimeout);
 				} catch (InterruptedException e) {
-					//TODO: Add logging, do nothing on failure 
+					logger.error("[" + this.getClass().getSimpleName() + "] thread fail", e); 
 				}
 				
 			}

@@ -15,8 +15,6 @@ public class SlaveLocalAutodiscoverer implements Autodiscovery {
 	
 	private IpFJPScanner ipScanner; 
 	
-	private AppProperties ap;
-	
 	// global autodiscoverer here
 	private Autodiscovery autodiscovery;
 	
@@ -28,7 +26,6 @@ public class SlaveLocalAutodiscoverer implements Autodiscovery {
 		this.autodiscovery = autodiscovery;
 		this.slaveScheduler = slaveScheduler;
 		this.ipScanner = ipScanner;
-		this.ap = ap;
 		this.localRanges = ap.getLocalRanges();
 	}
 	
@@ -42,7 +39,7 @@ public class SlaveLocalAutodiscoverer implements Autodiscovery {
 		if(isLocalScheduled) {
 			
 			logger.info("[" + this.getClass().getSimpleName() + "] local scan start");
-			masterIp = discoverInternally();
+			masterIp = ipScanner.scan(localRanges);
 			logger.info("[" + this.getClass().getSimpleName() + "] local scan finish with masterIp = " + masterIp);
 			
 			slaveScheduler.updateBaseTime();
@@ -56,18 +53,6 @@ public class SlaveLocalAutodiscoverer implements Autodiscovery {
 		}
 		
 		return masterIp;
-	}
-	
-	private String discoverInternally() {
-		String ip = ipScanner.scan(localRanges);
-
-		//TODO: Testing implementation
-		//Redundant remove after test is completed
-		if(ip == null) {
-			ip = ap.getMasterIp();
-		}
-		
-		return ip;
 	}
 
 }

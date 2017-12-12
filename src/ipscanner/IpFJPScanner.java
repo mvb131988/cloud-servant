@@ -60,6 +60,7 @@ public class IpFJPScanner {
 		}
 		if(activeIps.size() > 1) {
 			//TODO: throw an exception
+			//		Will change in the future. One node will be able to find all of the other nodes in the system
 		}
 		
 		return masterIp;
