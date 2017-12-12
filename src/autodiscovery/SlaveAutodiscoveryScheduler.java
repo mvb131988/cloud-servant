@@ -13,15 +13,15 @@ import main.AppProperties;
  * 	   period later(updateBaseTime method)
  * 
  */
-public class SlaveLocalScheduler implements SlaveScheduler {
+public class SlaveAutodiscoveryScheduler implements SlaveScheduler {
 
 	private ZonedDateTime baseTime;
 	
 	// local autodetection period in seconds
 	private int autodetectionPeriod;
 	
-	public SlaveLocalScheduler(AppProperties ap) {
-		this.autodetectionPeriod = ap.getLocalAutodetectionPeriod();
+	public SlaveAutodiscoveryScheduler(int autodetectionPeriod) {
+		this.autodetectionPeriod = autodetectionPeriod;
 	}
 	
 	@Override

@@ -18,11 +18,11 @@ public class SlaveLocalAutodiscoverer implements Autodiscovery {
 	// global autodiscoverer here
 	private Autodiscovery autodiscovery;
 	
-	private SlaveLocalScheduler slaveScheduler;
+	private SlaveAutodiscoveryScheduler slaveScheduler;
 	
 	private String localRanges;
 	
-	public SlaveLocalAutodiscoverer(Autodiscovery autodiscovery, SlaveLocalScheduler slaveScheduler, IpFJPScanner ipScanner, AppProperties ap) {
+	public SlaveLocalAutodiscoverer(Autodiscovery autodiscovery, SlaveAutodiscoveryScheduler slaveScheduler, IpFJPScanner ipScanner, AppProperties ap) {
 		this.autodiscovery = autodiscovery;
 		this.slaveScheduler = slaveScheduler;
 		this.ipScanner = ipScanner;

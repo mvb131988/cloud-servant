@@ -27,6 +27,8 @@ public class AppProperties {
 	
 	private Integer localAutodetectionPeriod;
 	
+	private Integer globalAutodetectionPeriod;
+	
 	private Integer workPerThread;
 	
 	private Integer fjpSize;
@@ -34,7 +36,11 @@ public class AppProperties {
 	// Autodetection properties
 	private String ISP_HOME = "homelocal";
 	
+	private String ISP_MOLDTELECOM = "moldtelecom";
+	
 	private String localRanges;
+	
+	private String globalRanges;
 	
 	public AppProperties() {
 		repositoryRoot = Paths.get(ResourceBundle.getBundle("app").getString("root"));
@@ -47,11 +53,13 @@ public class AppProperties {
 		bigPoolingTimeout = Integer.parseInt(ResourceBundle.getBundle("app").getString("timeout.pooling.big"));
 		socketSoTimeout = Integer.parseInt(ResourceBundle.getBundle("app").getString("timeout.so.socket"));
 		localAutodetectionPeriod = Integer.parseInt(ResourceBundle.getBundle("app").getString("period.local"));
+		globalAutodetectionPeriod = Integer.parseInt(ResourceBundle.getBundle("app").getString("period.global"));
 		
 		workPerThread = Integer.parseInt(ResourceBundle.getBundle("app").getString("autodiscovery.unit.value"));
 		fjpSize = Integer.parseInt(ResourceBundle.getBundle("app").getString("autodiscovery.pool.size"));
 		
 		localRanges = ResourceBundle.getBundle("ipranges").getString(ISP_HOME);
+		globalRanges = ResourceBundle.getBundle("ipranges").getString(ISP_MOLDTELECOM);
 	}
 
 	public boolean isMaster() {
@@ -104,6 +112,14 @@ public class AppProperties {
 
 	public Integer getFjpSize() {
 		return fjpSize;
+	}
+
+	public String getGlobalRanges() {
+		return globalRanges;
+	}
+
+	public Integer getGlobalAutodetectionPeriod() {
+		return globalAutodetectionPeriod;
 	}
 	
 }

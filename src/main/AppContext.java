@@ -7,7 +7,7 @@ import autodiscovery.SlaveAutodiscoverer;
 import autodiscovery.SlaveAutodiscoveryAdapter;
 import autodiscovery.SlaveGlobalAutodiscoverer;
 import autodiscovery.SlaveLocalAutodiscoverer;
-import autodiscovery.SlaveLocalScheduler;
+import autodiscovery.SlaveAutodiscoveryScheduler;
 import ipscanner.IpFJPScanner;
 import ipscanner.IpRangeAnalyzer;
 import ipscanner.IpRangesAnalyzer;
@@ -103,12 +103,16 @@ public class AppContext {
 		return new IpFJPScanner(getIpRangesAnalyzer(), appProperties);
 	}
 	
-	public SlaveLocalScheduler getSlaveLocalScheduler() {
-		return new SlaveLocalScheduler(appProperties);
+	public SlaveAutodiscoveryScheduler getSlaveLocalScheduler() {
+		return new SlaveAutodiscoveryScheduler(appProperties.getLocalAutodetectionPeriod());
+	}
+	
+	public SlaveAutodiscoveryScheduler getSlaveGlobalScheduler() {
+		return new SlaveAutodiscoveryScheduler(appProperties.getGlobalAutodetectionPeriod());
 	}
 	
 	public SlaveGlobalAutodiscoverer getGlobalDiscoverer() {
-		return new SlaveGlobalAutodiscoverer(appProperties);
+		return new SlaveGlobalAutodiscoverer(getSlaveGlobalScheduler(), getIpFJPScanner(), appProperties);
 	}
 	
 	public SlaveLocalAutodiscoverer getLocalDiscoverer() {
