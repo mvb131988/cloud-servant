@@ -34,7 +34,7 @@ public class SysManager {
 		} catch (IOException e) {
 			logger.error("[" + this.getClass().getSimpleName() + "] fails to get master ip ", e); 
 		}
-		return ip.equals("") ? null : ip;
+		return ip;
 	}
 	
 }

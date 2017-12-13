@@ -28,11 +28,11 @@ public class IpFJPScanner {
 	
 	private int masterPort;
 	
-	public IpFJPScanner(IpRangesAnalyzer ipRangesAnalyzer, AppProperties appProperties) {
+	public IpFJPScanner(IpRangesAnalyzer ipRangesAnalyzer, int workPerThread, AppProperties appProperties) {
 		super();
 		this.ipRangesAnalyzer = ipRangesAnalyzer;
 		this.masterPort = appProperties.getMasterPort();
-		this.workPerThread = appProperties.getWorkPerThread();
+		this.workPerThread = workPerThread;
 		this.fjpSize = appProperties.getFjpSize();
 	}
 

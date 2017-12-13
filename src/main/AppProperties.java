@@ -29,7 +29,9 @@ public class AppProperties {
 	
 	private Integer globalAutodetectionPeriod;
 	
-	private Integer workPerThread;
+	private Integer localWorkPerThread;
+	
+	private Integer globalWorkPerThread;
 	
 	private Integer fjpSize;
 	
@@ -55,7 +57,9 @@ public class AppProperties {
 		localAutodetectionPeriod = Integer.parseInt(ResourceBundle.getBundle("app").getString("period.local"));
 		globalAutodetectionPeriod = Integer.parseInt(ResourceBundle.getBundle("app").getString("period.global"));
 		
-		workPerThread = Integer.parseInt(ResourceBundle.getBundle("app").getString("autodiscovery.unit.value"));
+		localWorkPerThread = Integer.parseInt(ResourceBundle.getBundle("app").getString("local.autodiscovery.unit.value"));
+		globalWorkPerThread = Integer.parseInt(ResourceBundle.getBundle("app").getString("global.autodiscovery.unit.value"));
+		
 		fjpSize = Integer.parseInt(ResourceBundle.getBundle("app").getString("autodiscovery.pool.size"));
 		
 		localRanges = ResourceBundle.getBundle("ipranges").getString(ISP_HOME);
@@ -106,10 +110,14 @@ public class AppProperties {
 		return localRanges;
 	}
 
-	public Integer getWorkPerThread() {
-		return workPerThread;
+	public Integer getLocalWorkPerThread() {
+		return localWorkPerThread;
 	}
 
+	public Integer getGlobalWorkPerThread() {
+		return globalWorkPerThread;
+	}
+	
 	public Integer getFjpSize() {
 		return fjpSize;
 	}
@@ -121,5 +129,5 @@ public class AppProperties {
 	public Integer getGlobalAutodetectionPeriod() {
 		return globalAutodetectionPeriod;
 	}
-	
+
 }

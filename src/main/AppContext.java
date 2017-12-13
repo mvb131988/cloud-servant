@@ -104,8 +104,12 @@ public class AppContext {
 		return new IpRangesAnalyzer(getIpRangeAnalyzer());
 	}
 	
-	public IpFJPScanner getIpFJPScanner() {
-		return new IpFJPScanner(getIpRangesAnalyzer(), appProperties);
+	public IpFJPScanner getLocalIpFJPScanner() {
+		return new IpFJPScanner(getIpRangesAnalyzer(), appProperties.getLocalAutodetectionPeriod(), appProperties);
+	}
+	
+	public IpFJPScanner getGlobalIpFJPScanner() {
+		return new IpFJPScanner(getIpRangesAnalyzer(), appProperties.getGlobalAutodetectionPeriod(), appProperties);
 	}
 	
 	public SlaveAutodiscoveryScheduler getSlaveLocalScheduler() {
@@ -117,11 +121,11 @@ public class AppContext {
 	}
 	
 	public SlaveGlobalAutodiscoverer getGlobalDiscoverer() {
-		return new SlaveGlobalAutodiscoverer(getSlaveGlobalScheduler(), getIpFJPScanner(), getSysManager(), appProperties);
+		return new SlaveGlobalAutodiscoverer(getSlaveGlobalScheduler(), getGlobalIpFJPScanner(), getSysManager(), appProperties);
 	}
 	
 	public SlaveLocalAutodiscoverer getLocalDiscoverer() {
-		return new SlaveLocalAutodiscoverer(getGlobalDiscoverer(), getSlaveLocalScheduler(), getIpFJPScanner(), appProperties);
+		return new SlaveLocalAutodiscoverer(getGlobalDiscoverer(), getSlaveLocalScheduler(), getLocalIpFJPScanner(), appProperties);
 	}
 	
 	public SlaveAutodiscoverer getDiscoverer() {
@@ -206,6 +210,9 @@ public class AppContext {
 		slaveRepositoryManager.init();
 		sysManager = new SysManager(getBaseRepositoryOperations());
 		
+		//autodiscovering
+		slaveAutodiscoveryAdapter = new SlaveAutodiscoveryAdapter(getDiscoverer(), appProperties);
+		
 		//Transfer operations
 		baseTransferOperations = new BaseTransferOperations(getIntegerTransformer(),
 															getLongTransformer(), 
@@ -236,10 +243,6 @@ public class AppContext {
 				 				  getSlaveTransferScheduler(),
 				 				  getSlaveAutodiscoveryAdapter(),
 				 				  appProperties);
-		
-		
-		//autodiscovering
-		slaveAutodiscoveryAdapter = new SlaveAutodiscoveryAdapter(getDiscoverer(), appProperties);
 		
 		//After all beans are created start initialization process
 		appInitializer = new AppInitializer(getBaseRepositoryOperations());
