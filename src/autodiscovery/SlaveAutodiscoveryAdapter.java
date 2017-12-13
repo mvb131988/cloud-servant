@@ -12,6 +12,7 @@ public class SlaveAutodiscoveryAdapter {
 
 	private Logger logger = LogManager.getRootLogger();
 	
+	//Prototype scope.
 	private SlaveAutodiscoverer sa;
 	
 	private AppProperties ap;

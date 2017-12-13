@@ -59,6 +59,7 @@ public class MasterRepositoryManager {
 	public void init() {
 		try {
 			// Create log directory
+			//TODO: Move to initializer
 			Path log = Paths.get(".log");
 			bro.createDirectoryIfNotExist(log);
 			bro.hideDirectory(log);

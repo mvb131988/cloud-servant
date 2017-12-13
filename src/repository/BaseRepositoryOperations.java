@@ -1,8 +1,10 @@
 package repository;
 
+import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.nio.file.Files;
@@ -12,6 +14,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -140,8 +143,27 @@ public class BaseRepositoryOperations {
 	// Unused finished
 	// --------------------------------------------------------------------------------------------------------------------------------
 
+	public void writeMasterIp(String ip) throws IOException {
+		Path sysPath = repositoryRoot.resolve(".sys").resolve("nodes.txt");
+		try (OutputStream os = Files.newOutputStream(sysPath)) {
+			byte[] ipBytes = ip.getBytes("UTF-8");
+			os.write(ipBytes, 0, ipBytes.length);
+			os.flush();
+		}
+	}
+	
+	public String readMasterIp() throws IOException {
+		Path sysPath = repositoryRoot.resolve(".sys").resolve("nodes.txt");
+		
+		String s;
+		try (BufferedReader is = new BufferedReader(new InputStreamReader(Files.newInputStream(sysPath)))) {
+			s = is.readLine();
+		}
+		return s;
+	}
+	
 	/**
-	 * Writes the list of files into data.repo Much more faster than random
+	 * Writes the list of files into the data.repo Much faster than random
 	 * access file
 	 *
 	 * Record format(defined by RecordConstants)
@@ -232,6 +254,20 @@ public class BaseRepositoryOperations {
 		}
 	}
 
+	/**
+	 * Creates file relative to the repository root
+	 * 
+	 * @throws IOException
+	 */
+	public void createFileIfNotExist(Path relativePath) throws IOException {
+		if (relativePath != null) {
+			Path newPath = repositoryRoot.resolve(relativePath);
+			if (!Files.exists(newPath)) {
+				Files.createFile(newPath);
+			}
+		}
+	}
+	
 	public long getSize(Path relativePath) throws IOException {
 		long size = 0;
 		size = Files.readAttributes(repositoryRoot.resolve(relativePath), BasicFileAttributes.class).size();

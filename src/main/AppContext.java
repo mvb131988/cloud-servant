@@ -16,6 +16,7 @@ import repository.BaseRepositoryOperations;
 import repository.MasterRepositoryManager;
 import repository.RepositoryVisitor;
 import repository.SlaveRepositoryManager;
+import repository.SysManager;
 import repository.status.RepositoryStatusMapper;
 import scheduler.MasterRepositoryScheduler;
 import scheduler.SlaveTransferScheduler;
@@ -88,6 +89,10 @@ public class AppContext {
 	
 	private SlaveAutodiscoveryAdapter slaveAutodiscoveryAdapter;
 	
+	private SysManager sysManager;
+	
+	private AppInitializer appInitializer;
+	
 	//============================================================
 	//	Prototypes. Classes with states go here 
 	//============================================================
@@ -112,7 +117,7 @@ public class AppContext {
 	}
 	
 	public SlaveGlobalAutodiscoverer getGlobalDiscoverer() {
-		return new SlaveGlobalAutodiscoverer(getSlaveGlobalScheduler(), getIpFJPScanner(), appProperties);
+		return new SlaveGlobalAutodiscoverer(getSlaveGlobalScheduler(), getIpFJPScanner(), getSysManager(), appProperties);
 	}
 	
 	public SlaveLocalAutodiscoverer getLocalDiscoverer() {
@@ -186,9 +191,6 @@ public class AppContext {
 	}
 	
 	public void initAsSlave() {
-		//autodiscovering
-		slaveAutodiscoveryAdapter = new SlaveAutodiscoveryAdapter(getDiscoverer(), appProperties);
-		
 		//Others
 		longTransformer = new LongTransformer();
 		integerTransformer = new IntegerTransformer();
@@ -202,6 +204,7 @@ public class AppContext {
 		slaveRepositoryManager = new SlaveRepositoryManager(getBaseRepositoryOperations(), 
 															getRepositoryStatusMapper());
 		slaveRepositoryManager.init();
+		sysManager = new SysManager(getBaseRepositoryOperations());
 		
 		//Transfer operations
 		baseTransferOperations = new BaseTransferOperations(getIntegerTransformer(),
@@ -233,6 +236,14 @@ public class AppContext {
 				 				  getSlaveTransferScheduler(),
 				 				  getSlaveAutodiscoveryAdapter(),
 				 				  appProperties);
+		
+		
+		//autodiscovering
+		slaveAutodiscoveryAdapter = new SlaveAutodiscoveryAdapter(getDiscoverer(), appProperties);
+		
+		//After all beans are created start initialization process
+		appInitializer = new AppInitializer(getBaseRepositoryOperations());
+		appInitializer.initSysDirectory();		
 	}
 	
 	public void start(AppProperties appProperties) {
@@ -336,6 +347,14 @@ public class AppContext {
 	
 	public SlaveAutodiscoveryAdapter getSlaveAutodiscoveryAdapter() {
 		return slaveAutodiscoveryAdapter;
+	}
+
+	public AppInitializer getAppInitializer() {
+		return appInitializer;
+	}
+
+	public SysManager getSysManager() {
+		return sysManager;
 	}
 	
 }

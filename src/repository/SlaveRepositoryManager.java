@@ -33,6 +33,8 @@ public class SlaveRepositoryManager {
 
 	public void init() {
 		try {
+			//TODO: Move to initializer
+			
 			// Create log directory
 			Path log = Paths.get(".log");
 			bro.createDirectoryIfNotExist(log);
