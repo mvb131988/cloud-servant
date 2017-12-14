@@ -13,10 +13,13 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import main.AppProperties;
+import repository.BaseRepositoryOperations;
 
 public class IpFJPScanner {
 	
 	private static Logger logger = LogManager.getRootLogger();
+	
+	private BaseRepositoryOperations bro;
 	
 	// number of ips that a single worker has to try
 	private final int workPerThread;
@@ -28,8 +31,9 @@ public class IpFJPScanner {
 	
 	private int masterPort;
 	
-	public IpFJPScanner(IpRangesAnalyzer ipRangesAnalyzer, int workPerThread, AppProperties appProperties) {
+	public IpFJPScanner(BaseRepositoryOperations bro, IpRangesAnalyzer ipRangesAnalyzer, int workPerThread, AppProperties appProperties) {
 		super();
+		this.bro = bro;
 		this.ipRangesAnalyzer = ipRangesAnalyzer;
 		this.masterPort = appProperties.getMasterPort();
 		this.workPerThread = workPerThread;
@@ -40,7 +44,7 @@ public class IpFJPScanner {
 		ipRangesAnalyzer.reset(ipRanges);
 		
 		//Run scan process in fork/join pool
-		IpAction ipAction = new IpAction(ipRangesAnalyzer, masterPort, workPerThread);
+		IpAction ipAction = new IpAction();
 		
 		ForkJoinPool fjp = new ForkJoinPool(fjpSize);
 		
@@ -66,15 +70,11 @@ public class IpFJPScanner {
 		return masterIp;
 	}
 	
-	private static class IpAction extends RecursiveAction {
+	private class IpAction extends RecursiveAction {
 
 		private static final long serialVersionUID = 1L;
 		
-		private final int workPerThread;
-
-		private int masterPort;
-		
-		private IpRangesAnalyzer ipRangesAnalyzer;
+		private int ipsChunkId;
 		
 		//ips to be scan
 		private List<String> ips;
@@ -83,25 +83,19 @@ public class IpFJPScanner {
 		//only one master is possible, hence no more that one element must be added.
 		private List<String> activeIps;
 		
-		public IpAction(IpRangesAnalyzer ipRangesAnalyzer, 
+		public IpAction(int ipActionId,
 						List<String> ips, 
-						int masterPort, 
-						List<String> activeIps,
-						int workPerThread) {
+						List<String> activeIps) {
 			super();
-			this.ipRangesAnalyzer = ipRangesAnalyzer;
+			this.ipsChunkId = ipActionId;
 			this.ips = ips;
 			this.activeIps = activeIps;
-			this.masterPort = masterPort;
-			this.workPerThread = workPerThread;
 		}
 
-		public IpAction(IpRangesAnalyzer ipRangesAnalyzer, int masterPort, int workPerThread) {
+		public IpAction() {
 			super();
-			this.ipRangesAnalyzer = ipRangesAnalyzer;
 			this.activeIps = new ArrayList<>();
-			this.masterPort = masterPort;
-			this.workPerThread = workPerThread;
+			this.ipsChunkId = 1;
 		}
 
 		@Override
@@ -111,15 +105,23 @@ public class IpFJPScanner {
 				if (ipRangesAnalyzer.hasNext()) {
 					
 					//create unit of work that could be consumed by a worker thread
+					//1. create file chunk[index]
+					BaseRepositoryOperations.IpsChunkWriter writer = bro.getIpsChunkWriter(ipsChunkId);
 					for (int i = 0; i < workPerThread; i++) {
 						if (!ipRangesAnalyzer.hasNext()) {
 							break;
 						}
-						ipsUnitOfWork.add(ipRangesAnalyzer.next());
+						String ip = ipRangesAnalyzer.next();
+						ipsUnitOfWork.add(ip);
+						//2. write in chunk[index]
+						writer.write(ip);
+						
 					}
+					//3. close chunk[index]
+					writer.close();
 
-					invokeAll(new IpAction(ipRangesAnalyzer, null, masterPort, activeIps, workPerThread),
-							  new IpAction(ipRangesAnalyzer, ipsUnitOfWork, masterPort, activeIps, workPerThread));
+					invokeAll(new IpAction(++ipsChunkId, null, activeIps),
+							  new IpAction(ipsChunkId, ipsUnitOfWork, activeIps));
 					
 				}
 			} else {

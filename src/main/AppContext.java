@@ -105,11 +105,11 @@ public class AppContext {
 	}
 	
 	public IpFJPScanner getLocalIpFJPScanner() {
-		return new IpFJPScanner(getIpRangesAnalyzer(), appProperties.getLocalAutodetectionPeriod(), appProperties);
+		return new IpFJPScanner(getBaseRepositoryOperations(), getIpRangesAnalyzer(), appProperties.getLocalAutodetectionPeriod(), appProperties);
 	}
 	
 	public IpFJPScanner getGlobalIpFJPScanner() {
-		return new IpFJPScanner(getIpRangesAnalyzer(), appProperties.getGlobalAutodetectionPeriod(), appProperties);
+		return new IpFJPScanner(getBaseRepositoryOperations(), getIpRangesAnalyzer(), appProperties.getGlobalAutodetectionPeriod(), appProperties);
 	}
 	
 	public SlaveAutodiscoveryScheduler getSlaveLocalScheduler() {

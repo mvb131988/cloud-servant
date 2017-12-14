@@ -1,12 +1,15 @@
 package repository;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.io.RandomAccessFile;
+import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
@@ -14,7 +17,6 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -451,4 +453,50 @@ public class BaseRepositoryOperations {
 	public AsynchronySearcher getAsynchronySearcher() {
 		return new AsynchronySearcher();
 	}
+
+	/**********************************************************************************************
+	 * ============================================================================================
+	 *
+	 * ============================================================================================
+	 **********************************************************************************************/
+	public class IpsChunkWriter {
+		
+		private Path filePath;
+		
+		private Writer writer;
+		
+		public IpsChunkWriter(int chunkId) {
+			filePath = repositoryRoot.resolve(".sys").resolve("chunk_" + chunkId + ".txt");
+		}
+		
+		public void open() {
+			try {
+				writer = new BufferedWriter(new OutputStreamWriter(Files.newOutputStream(filePath)));
+			} catch (IOException e) {
+				//TODO: logs here
+			}
+		}
+		
+		public void write(String s) {
+			try {
+				writer.write(s);
+			} catch (IOException e) {
+				//TODO: logs here
+			}
+		}
+		
+		public void close() {
+			try {
+				writer.close();
+			} catch (IOException e) {
+				//TODO: logs here
+			}
+		}
+		
+	}
+
+	public IpsChunkWriter getIpsChunkWriter(int chunkId) {
+		return new IpsChunkWriter(chunkId);
+	}
+	
 }
