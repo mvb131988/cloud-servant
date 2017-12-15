@@ -40,7 +40,9 @@ public class SlaveGlobalAutodiscoverer implements Autodiscovery {
 			
 			logger.info("[" + this.getClass().getSimpleName() + "] global scan start");
 			masterIp = ipScanner.scan(globalRanges);
-			sysManager.persistMasterIp(masterIp);
+			if(masterIp != null) {
+				sysManager.persistMasterIp(masterIp);
+			}
 			logger.info("[" + this.getClass().getSimpleName() + "] global scan finish with masterIp = " + masterIp);
 			
 			slaveScheduler.updateBaseTime();

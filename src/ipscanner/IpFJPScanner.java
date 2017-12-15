@@ -106,7 +106,7 @@ public class IpFJPScanner {
 					
 					//create unit of work that could be consumed by a worker thread
 					//1. create file chunk[index]
-					BaseRepositoryOperations.IpsChunkWriter writer = bro.getIpsChunkWriter(ipsChunkId);
+					//BaseRepositoryOperations.IpsChunkWriter writer = bro.getIpsChunkWriter(ipsChunkId);
 					for (int i = 0; i < workPerThread; i++) {
 						if (!ipRangesAnalyzer.hasNext()) {
 							break;
@@ -114,11 +114,11 @@ public class IpFJPScanner {
 						String ip = ipRangesAnalyzer.next();
 						ipsUnitOfWork.add(ip);
 						//2. write in chunk[index]
-						writer.write(ip);
+						//writer.write(ip);
 						
 					}
 					//3. close chunk[index]
-					writer.close();
+					//writer.close();
 
 					invokeAll(new IpAction(++ipsChunkId, null, activeIps),
 							  new IpAction(ipsChunkId, ipsUnitOfWork, activeIps));

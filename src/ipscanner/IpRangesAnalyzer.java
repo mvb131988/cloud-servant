@@ -31,11 +31,9 @@ public class IpRangesAnalyzer implements IpRangeIterator {
 		}
 		
 		// current range explored, try next one, until first unexplored range isn't found
-		for (int i = index + 1; i < endIndex; i++) {
-			ira.reset(aIpRanges[i]);
-			if (ira.hasNext()) {
-				return true;
-			}
+		if(index < endIndex - 1) {
+			ira.reset(aIpRanges[++index]);
+			return ira.hasNext();
 		}
 		
 		//if all ranges doesn't contain at least one range, no candidate exits

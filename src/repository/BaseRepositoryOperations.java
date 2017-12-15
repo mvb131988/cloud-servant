@@ -463,7 +463,7 @@ public class BaseRepositoryOperations {
 		
 		private Path filePath;
 		
-		private Writer writer;
+		private BufferedWriter writer;
 		
 		public IpsChunkWriter(int chunkId) {
 			filePath = repositoryRoot.resolve(".sys").resolve("chunk_" + chunkId + ".txt");
@@ -480,6 +480,7 @@ public class BaseRepositoryOperations {
 		public void write(String s) {
 			try {
 				writer.write(s);
+				writer.newLine();
 			} catch (IOException e) {
 				//TODO: logs here
 			}
@@ -496,7 +497,9 @@ public class BaseRepositoryOperations {
 	}
 
 	public IpsChunkWriter getIpsChunkWriter(int chunkId) {
-		return new IpsChunkWriter(chunkId);
+		IpsChunkWriter ipsChunkWriter = new IpsChunkWriter(chunkId);
+		ipsChunkWriter.open();
+		return ipsChunkWriter;
 	}
 	
 }
