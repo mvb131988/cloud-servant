@@ -17,6 +17,15 @@
 (5) Configure port forwarding on the router. Necessary for external ssh access(port 22) as well as for 
 application communication(port from app configuration)
 
+(6) Change ssh port 
+	1. sudo nano /etc/ssh/sshd_config
+	2. Uncomment #Port and set 51313
+	3. sudo /etc/init.d/ssh restart
+	4. ssh pi@192.168.0.13 -p 51313
+
+(7) Logs location:
+	/var/log/auth.log (grep "Failed" /var/log/auth.log)
+
 ########################################################################################################
 ### Environment configuration
 ########################################################################################################
@@ -110,6 +119,13 @@ In order to be able to write to NTFS you need to install the ntfs-3g driver (whi
 
 	sudo apt-get update
 	sudo apt-get -y install ntfs-3g
+	
+To ALWAYS mount external hard drive to the same location
+	1. sudo mkdir /media/pi/seagate	
+	2. sudo chown -R pi:1000 /media/pi/seagate (check passwd file to find user group)
+	3. sudo nano /etc/fstab
+	   /dev/sda1 /media/pi/seagate ntfs uid=pi,gid=1000,rw,nosuid,nodev,default_permissions 0 0 (add this line)
+	4. sudo reboot
 	
 ########################################################################################################
 ###	Create Windows job(Win7) Automatic start on system startup
