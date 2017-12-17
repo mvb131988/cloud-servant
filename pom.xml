@@ -66,6 +66,14 @@
 			<id>slave</id>
 			<properties>
 				<master>false</master>
+				<root>/media/pi/seagate/repo</root>
+				<log>/media/pi/seagate/repo/.log</log>
+			</properties>
+		</profile>
+		<profile>
+			<id>slave_windows</id>
+			<properties>
+				<master>false</master>
 				<root>C:/temp</root>
 				<log>C:/temp/.log</log>
 			</properties>
