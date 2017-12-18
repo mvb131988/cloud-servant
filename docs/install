@@ -26,6 +26,9 @@ application communication(port from app configuration)
 (7) Logs location:
 	/var/log/auth.log (grep "Failed" /var/log/auth.log)
 
+(8) Copy files from remote to local
+	scp -r -P 51313 pi@92.115.183.17:/media/pi/seagate/repo/.log /d/temp/remote_logs
+
 ########################################################################################################
 ### Environment configuration
 ########################################################################################################
