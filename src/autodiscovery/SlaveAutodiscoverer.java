@@ -33,8 +33,11 @@ public class SlaveAutodiscoverer implements Autodiscovery {
 		String newMasterIp = null;
 		
 		if(masterIp == null) {
+			int localFailureCounter = failureCounter;
 			while(newMasterIp == null) {
-				newMasterIp = autodiscovery.discover(failureCounter);
+				newMasterIp = autodiscovery.discover(localFailureCounter);
+				
+				localFailureCounter++;
 				
 				try {
 					Thread.sleep(bigTimeout);
