@@ -119,6 +119,7 @@ public class FullFileTransferOperation {
 				.setRelativePath(relativePath)
 				.build(); 
 		fto.executeAsSlave(os, is, fc);
+		//TODO: Change data.repo status to RECEIVE_END
 		
 		// batch transfer
 		bfto.executeAsSlave(os, is);

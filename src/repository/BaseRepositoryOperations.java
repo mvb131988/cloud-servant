@@ -9,7 +9,6 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.RandomAccessFile;
-import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
@@ -17,6 +16,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileTime;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -27,6 +27,7 @@ import org.apache.logging.log4j.Logger;
 import exception.FilePathMaxLengthException;
 import main.AppProperties;
 import repository.status.AsynchronySearcherStatus;
+import repository.status.RepoFileStatus;
 import transformer.FilesContextTransformer;
 import transformer.LongTransformer;
 
@@ -38,14 +39,16 @@ public class BaseRepositoryOperations {
 	
 	private Path repositoryRoot;
 	private final static int BATCH_SIZE = 10000;
+	
+	private final static int HEADER_SIZE = 9;
 
-	private LongTransformer frameProcessor;
+	private LongTransformer longTransformer;
 
 	private FilesContextTransformer fct;
 
 	public BaseRepositoryOperations(LongTransformer frameProcessor, FilesContextTransformer fct, AppProperties appProperties) {
 		super();
-		this.frameProcessor = frameProcessor;
+		this.longTransformer = frameProcessor;
 		this.fct = fct;
 
 		this.repositoryRoot = appProperties.getRepositoryRoot();
@@ -83,12 +86,12 @@ public class BaseRepositoryOperations {
 
 			// file id
 			file.seek(offset);
-			file.write(frameProcessor.packLong(id));
+			file.write(longTransformer.packLong(id));
 			offset += 8;
 
 			// file name length
 			long length = name.getBytes("UTF-8").length;
-			file.write(frameProcessor.packLong(length));
+			file.write(longTransformer.packLong(length));
 			offset += 8;
 
 			// Set maximum number of bytes for file name (200 bytes as example)
@@ -114,13 +117,13 @@ public class BaseRepositoryOperations {
 			file.seek(offset);
 			byte[] bId = new byte[8];
 			file.read(bId, 0, 8);
-			long id = frameProcessor.extractLong(bId);
+			long id = longTransformer.extractLong(bId);
 			offset += 8;
 
 			// file name length
 			byte[] bLength = new byte[8];
 			int l = file.read(bLength, 0, 8);
-			long length = frameProcessor.extractLong(bLength);
+			long length = longTransformer.extractLong(bLength);
 			offset += 8;
 
 			byte[] bName = new byte[200];
@@ -192,18 +195,21 @@ public class BaseRepositoryOperations {
 		Path configPath = repositoryRoot.resolve("data.repo");
 
 		try (OutputStream os = Files.newOutputStream(configPath);) {
-
-			// write record
+			
+			//write header
+			writeHeader(os);
+			
+			// write body
 			for (String fileName : fileNames) {
 
 				// file id
-				byte[] bSize = frameProcessor.packLong(++id);
+				byte[] bSize = longTransformer.packLong(++id);
 				System.arraycopy(bSize, 0, buffer, offset, RecordConstants.ID_SIZE);
 				offset += RecordConstants.ID_SIZE;
 
 				// file name length
 				long length = fileName.getBytes("UTF-8").length;
-				bSize = frameProcessor.packLong(length);
+				bSize = longTransformer.packLong(length);
 				System.arraycopy(bSize, 0, buffer, offset, RecordConstants.NAME_LENGTH_SIZE);
 				offset += RecordConstants.NAME_LENGTH_SIZE;
 
@@ -242,6 +248,23 @@ public class BaseRepositoryOperations {
 
 	}
 
+	private void writeHeader(OutputStream os) throws IOException {
+		int offset = 0;
+		
+		//write header
+		byte[] header = new byte[HEADER_SIZE];
+		
+		long creationTimestamp = ZonedDateTime.now().toInstant().toEpochMilli();
+		System.arraycopy(longTransformer.packLong(creationTimestamp), 0, header, offset, RecordConstants.TIMESTAMP);
+		offset += RecordConstants.TIMESTAMP;
+		
+		byte fileStatus = (byte) RepoFileStatus.RECEIVE_START.getValue(); 
+		header[offset] = fileStatus;
+		
+		os.write(header);
+		os.flush();
+	}
+	
 	/**
 	 * Creates directory relative to the repository root
 	 * 
@@ -324,13 +347,25 @@ public class BaseRepositoryOperations {
 	 * with it.
 	 * @throws IOException 
 	 */
-	private InputStream openDataRepo() throws IOException {
+	public InputStream openDataRepo() throws IOException {
 		Path configPath = repositoryRoot.resolve("data.repo");
 		InputStream is = null;
 		is = Files.newInputStream(configPath);
 		return is;
 	}
 
+	/**
+	 * Read data.repo header. Header lies between 0 and HEADER_SIZE bytes.
+	 * @param is
+	 * @return
+	 * @throws IOException
+	 */
+	public byte[] readDataRepoHeader(InputStream is) throws IOException {
+		byte[] header = new byte[HEADER_SIZE];
+		is.read(header);
+		return header;
+	}
+	
 	/**
 	 * Open input stream associated with data.repo main repository config.
 	 * @throws IOException 
@@ -381,6 +416,7 @@ public class BaseRepositoryOperations {
 				byte[] buffer = new byte[RecordConstants.FULL_SIZE * BATCH_SIZE];
 	
 				InputStream is = openDataRepo();
+				readDataRepoHeader(is);
 				int readBytes = 0;
 				while ((readBytes = next(is, buffer)) != -1) {
 					List<RepositoryRecord> records = fct.transform(buffer, readBytes);
@@ -473,7 +509,7 @@ public class BaseRepositoryOperations {
 			try {
 				writer = new BufferedWriter(new OutputStreamWriter(Files.newOutputStream(filePath)));
 			} catch (IOException e) {
-				//TODO: logs here
+				logger.error("[" + this.getClass().getSimpleName() + "] thread fail", e);
 			}
 		}
 		
@@ -482,7 +518,7 @@ public class BaseRepositoryOperations {
 				writer.write(s);
 				writer.newLine();
 			} catch (IOException e) {
-				//TODO: logs here
+				logger.error("[" + this.getClass().getSimpleName() + "] thread fail", e);
 			}
 		}
 		
@@ -490,7 +526,7 @@ public class BaseRepositoryOperations {
 			try {
 				writer.close();
 			} catch (IOException e) {
-				//TODO: logs here
+				logger.error("[" + this.getClass().getSimpleName() + "] thread fail", e);
 			}
 		}
 		
