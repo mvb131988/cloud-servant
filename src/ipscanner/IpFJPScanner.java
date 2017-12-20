@@ -54,6 +54,8 @@ public class IpFJPScanner {
 		long end = System.currentTimeMillis();
 		logger.trace("[" + this.getClass().getSimpleName() + "] scan done in " + (end-start)/1000 + " seconds");
 		
+		fjp.shutdownNow();
+		
 		//Get the result
 		List<String> activeIps = ipAction.getActiveIps();
 		String masterIp = null;
