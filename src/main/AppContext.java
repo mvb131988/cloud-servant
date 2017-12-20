@@ -167,6 +167,7 @@ public class AppContext {
 																 getFilesContextTransformer(),
 																 appProperties);
 		fullFileTransferOperation = new FullFileTransferOperation(getBaseTransferOperations(),
+																  getBaseRepositoryOperations(),
 																  getFileTransferOperation(),
 																  getStatusTransferOperation(),
 																  getHealthCheckOperation(),
@@ -229,6 +230,7 @@ public class AppContext {
 				 												 getFilesContextTransformer(),
 				 												 appProperties);
 		fullFileTransferOperation = new FullFileTransferOperation(getBaseTransferOperations(),
+																  getBaseRepositoryOperations(),
 																  getFileTransferOperation(),
 																  getStatusTransferOperation(),
 																  getHealthCheckOperation(),

@@ -27,7 +27,7 @@ import org.apache.logging.log4j.Logger;
 import exception.FilePathMaxLengthException;
 import main.AppProperties;
 import repository.status.AsynchronySearcherStatus;
-import repository.status.RepoFileStatus;
+import repository.status.RepositoryFileStatus;
 import transformer.FilesContextTransformer;
 import transformer.LongTransformer;
 
@@ -258,7 +258,7 @@ public class BaseRepositoryOperations {
 		System.arraycopy(longTransformer.packLong(creationTimestamp), 0, header, offset, RecordConstants.TIMESTAMP);
 		offset += RecordConstants.TIMESTAMP;
 		
-		byte fileStatus = (byte) RepoFileStatus.RECEIVE_START.getValue(); 
+		byte fileStatus = (byte) RepositoryFileStatus.RECEIVE_START.getValue(); 
 		header[offset] = fileStatus;
 		
 		os.write(header);
@@ -364,6 +364,21 @@ public class BaseRepositoryOperations {
 		byte[] header = new byte[HEADER_SIZE];
 		is.read(header);
 		return header;
+	}
+	
+	/**
+	 * Updates status of data.repo file 
+	 * @param status - data.repo file status to be set
+	 * @throws IOException 
+	 * @throws FileNotFoundException 
+	 */
+	public void updateDataRepoStatus(RepositoryFileStatus status) throws FileNotFoundException, IOException {
+		Path configPath = repositoryRoot.resolve("data.repo");
+		long offset = RecordConstants.TIMESTAMP;
+		try (RandomAccessFile file = new RandomAccessFile(configPath.toString(), "rw")) {
+			file.seek(offset);
+			file.write(status.getValue());
+		}
 	}
 	
 	/**

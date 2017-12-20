@@ -15,6 +15,8 @@ import org.apache.logging.log4j.Logger;
 import exception.BatchFileTransferException;
 import exception.MasterNotReadyDuringBatchTransfer;
 import exception.WrongOperationException;
+import repository.BaseRepositoryOperations;
+import repository.status.RepositoryFileStatus;
 import transfer.constant.MasterStatus;
 import transfer.constant.OperationType;
 import transfer.context.FileContext;
@@ -29,6 +31,8 @@ public class FullFileTransferOperation {
 
 	private BaseTransferOperations bto;
 	
+	private BaseRepositoryOperations bro;
+	
 	private FileTransferOperation fto;
 	
 	private StatusTransferOperation sto;
@@ -38,6 +42,7 @@ public class FullFileTransferOperation {
 	private HealthCheckOperation hco;
 	
 	public FullFileTransferOperation(BaseTransferOperations bto, 
+									 BaseRepositoryOperations bro,
 									 FileTransferOperation fto, 
 									 StatusTransferOperation sto,
 									 HealthCheckOperation hco,
@@ -45,6 +50,7 @@ public class FullFileTransferOperation {
 	{
 		super();
 		this.bto = bto;
+		this.bro = bro;
 		this.fto = fto;
 		this.sto = sto;
 		this.bfto = bfto;
@@ -119,7 +125,7 @@ public class FullFileTransferOperation {
 				.setRelativePath(relativePath)
 				.build(); 
 		fto.executeAsSlave(os, is, fc);
-		//TODO: Change data.repo status to RECEIVE_END
+		bro.updateDataRepoStatus(RepositoryFileStatus.RECEIVE_END);
 		
 		// batch transfer
 		bfto.executeAsSlave(os, is);
