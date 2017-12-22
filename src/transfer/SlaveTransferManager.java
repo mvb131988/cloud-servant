@@ -16,6 +16,7 @@ import exception.WrongOperationException;
 import main.AppProperties;
 import scheduler.SlaveTransferScheduler;
 import transfer.constant.MasterStatus;
+import transfer.constant.SlaveMasterCommunicationStatus;
 
 public class SlaveTransferManager {
 	
@@ -62,7 +63,7 @@ public class SlaveTransferManager {
 		//stop SlaveTransferThread
 	}
 	
-	private Thread connect(String masterIp, int masterPort) throws UnknownHostException, IOException {
+	private SlaveMasterCommunicationThread connect(String masterIp, int masterPort) throws UnknownHostException, IOException {
 		Socket master = null;
 		
 		logger.info("[" + this.getClass().getSimpleName() + "] opening socket to " + masterIp + ":" + masterPort);
@@ -70,16 +71,12 @@ public class SlaveTransferManager {
 		master.setSoTimeout(socketSoTimeout);
 		logger.info("[" + this.getClass().getSimpleName() + "]  socket to " + masterIp + ":" + masterPort + " opened");
 		
-		Thread thread = new Thread(new SlaveMasterCommunicationThread(master));
-		thread.setName("SlaveTransferThread");
-		thread.start();
-		
-		// return thread that represents SlaveMasterCommunicationThread in order to join on it
-		return thread;
+		SlaveMasterCommunicationThread slaveMasterCommunicationThread = new SlaveMasterCommunicationThread(master);
+		return slaveMasterCommunicationThread;
 	}
 	
 	private void transfer(OutputStream os, InputStream is) throws InterruptedException, IOException, MasterNotReadyDuringBatchTransfer, WrongOperationException, BatchFileTransferException {
-		//healthcheck returns MATER status
+		//healthcheck returns MASTER status
 		MasterStatus status = hco.executeAsSlave(os, is);
 		if(status == MasterStatus.READY && scheduler.isScheduled()) {
 			
@@ -95,8 +92,14 @@ public class SlaveTransferManager {
 			
 		}
 	}
+	
+	private void transferBusy(OutputStream os, InputStream is) throws IOException, WrongOperationException {
+		//healthcheck returns MASTER status
+		MasterStatus status = hco.executeAsSlave(os, is);
+		logger.info("[" + this.getClass().getSimpleName() + "] master status: " + status);
+	}
 
-	public Thread getSlaveTransferThread() {
+	public SlaveTransferThread getSlaveTransferThread() {
 		logger.info("[" + this.getClass().getSimpleName() + "] initialization of SlaveTransferThread start");
 		
 		Thread thread = new Thread(new SlaveTransferThread());
@@ -104,11 +107,15 @@ public class SlaveTransferManager {
 		
 		logger.info("[" + this.getClass().getSimpleName() + "] initialization SlaveTransferThread end");
 
-		return thread;
+		return new SlaveTransferThread();
 	}
 	
-	private class SlaveTransferThread implements Runnable {
+	public class SlaveTransferThread implements Runnable {
 
+		private Thread communicationThread;
+		
+		private SlaveMasterCommunicationThread slaveMasterCommunicationThread;
+		
 		// counts consequent number of failures
 		private int failureCounter = 0;
 		
@@ -119,14 +126,21 @@ public class SlaveTransferManager {
 			
 			for(;;) {
 				try {
-					Thread t = connect(masterIp, masterPort);
+					slaveMasterCommunicationThread = connect(masterIp, masterPort);
+					communicationThread = new Thread(slaveMasterCommunicationThread);
+					communicationThread.setName("SlaveTransferThread");
+					communicationThread.start();
 					
 					// if connection with master established reset failureCounter
 					failureCounter = 0;
 					
-					t.join();
+					communicationThread.join();
+					slaveMasterCommunicationThread = null;
+				
 				} catch (Exception e) {
 					logger.error("[" + this.getClass().getSimpleName() + "] thread fail", e);
+					
+					slaveMasterCommunicationThread = null;
 					masterIp = saa.failure(++failureCounter);
 					
 					//TODO: Put timeout here(protection for case when network fails)
@@ -140,6 +154,50 @@ public class SlaveTransferManager {
 			}
 		}
 		
+		/**
+		 * Blocks until communication thread is not transferred in BUSY state or is not terminated
+		 * @throws InterruptedException 
+		 */
+		public void pause() throws InterruptedException {
+			logger.info("[" + this.getClass().getSimpleName() + "] pausing start");
+
+			while (slaveMasterCommunicationThread != null &&
+				   slaveMasterCommunicationThread.getActualStatus() != SlaveMasterCommunicationStatus.BUSY) {
+
+				slaveMasterCommunicationThread.setRequestedStatus(SlaveMasterCommunicationStatus.BUSY);
+				
+				// Pausing of threads can take much time. Wait until all threads are not paused.
+				// Wait 1 minute to avoid resources overconsumption.
+				Thread.sleep(bigTimeout);
+			}
+			
+			logger.info("[" + this.getClass().getSimpleName() + "] pausing end");
+		}
+		
+		/**
+		 * Blocks until communication thread is not transferred in READY state or is not terminated
+		 * @throws InterruptedException
+		 */
+		public void resume() throws InterruptedException {
+			logger.info("[" + this.getClass().getSimpleName() + "] resuming start");
+			
+			while (slaveMasterCommunicationThread != null &&
+				   slaveMasterCommunicationThread.getActualStatus() != SlaveMasterCommunicationStatus.READY) {
+				
+				//Even if after requested status set to READY and current SlaveMasterCommunicationThread fails
+				//and new created SlaveMasterCommunicationThread has status BUSY, continues invocation of SlaveMasterCommunicationThread
+				//set request status method guarantees that for newly created SlaveMasterCommunicationThread
+				//status eventually will be set to READY(hence while terminates)
+				slaveMasterCommunicationThread.setRequestedStatus(SlaveMasterCommunicationStatus.READY);
+				
+				// Pausing of threads can take much time. Wait until all threads are not paused.
+				// Wait 1 minute to avoid resources overconsumption.
+				Thread.sleep(bigTimeout);
+			}
+			
+			logger.info("[" + this.getClass().getSimpleName() + "] resuming end");
+		}
+		
 	}
 	
 	private class SlaveMasterCommunicationThread implements Runnable {
@@ -149,11 +207,17 @@ public class SlaveTransferManager {
 		private OutputStream os;
 
 		private InputStream is;
+		
+		private SlaveMasterCommunicationStatus requestedStatus;
+
+		private SlaveMasterCommunicationStatus actualStatus;
 
 		public SlaveMasterCommunicationThread(Socket master) {
 			super();
 
 			this.master = master;
+			this.requestedStatus = SlaveMasterCommunicationStatus.BUSY;
+			this.actualStatus = SlaveMasterCommunicationStatus.BUSY;
 
 			try {
 				this.os = master.getOutputStream();
@@ -167,9 +231,24 @@ public class SlaveTransferManager {
 		public void run() {
 			try {
 				for(;;) {
-					transfer(os, is);
-					
-					//Determines frequency of health check.
+					if (actualStatus == SlaveMasterCommunicationStatus.READY) {
+						logger.info("[" + this.getClass().getSimpleName() + "] transfer start");
+						transfer(os, is);
+						logger.info("[" + this.getClass().getSimpleName() + "] transfer end");
+					} else if (actualStatus == SlaveMasterCommunicationStatus.BUSY) {
+						logger.info("[" + this.getClass().getSimpleName() + "] BUSY start");
+						transferBusy(os, is);
+						logger.info("[" + this.getClass().getSimpleName() + "] BUSY end");
+					}
+
+					// change status
+					if (requestedStatus == SlaveMasterCommunicationStatus.BUSY) {
+						actualStatus = SlaveMasterCommunicationStatus.BUSY;
+					} else if (requestedStatus == SlaveMasterCommunicationStatus.READY) {
+						actualStatus = SlaveMasterCommunicationStatus.READY;
+					}
+
+					//One iteration of the loop in a minute is sufficient for thread status check.
 					//Wait 1 minute to avoid resources overconsumption.
 					Thread.sleep(bigTimeout);
 				}
@@ -186,6 +265,14 @@ public class SlaveTransferManager {
 				}
 				
 			}
+		}
+		
+		public SlaveMasterCommunicationStatus getActualStatus() {
+			return actualStatus;
+		}
+
+		public void setRequestedStatus(SlaveMasterCommunicationStatus requestedStatus) {
+			this.requestedStatus = requestedStatus;
 		}
 
 	}

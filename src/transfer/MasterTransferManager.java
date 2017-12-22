@@ -258,7 +258,7 @@ public class MasterTransferManager {
 		}
 
 		/**
-		 * Blocks until all communications are not paused 
+		 * Blocks until all communications are not resumed 
 		 *
 		 * resume(), pause() and status() are not invoked simultaneous, only
 		 * consequently

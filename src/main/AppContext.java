@@ -12,6 +12,7 @@ import ipscanner.IpFJPScanner;
 import ipscanner.IpRangeAnalyzer;
 import ipscanner.IpRangesAnalyzer;
 import provider.MasterCommunicationProvider;
+import provider.SlaveCommunicationProvider;
 import repository.BaseRepositoryOperations;
 import repository.MasterRepositoryManager;
 import repository.RepositoryVisitor;
@@ -92,6 +93,8 @@ public class AppContext {
 	private SysManager sysManager;
 	
 	private AppInitializer appInitializer;
+	
+	private SlaveCommunicationProvider slaveCommunicationProvider;
 	
 	//============================================================
 	//	Prototypes. Classes with states go here 
@@ -246,6 +249,9 @@ public class AppContext {
 				 				  getSlaveAutodiscoveryAdapter(),
 				 				  appProperties);
 		
+		slaveCommunicationProvider = new SlaveCommunicationProvider(getSlaveTransferManager(), 
+																	appProperties);
+		
 		//After all beans are created start initialization process
 		appInitializer = new AppInitializer(getBaseRepositoryOperations());
 		appInitializer.initSysDirectory();		
@@ -258,7 +264,7 @@ public class AppContext {
 			getMasterCommunicationProvider().init();
 		} else {
 			initAsSlave();
-			getSlaveTransferManager().getSlaveTransferThread().start();
+			getSlaveCommunicationProvider().init();
 		}
 	}
 
@@ -360,6 +366,10 @@ public class AppContext {
 
 	public SysManager getSysManager() {
 		return sysManager;
+	}
+
+	public SlaveCommunicationProvider getSlaveCommunicationProvider() {
+		return slaveCommunicationProvider;
 	}
 	
 }
