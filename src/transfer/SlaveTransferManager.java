@@ -14,7 +14,7 @@ import exception.BatchFileTransferException;
 import exception.MasterNotReadyDuringBatchTransfer;
 import exception.WrongOperationException;
 import main.AppProperties;
-import scheduler.SlaveTransferScheduler;
+import scheduler.SlaveScheduler;
 import transfer.constant.MasterStatus;
 import transfer.constant.SlaveMasterCommunicationStatus;
 
@@ -26,7 +26,7 @@ public class SlaveTransferManager {
 	
 	private Logger logger = LogManager.getRootLogger();
 	
-	private SlaveTransferScheduler scheduler;
+	private SlaveScheduler scheduler;
 	
 	private FullFileTransferOperation ffto;
 	
@@ -46,7 +46,7 @@ public class SlaveTransferManager {
 	public void init(FullFileTransferOperation ffto,
 					 StatusTransferOperation sto,
 					 HealthCheckOperation hco,
-					 SlaveTransferScheduler sts,
+					 SlaveScheduler sts,
 					 SlaveAutodiscoveryAdapter saa,
 					 AppProperties ap) 
 	{
@@ -185,7 +185,7 @@ public class SlaveTransferManager {
 				   slaveMasterCommunicationThread.getActualStatus() != SlaveMasterCommunicationStatus.READY) {
 				
 				//Even if after requested status set to READY and current SlaveMasterCommunicationThread fails
-				//and new created SlaveMasterCommunicationThread has status BUSY, continues invocation of SlaveMasterCommunicationThread
+				//and new created SlaveMasterCommunicationThread has status BUSY, continuous invocation of SlaveMasterCommunicationThread
 				//set request status method guarantees that for newly created SlaveMasterCommunicationThread
 				//status eventually will be set to READY(hence while terminates)
 				slaveMasterCommunicationThread.setRequestedStatus(SlaveMasterCommunicationStatus.READY);

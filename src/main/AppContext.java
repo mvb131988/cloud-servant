@@ -20,7 +20,7 @@ import repository.SlaveRepositoryManager;
 import repository.SysManager;
 import repository.status.RepositoryStatusMapper;
 import scheduler.MasterRepositoryScheduler;
-import scheduler.SlaveTransferScheduler;
+import scheduler.SlaveScheduler;
 import transfer.BaseTransferOperations;
 import transfer.BatchFilesTransferOperation;
 import transfer.FileTransferOperation;
@@ -84,8 +84,6 @@ public class AppContext {
 	
 	private MasterRepositoryScheduler masterRepositoryScheduler;
 	
-	private SlaveTransferScheduler slaveTransferScheduler;
-	
 	private MasterShutdownThread masterShutdownThread;
 	
 	private SlaveAutodiscoveryAdapter slaveAutodiscoveryAdapter;
@@ -133,6 +131,16 @@ public class AppContext {
 	
 	public SlaveAutodiscoverer getDiscoverer() {
 		return new SlaveAutodiscoverer(getLocalDiscoverer(), appProperties);
+	}
+	
+	//Slave transfer scheduler
+	public SlaveScheduler getSlaveTransferScheduler() {
+		return new SlaveScheduler(appProperties.getSlaveTransferScheduleInterval());
+	}
+	
+	//Slave repository scheduler
+	public SlaveScheduler getSlaveRepositoryScheduler() {
+		return new SlaveScheduler(appProperties.getSlaveRepositoryScheduleInterval());
 	}
 	//============================================================
 	
@@ -238,7 +246,6 @@ public class AppContext {
 																  getStatusTransferOperation(),
 																  getHealthCheckOperation(),
 																  getBatchFilesTransferOperation());
-		slaveTransferScheduler = new SlaveTransferScheduler(appProperties);
 		
 		//Top layer: layer 0 
 		slaveTransferManager = new SlaveTransferManager(appProperties);
@@ -250,6 +257,7 @@ public class AppContext {
 				 				  appProperties);
 		
 		slaveCommunicationProvider = new SlaveCommunicationProvider(getSlaveTransferManager(), 
+																	getSlaveRepositoryScheduler(),
 																	appProperties);
 		
 		//After all beans are created start initialization process
@@ -342,10 +350,6 @@ public class AppContext {
 
 	public MasterRepositoryScheduler getMasterRepositoryScheduler() {
 		return masterRepositoryScheduler;
-	}
-
-	public SlaveTransferScheduler getSlaveTransferScheduler() {
-		return slaveTransferScheduler;
 	}
 
 	public HealthCheckOperation getHealthCheckOperation() {

@@ -4,6 +4,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import main.AppProperties;
+import scheduler.SlaveScheduler;
 import transfer.SlaveTransferManager;
 import transfer.SlaveTransferManager.SlaveTransferThread;
 
@@ -17,11 +18,15 @@ public class SlaveCommunicationProvider {
 	
 	private Thread slaveCommunicationProviderThread;
 	
+	private SlaveScheduler scheduler;
+	
 	public SlaveCommunicationProvider(SlaveTransferManager slaveTransferManager,
+									  SlaveScheduler scheduler,
 								      AppProperties appProperties) 
 	{
 		super();
 		this.slaveTransferManager = slaveTransferManager;
+		this.scheduler = scheduler;
 		this.bigTimeout = appProperties.getBigPoolingTimeout();
 	}
 	
@@ -43,6 +48,11 @@ public class SlaveCommunicationProvider {
 				t.start();
 
 				for (;;) {
+					
+					//if repo check is scheduled
+					//slaveTransferThread pause
+					//wait until is paused
+					//scan and create repo status file
 					
 					slaveTransferThread.resume();
 

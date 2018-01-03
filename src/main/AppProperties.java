@@ -19,6 +19,8 @@ public class AppProperties {
 	
 	private Integer slaveTransferScheduleInterval;
 	
+	private Integer slaveRepositoryScheduleInterval;
+	
 	private Integer smallPoolingTimeout;
 	
 	private Integer bigPoolingTimeout;
@@ -49,8 +51,11 @@ public class AppProperties {
 		isMaster = Boolean.parseBoolean(ResourceBundle.getBundle("app").getString("master"));
 		masterPort = Integer.parseInt(ResourceBundle.getBundle("app").getString("master.port"));
 		adminPort = Integer.parseInt(ResourceBundle.getBundle("app").getString("admin.port"));
+		
 		masterRepositoryScheduleInterval = Integer.parseInt(ResourceBundle.getBundle("app").getString("schedule.master.repository"));
 		slaveTransferScheduleInterval = Integer.parseInt(ResourceBundle.getBundle("app").getString("schedule.slave.transfer"));
+		slaveRepositoryScheduleInterval = Integer.parseInt(ResourceBundle.getBundle("app").getString("schedule.slave.repository"));
+		
 		smallPoolingTimeout = Integer.parseInt(ResourceBundle.getBundle("app").getString("timeout.pooling.small"));
 		bigPoolingTimeout = Integer.parseInt(ResourceBundle.getBundle("app").getString("timeout.pooling.big"));
 		socketSoTimeout = Integer.parseInt(ResourceBundle.getBundle("app").getString("timeout.so.socket"));
@@ -128,6 +133,10 @@ public class AppProperties {
 
 	public Integer getGlobalAutodetectionPeriod() {
 		return globalAutodetectionPeriod;
+	}
+
+	public int getSlaveRepositoryScheduleInterval() {
+		return slaveRepositoryScheduleInterval;
 	}
 
 }

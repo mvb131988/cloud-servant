@@ -3,14 +3,17 @@ package scheduler;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 
-import main.AppProperties;
-
 /**
+ * Case1:
  * Defines a rule(point in a time) when slave communication thread requested 
- * transfer.
- * Interval has to be set in minutes.  
+ * transfer. Interval has to be set in minutes.
+ * 
+ * Case2:
+ * Scheduler for slave repository scanning process.
+ * The main goal of scanning is to check that each file path from data.repo has 
+ * a corresponding file in the slave repository.
  */
-public class SlaveTransferScheduler {
+public class SlaveScheduler {
 
 	private boolean isScheduled = false;
 
@@ -18,8 +21,8 @@ public class SlaveTransferScheduler {
 
 	private LocalDateTime lastRun;
 	
-	public SlaveTransferScheduler(AppProperties appProperties) {
-		minutesInterval = appProperties.getSlaveTransferScheduleInterval();
+	public SlaveScheduler(int minutesInterval) {
+		this.minutesInterval = minutesInterval;
 	}
 	
 	public boolean isScheduled() {
