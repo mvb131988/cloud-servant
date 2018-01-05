@@ -147,7 +147,7 @@ public class SlaveTransferManager {
 					try {
 						Thread.sleep(bigTimeout);
 					} catch (InterruptedException e1) {
-						//LOG exception
+						//TODO: LOG exception
 					}
 				}
 				//After slave master communication is broken try to reconnect

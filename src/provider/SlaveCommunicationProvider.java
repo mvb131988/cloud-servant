@@ -18,7 +18,8 @@ public class SlaveCommunicationProvider {
 	
 	private Thread slaveCommunicationProviderThread;
 	
-	private SlaveScheduler scheduler;
+	// Scheduler for repository status check (repository scan and check)
+	private SlaveScheduler repositoryScheduler;
 	
 	public SlaveCommunicationProvider(SlaveTransferManager slaveTransferManager,
 									  SlaveScheduler scheduler,
@@ -26,7 +27,7 @@ public class SlaveCommunicationProvider {
 	{
 		super();
 		this.slaveTransferManager = slaveTransferManager;
-		this.scheduler = scheduler;
+		this.repositoryScheduler = scheduler;
 		this.bigTimeout = appProperties.getBigPoolingTimeout();
 	}
 	
@@ -48,11 +49,14 @@ public class SlaveCommunicationProvider {
 				t.start();
 
 				for (;;) {
-					
-					//if repo check is scheduled
-					//slaveTransferThread pause
-					//wait until is paused
-					//scan and create repo status file
+					// Repository status check (repository scan)
+					if(repositoryScheduler.isScheduled()) {
+						slaveTransferThread.pause();
+						
+						//scan and create repo status file
+						
+						repositoryScheduler.scheduleNext();
+					}
 					
 					slaveTransferThread.resume();
 
