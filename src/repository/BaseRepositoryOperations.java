@@ -577,6 +577,7 @@ public class BaseRepositoryOperations {
 		public boolean hasNextRecord() throws IOException {
 			if (is == null) {
 				is = openDataRepo();
+				readDataRepoHeader(is);
 			}
 
 			if (records == null || iRecord == records.size()) {
@@ -615,14 +616,21 @@ public class BaseRepositoryOperations {
 		
 		public void scan() throws IOException {
 			int recordsCounter = 0;
+			List<RepositoryRecord> corruptedFiles = new ArrayList<>();
 			
 			DataRepoIterator iterator = dataRepoIterator();
 			while(iterator.hasNextRecord()) {
 				RepositoryRecord rr = iterator.nextRecord();
+				
 				// check record
+				if (!existsFile(Paths.get(rr.getFileName()))) {
+					corruptedFiles.add(rr);
+				}
 				
 				recordsCounter++;
 			}
+			
+			System.out.println(recordsCounter);
 		}
 		
 	}

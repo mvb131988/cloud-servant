@@ -1,5 +1,6 @@
 package repository;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -90,13 +91,14 @@ public class SlaveRepositoryManager {
 	 */
 	
 	//repository check scan(consistency scan) goes here 
-	public void checkScan() {
+	public void checkScan() throws IOException {
 		//step1
 		//Delegate to another class (RepositoryConsistencyChecker) create in BaseRepositoryOperations
 		//check data repo file status
 		//for each record from data.repo(DataRepo iterator) compare records parameter with actual file parameters
 		//create FileDescriptor for this
 		//create and return RepositoryDescriptor to reflect repository state
+		bro.repositoryConsistencyChecker().scan();
 		
 		//step2
 		//save RepositoryDescriptor into a file in /.sys
