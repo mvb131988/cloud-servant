@@ -89,4 +89,20 @@ public class SlaveRepositoryManager {
 	 * ==========================================================================================
 	 */
 	
+	//repository check scan(consistency scan) goes here 
+	public void checkScan() {
+		//step1
+		//Delegate to another class (RepositoryConsistencyChecker) create in BaseRepositoryOperations
+		//check data repo file status
+		//for each record from data.repo(DataRepo iterator) compare records parameter with actual file parameters
+		//create FileDescriptor for this
+		//create and return RepositoryDescriptor to reflect repository state
+		
+		//step2
+		//save RepositoryDescriptor into a file in /.sys
+		
+		//step3
+		//remove corrupted files
+	}
+	
 }

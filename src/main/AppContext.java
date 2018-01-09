@@ -257,6 +257,7 @@ public class AppContext {
 				 				  appProperties);
 		
 		slaveCommunicationProvider = new SlaveCommunicationProvider(getSlaveTransferManager(), 
+																	getSlaveRepositoryManager(),
 																	getSlaveRepositoryScheduler(),
 																	appProperties);
 		

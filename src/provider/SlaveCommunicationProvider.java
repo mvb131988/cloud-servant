@@ -4,6 +4,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import main.AppProperties;
+import repository.SlaveRepositoryManager;
 import scheduler.SlaveScheduler;
 import transfer.SlaveTransferManager;
 import transfer.SlaveTransferManager.SlaveTransferThread;
@@ -21,12 +22,16 @@ public class SlaveCommunicationProvider {
 	// Scheduler for repository status check (repository scan and check)
 	private SlaveScheduler repositoryScheduler;
 	
+	private SlaveRepositoryManager slaveRepositoryManager;
+	
 	public SlaveCommunicationProvider(SlaveTransferManager slaveTransferManager,
+									  SlaveRepositoryManager slaveRepositoryManager,
 									  SlaveScheduler scheduler,
 								      AppProperties appProperties) 
 	{
 		super();
 		this.slaveTransferManager = slaveTransferManager;
+		this.slaveRepositoryManager = slaveRepositoryManager;
 		this.repositoryScheduler = scheduler;
 		this.bigTimeout = appProperties.getBigPoolingTimeout();
 	}
@@ -52,9 +57,7 @@ public class SlaveCommunicationProvider {
 					// Repository status check (repository scan)
 					if(repositoryScheduler.isScheduled()) {
 						slaveTransferThread.pause();
-						
-						//scan and create repo status file
-						
+						slaveRepositoryManager.checkScan();
 						repositoryScheduler.scheduleNext();
 					}
 					

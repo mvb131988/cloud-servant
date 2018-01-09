@@ -17,6 +17,7 @@ import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileTime;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -507,7 +508,7 @@ public class BaseRepositoryOperations {
 
 	/**********************************************************************************************
 	 * ============================================================================================
-	 *
+	 *	unused
 	 * ============================================================================================
 	 **********************************************************************************************/
 	public class IpsChunkWriter {
@@ -551,6 +552,83 @@ public class BaseRepositoryOperations {
 		IpsChunkWriter ipsChunkWriter = new IpsChunkWriter(chunkId);
 		ipsChunkWriter.open();
 		return ipsChunkWriter;
+	}
+	/**********************************************************************************************/
+	
+	/**********************************************************************************************
+	 *	Iterates throughout data.repo and returns next record if available until end of
+	 *	data.repo is not reached
+	 **********************************************************************************************/
+	public class DataRepoIterator {
+		
+		private List<RepositoryRecord> records;
+		
+		//position of the current record in the array records
+		private int iRecord;
+		
+		private InputStream is;
+		
+		private byte[] buffer = new byte[RecordConstants.FULL_SIZE * BATCH_SIZE];
+		
+		public RepositoryRecord nextRecord() throws IOException {
+			return records.get(iRecord++); 
+		}
+		
+		public boolean hasNextRecord() throws IOException {
+			if (is == null) {
+				is = openDataRepo();
+			}
+
+			if (records == null || iRecord == records.size()) {
+				int readBytes = next(is, buffer);
+
+				if (readBytes == -1) {
+					closeDataRepo(is);
+					return false;
+				}
+
+				records = fct.transform(buffer, readBytes);
+				iRecord = 0;
+			}
+
+			return true;
+		}
+		
+		public void close() throws IOException {
+			closeDataRepo(is);
+		}
+		
+	}
+	
+	public DataRepoIterator dataRepoIterator() {
+		return new DataRepoIterator();
+	}
+	
+	/**********************************************************************************************
+	 * For each record from data.repo looks up for a corresponding file in the slave
+	 * repository and checks whether all properties(size, creation date) from the record are identical
+	 * to all properties of the file. Returns RepositoryDescriptor with list of files that don't math this 
+	 * rule plus some additional info about current repository state(like scan date, current repository date, 
+	 * number of files in the repository, their size and so on...)  
+	 **********************************************************************************************/
+	public class RepositoryConsistencyChecker {
+		
+		public void scan() throws IOException {
+			int recordsCounter = 0;
+			
+			DataRepoIterator iterator = dataRepoIterator();
+			while(iterator.hasNextRecord()) {
+				RepositoryRecord rr = iterator.nextRecord();
+				// check record
+				
+				recordsCounter++;
+			}
+		}
+		
+	}
+	
+	public RepositoryConsistencyChecker repositoryConsistencyChecker() {
+		return new RepositoryConsistencyChecker();
 	}
 	
 }
