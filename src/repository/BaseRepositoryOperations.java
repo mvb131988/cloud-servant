@@ -2,6 +2,7 @@ package repository;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -152,7 +153,40 @@ public class BaseRepositoryOperations {
 	// --------------------------------------------------------------------------------------------------------------------------------
 	// Unused finished
 	// --------------------------------------------------------------------------------------------------------------------------------
-
+	
+	/**
+	 * Persists repository status descriptor on disc.
+	 * Determines structure of file where repository status descriptor will be stored. 
+	 * @throws IOException 
+	 */
+	public void writeRepositoryStatusDescriptor(RepositoryStatusDescriptor descriptor) throws IOException {
+		Path sysPath = repositoryRoot.resolve(".sys").resolve("repo_descriptor.txt");
+		try (BufferedWriter bw = Files.newBufferedWriter(sysPath)) {
+			bw.write("Data.repo file status: " + descriptor.getRepositoryFileStatus().toString());
+			bw.newLine();
+			bw.write("Slave repository check/scan date: " + descriptor.getCheckDateTime());
+			bw.newLine();
+			bw.write("Data.repo file creation date: " + descriptor.getDataRepoDateTime());
+			bw.newLine();
+			bw.write("Total number of files in slave repository: " + descriptor.getNumberOfFiles());
+			bw.newLine();
+			bw.write("Total files size in slave repository: " + descriptor.getTotalSize() + " bytes");
+			bw.newLine();
+			bw.write("Total number of corrupted files in slave repository: " + descriptor.getNumberOfCorruptedFiles());
+			bw.newLine();
+			
+			bw.write("-----------------------");
+			bw.newLine();
+			
+			if(descriptor.getNumberOfCorruptedFiles() > 0) {
+				for(FileDescriptor fd: descriptor.getCorruptedFiles()) {
+					bw.write("expected: " + fd.getRepositoryRecord().getFileName());
+					bw.newLine();
+				}
+			}
+		}
+	}
+	
 	public void writeMasterIp(String ip) throws IOException {
 		Path sysPath = repositoryRoot.resolve(".sys").resolve("nodes.txt");
 		try (OutputStream os = Files.newOutputStream(sysPath)) {
@@ -279,7 +313,7 @@ public class BaseRepositoryOperations {
 		byte[] bTimestamp = new byte[RecordConstants.TIMESTAMP];
 		System.arraycopy(header, 0, bTimestamp, 0, RecordConstants.TIMESTAMP);
 		long timestamp = longTransformer.extractLong(bTimestamp);
-		Instant i = Instant.ofEpochSecond(timestamp);
+		Instant i = Instant.ofEpochMilli(timestamp);
 		return ZonedDateTime.ofInstant(i, ZoneOffset.systemDefault());
 	}
 	
@@ -599,16 +633,16 @@ public class BaseRepositoryOperations {
 		
 		private byte[] buffer = new byte[RecordConstants.FULL_SIZE * BATCH_SIZE];
 		
+		public DataRepoIterator() throws IOException {
+			is = openDataRepo();
+			header = readDataRepoHeader(is);
+		}
+		
 		public RepositoryRecord nextRecord() throws IOException {
 			return records.get(iRecord++); 
 		}
 		
 		public boolean hasNextRecord() throws IOException {
-			if (is == null) {
-				is = openDataRepo();
-				header = readDataRepoHeader(is);
-			}
-
 			if (records == null || iRecord == records.size()) {
 				int readBytes = next(is, buffer);
 
@@ -634,7 +668,7 @@ public class BaseRepositoryOperations {
 		
 	}
 	
-	public DataRepoIterator dataRepoIterator() {
+	public DataRepoIterator dataRepoIterator() throws IOException {
 		return new DataRepoIterator();
 	}
 	
@@ -648,17 +682,17 @@ public class BaseRepositoryOperations {
 	public class RepositoryConsistencyChecker {
 		
 		public RepositoryStatusDescriptor scan() {
-			DataRepoIterator iterator = dataRepoIterator();
-
 			int recordsCounter = 0;
 			long totalSize = 0;
 			List<FileDescriptor> corruptedFiles = new ArrayList<>();
-
-			RepositoryFileStatus repoFileStatus = getHeaderCreationStatus(iterator.getHeader());
 			RepositoryStatusDescriptor repoDescriptor = new RepositoryStatusDescriptor();
-			repoDescriptor.setRepositoryFileStatus(repoFileStatus);
+			DataRepoIterator iterator = null;
 			
 			try {
+				iterator = dataRepoIterator();
+				RepositoryFileStatus repoFileStatus = getHeaderCreationStatus(iterator.getHeader());
+				repoDescriptor.setRepositoryFileStatus(repoFileStatus);
+				
 				if (repoFileStatus == RepositoryFileStatus.RECEIVE_END) {
 					while (iterator.hasNextRecord()) {
 						RepositoryRecord rr = iterator.nextRecord();
@@ -685,7 +719,9 @@ public class BaseRepositoryOperations {
 			}
 			finally {
 				try {
-					iterator.close();
+					if(iterator != null) {
+						iterator.close();
+					}
 				} catch (IOException e) {
 					logger.error("[" + this.getClass().getSimpleName()+ "] i/o exception during slave repository scan", e);
 				}

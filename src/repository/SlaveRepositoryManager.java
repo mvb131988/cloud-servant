@@ -103,6 +103,7 @@ public class SlaveRepositoryManager {
 		
 		//step2
 		//save RepositoryDescriptor into a file in /.sys
+		bro.writeRepositoryStatusDescriptor(repoDescriptor);
 		
 		//step3
 		//remove corrupted files
