@@ -98,7 +98,8 @@ public class SlaveRepositoryManager {
 		//for each record from data.repo(DataRepo iterator) compare records parameter with actual file parameters
 		//create FileDescriptor for this
 		//create and return RepositoryDescriptor to reflect repository state
-		bro.repositoryConsistencyChecker().scan();
+		RepositoryStatusDescriptor repoDescriptor = bro.repositoryConsistencyChecker().scan();
+		repoDescriptor.getRepositoryFileStatus();
 		
 		//step2
 		//save RepositoryDescriptor into a file in /.sys

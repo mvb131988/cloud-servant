@@ -16,6 +16,8 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileTime;
+import java.time.Instant;
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,6 +30,7 @@ import org.apache.logging.log4j.Logger;
 import exception.FilePathMaxLengthException;
 import main.AppProperties;
 import repository.status.AsynchronySearcherStatus;
+import repository.status.FileErrorStatus;
 import repository.status.RepositoryFileStatus;
 import transformer.FilesContextTransformer;
 import transformer.LongTransformer;
@@ -39,6 +42,7 @@ public class BaseRepositoryOperations {
 	private Logger logger = LogManager.getRootLogger();
 	
 	private Path repositoryRoot;
+	
 	private final static int BATCH_SIZE = 10000;
 	
 	private final static int HEADER_SIZE = 9;
@@ -264,6 +268,29 @@ public class BaseRepositoryOperations {
 		
 		os.write(header);
 		os.flush();
+	}
+	
+	/**
+	 * Extracts data.repo file creation date time from data.repo header 
+	 * 
+	 * @return data.repo file creation date time
+	 */
+	private ZonedDateTime getHeaderCreationTimestamp(byte[] header) {
+		byte[] bTimestamp = new byte[RecordConstants.TIMESTAMP];
+		System.arraycopy(header, 0, bTimestamp, 0, RecordConstants.TIMESTAMP);
+		long timestamp = longTransformer.extractLong(bTimestamp);
+		Instant i = Instant.ofEpochSecond(timestamp);
+		return ZonedDateTime.ofInstant(i, ZoneOffset.systemDefault());
+	}
+	
+	/**
+	 * Extracts data.repo file status from data.repo header 
+	 * 
+	 * @return data.repo file status
+	 */
+	private RepositoryFileStatus getHeaderCreationStatus(byte[] header) {
+		RepositoryFileStatus status = RepositoryFileStatus.to(header[RecordConstants.TIMESTAMP]);
+		return status;
 	}
 	
 	/**
@@ -568,6 +595,8 @@ public class BaseRepositoryOperations {
 		
 		private InputStream is;
 		
+		private byte[] header;
+		
 		private byte[] buffer = new byte[RecordConstants.FULL_SIZE * BATCH_SIZE];
 		
 		public RepositoryRecord nextRecord() throws IOException {
@@ -577,7 +606,7 @@ public class BaseRepositoryOperations {
 		public boolean hasNextRecord() throws IOException {
 			if (is == null) {
 				is = openDataRepo();
-				readDataRepoHeader(is);
+				header = readDataRepoHeader(is);
 			}
 
 			if (records == null || iRecord == records.size()) {
@@ -598,6 +627,10 @@ public class BaseRepositoryOperations {
 		public void close() throws IOException {
 			closeDataRepo(is);
 		}
+
+		public byte[] getHeader() {
+			return header;
+		}
 		
 	}
 	
@@ -614,23 +647,65 @@ public class BaseRepositoryOperations {
 	 **********************************************************************************************/
 	public class RepositoryConsistencyChecker {
 		
-		public void scan() throws IOException {
-			int recordsCounter = 0;
-			List<RepositoryRecord> corruptedFiles = new ArrayList<>();
-			
+		public RepositoryStatusDescriptor scan() {
 			DataRepoIterator iterator = dataRepoIterator();
-			while(iterator.hasNextRecord()) {
-				RepositoryRecord rr = iterator.nextRecord();
-				
-				// check record
-				if (!existsFile(Paths.get(rr.getFileName()))) {
-					corruptedFiles.add(rr);
+
+			int recordsCounter = 0;
+			long totalSize = 0;
+			List<FileDescriptor> corruptedFiles = new ArrayList<>();
+
+			RepositoryFileStatus repoFileStatus = getHeaderCreationStatus(iterator.getHeader());
+			RepositoryStatusDescriptor repoDescriptor = new RepositoryStatusDescriptor();
+			repoDescriptor.setRepositoryFileStatus(repoFileStatus);
+			
+			try {
+				if (repoFileStatus == RepositoryFileStatus.RECEIVE_END) {
+					while (iterator.hasNextRecord()) {
+						RepositoryRecord rr = iterator.nextRecord();
+
+						// check record
+						FileDescriptor fd = check(rr);
+						if (fd != null) {
+							corruptedFiles.add(fd);
+						} else {
+							recordsCounter++;
+							totalSize += getSize(Paths.get(rr.getFileName()));
+						}
+					}
+
+					repoDescriptor.setCheckDateTime(ZonedDateTime.now());
+					repoDescriptor.setDataRepoDateTime(getHeaderCreationTimestamp(iterator.getHeader()));
+					repoDescriptor.setNumberOfFiles(recordsCounter);
+					repoDescriptor.setTotalSize(totalSize);
+					repoDescriptor.setNumberOfCorruptedFiles(corruptedFiles.size());
+					repoDescriptor.setCorruptedFiles(corruptedFiles);
 				}
-				
-				recordsCounter++;
+			} catch (IOException e) {
+				logger.error("[" + this.getClass().getSimpleName()+ "] i/o exception during slave repository scan", e);
+			}
+			finally {
+				try {
+					iterator.close();
+				} catch (IOException e) {
+					logger.error("[" + this.getClass().getSimpleName()+ "] i/o exception during slave repository scan", e);
+				}
 			}
 			
-			System.out.println(recordsCounter);
+			return repoDescriptor;
+		}
+		
+		/**
+		 * 
+		 * @return null - if file is valid
+		 * 		   FileDescriptor - if file is invalid
+		 */
+		// TODO(HIGH): add size and data creation check
+		private FileDescriptor check(RepositoryRecord rr) {
+			FileDescriptor fd = null;
+			if(!existsFile(Paths.get(rr.getFileName()))) {
+				fd = new FileDescriptor(rr, FileErrorStatus.NOT_EXIST);
+			} 
+			return fd;
 		}
 		
 	}
