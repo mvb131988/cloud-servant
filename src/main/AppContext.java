@@ -156,8 +156,8 @@ public class AppContext {
 		filesContextTransformer = new FilesContextTransformer(getLongTransformer());
 		
 		//Repository operations
-		repositoryVisitor = new RepositoryVisitor(appProperties);
 		baseRepositoryOperations = new BaseRepositoryOperations(getLongTransformer(), getFilesContextTransformer(), appProperties);
+		repositoryVisitor = new RepositoryVisitor(getBaseRepositoryOperations(), appProperties);
 		
 		//Transfer operations
 		baseTransferOperations = new BaseTransferOperations(getIntegerTransformer(),
@@ -215,8 +215,8 @@ public class AppContext {
 		
 		//Repository operations
 		repositoryStatusMapper = new RepositoryStatusMapper();
-		repositoryVisitor = new RepositoryVisitor(appProperties);
 		baseRepositoryOperations = new BaseRepositoryOperations(getLongTransformer(), getFilesContextTransformer(), appProperties);
+		repositoryVisitor = new RepositoryVisitor(getBaseRepositoryOperations(), appProperties);
 		slaveRepositoryManager = new SlaveRepositoryManager(getBaseRepositoryOperations(), 
 															getRepositoryStatusMapper());
 		slaveRepositoryManager.init();

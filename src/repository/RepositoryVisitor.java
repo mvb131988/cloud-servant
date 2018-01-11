@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.file.FileVisitResult;
 import java.nio.file.FileVisitor;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.List;
@@ -12,16 +13,19 @@ import main.AppProperties;
 
 public class RepositoryVisitor implements FileVisitor<Path> {
 
-	private List<String> filesList = new ArrayList<String>();
+	private List<RepositoryRecord> filesList = new ArrayList<RepositoryRecord>();
 	
 	private Path repositoryRoot;
+	
+	private BaseRepositoryOperations bro;
 
-	public RepositoryVisitor(AppProperties appProperties) {
+	public RepositoryVisitor(BaseRepositoryOperations bro, AppProperties appProperties) {
+		this.bro = bro;
 		repositoryRoot = appProperties.getRepositoryRoot();
 	}
 	
 	public void reset() {
-		filesList = new ArrayList<String>();
+		filesList = new ArrayList<RepositoryRecord>();
 	}
 	
 	@Override
@@ -44,7 +48,13 @@ public class RepositoryVisitor implements FileVisitor<Path> {
 			//change to Linux compatible slashes
 			path = path.replaceAll("\\\\", "\\/");
 			
-			filesList.add(path);
+			RepositoryRecord rr = new RepositoryRecord();
+			rr.setFileName(path);
+			Path pPath = Paths.get(path);
+			rr.setSize(bro.getSize(Paths.get(path)));
+			rr.setMillisCreationDate(bro.getCreationDateTime(pPath));
+			
+			filesList.add(rr);
 		}
 		return FileVisitResult.CONTINUE;
 	}
@@ -59,11 +69,11 @@ public class RepositoryVisitor implements FileVisitor<Path> {
 		return FileVisitResult.CONTINUE;
 	}
 
-	public List<String> getFilesList() {
+	public List<RepositoryRecord> getFilesList() {
 		return filesList;
 	}
 
-	public void setFilesList(List<String> filesList) {
+	public void setFilesList(List<RepositoryRecord> filesList) {
 		this.filesList = filesList;
 	}
 

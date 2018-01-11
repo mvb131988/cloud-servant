@@ -45,7 +45,7 @@ public class MasterRepositoryManager {
 	 * records corresponding to all files are.
 	 * @throws IOException 
 	 */
-	private List<String> scan() throws IOException {
+	private List<RepositoryRecord> scan() throws IOException {
 		repositoryVisitor.reset();
 		Files.walkFileTree(repositoryRoot, repositoryVisitor);
 		return repositoryVisitor.getFilesList();
@@ -83,7 +83,7 @@ public class MasterRepositoryManager {
 	 * @throws FilePathMaxLengthException 
 	 * @throws IOException 
 	 */
-	private void writeAll(List<String> fileNames) throws IOException, FilePathMaxLengthException {
+	private void writeAll(List<RepositoryRecord> fileNames) throws IOException, FilePathMaxLengthException {
 		bro.writeAll(fileNames, 0);
 	}
 

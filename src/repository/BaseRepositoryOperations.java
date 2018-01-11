@@ -217,15 +217,16 @@ public class BaseRepositoryOperations {
 	 * |fileId | size of fileName | fileName | fileStatus |
 	 * -------------------------------------------------------------------
 	 *
-	 * @param fileNames
-	 *            - list of files(relative names) to be written into data.repo
+	 * @param rrs
+	 *            - list of repository records, corresponded to master repository file system
+	 *            (relative names, sizes, creation dates) to be written into data.repo
 	 * @param startId
 	 *            - number used as starting to generate(increment sequence)
 	 *            unique ids for all files from fileNames
 	 * @throws IOException
 	 * @throws FilePathMaxLengthException
 	 */
-	public void writeAll(List<String> fileNames, int startId) throws IOException, FilePathMaxLengthException {
+	public void writeAll(List<RepositoryRecord> rrs, int startId) throws IOException, FilePathMaxLengthException {
 		byte[] buffer = new byte[RecordConstants.FULL_SIZE * BATCH_SIZE];
 		int offset = 0;
 
@@ -239,8 +240,10 @@ public class BaseRepositoryOperations {
 			writeHeader(os);
 			
 			// write body
-			for (String fileName : fileNames) {
+			for (RepositoryRecord rr : rrs) {
 
+				String fileName = rr.getFileName();
+				
 				// file id
 				byte[] bSize = longTransformer.packLong(++id);
 				System.arraycopy(bSize, 0, buffer, offset, RecordConstants.ID_SIZE);
@@ -681,7 +684,7 @@ public class BaseRepositoryOperations {
 	 **********************************************************************************************/
 	public class RepositoryConsistencyChecker {
 		
-		public RepositoryStatusDescriptor scan() {
+		public RepositoryStatusDescriptor check() {
 			int recordsCounter = 0;
 			long totalSize = 0;
 			List<FileDescriptor> corruptedFiles = new ArrayList<>();

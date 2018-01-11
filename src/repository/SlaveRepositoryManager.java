@@ -8,6 +8,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import repository.BaseRepositoryOperations.AsynchronySearcher;
+import repository.BaseRepositoryOperations.RepositoryConsistencyChecker;
 import repository.status.RepositoryStatusMapper;
 import repository.status.SlaveRepositoryManagerStatus;
 
@@ -98,7 +99,8 @@ public class SlaveRepositoryManager {
 		//for each record from data.repo(DataRepo iterator) compare records parameter with actual file parameters
 		//create FileDescriptor for this
 		//create and return RepositoryDescriptor to reflect repository state
-		RepositoryStatusDescriptor repoDescriptor = bro.repositoryConsistencyChecker().scan();
+		RepositoryConsistencyChecker checker = bro.repositoryConsistencyChecker();
+		RepositoryStatusDescriptor repoDescriptor = checker.check();
 		repoDescriptor.getRepositoryFileStatus();
 		
 		//step2
