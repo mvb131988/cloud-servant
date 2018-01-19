@@ -46,7 +46,7 @@ public class BaseRepositoryOperations {
 	
 	private final static int BATCH_SIZE = 10000;
 	
-	private final static int HEADER_SIZE = 9;
+	public final static int HEADER_SIZE = 9;
 
 	private LongTransformer longTransformer;
 
@@ -66,6 +66,7 @@ public class BaseRepositoryOperations {
 	// --------------------------------------------------------------------------------------------------------------------------------
 
 	@SuppressWarnings("unused")
+	@Deprecated
 	public long countRecords() throws Exception {
 		long counter = -1;
 
@@ -83,6 +84,7 @@ public class BaseRepositoryOperations {
 	}
 
 	@SuppressWarnings("unused")
+	@Deprecated
 	public void write(int baseAddr, int id, String name, byte status) throws FileNotFoundException, IOException {
 		Path configPath = repositoryRoot.resolve("master.repo");
 		try (RandomAccessFile file = new RandomAccessFile(configPath.toString(), "rw")) {
@@ -111,6 +113,14 @@ public class BaseRepositoryOperations {
 		}
 	}
 
+	/**
+	 * For test purposes. Could read any single record
+	 * 
+	 * @param baseAddr
+	 * @return
+	 * @throws FileNotFoundException
+	 * @throws IOException
+	 */
 	@SuppressWarnings("unused")
 	public RepositoryRecord read(int baseAddr) throws FileNotFoundException, IOException {
 		RepositoryRecord repositoryRecord = new RepositoryRecord();
@@ -132,18 +142,32 @@ public class BaseRepositoryOperations {
 			long length = longTransformer.extractLong(bLength);
 			offset += 8;
 
-			byte[] bName = new byte[200];
-			file.read(bName, 0, 200);
+			byte[] bName = new byte[RecordConstants.NAME_SIZE];
+			file.read(bName, 0, RecordConstants.NAME_SIZE);
 			String name = new String(bName, 0, (int) length, "UTF-8");
-			offset += 200;
+			offset += RecordConstants.NAME_SIZE;
 
 			int status = file.read();
 			offset++;
+			
+			//file size
+			byte[] bSize = new byte[RecordConstants.FILE_SIZE];
+			file.read(bSize, 0, RecordConstants.FILE_SIZE);
+			long size = longTransformer.extractLong(bSize);
+			offset += RecordConstants.FILE_SIZE;
+			
+			//file creation date time
+			byte[] bCreationDateTime = new byte[RecordConstants.FILE_CREATION_DATETIME];
+			file.read(bCreationDateTime, 0, RecordConstants.FILE_CREATION_DATETIME);
+			long millisCreationDateTime = longTransformer.extractLong(bCreationDateTime);
+			offset += RecordConstants.FILE_CREATION_DATETIME;
 
 			repositoryRecord.setId(id);
 			repositoryRecord.setFileName(name);
 			repositoryRecord.setFileameSize(length);
 			repositoryRecord.setStatus((byte) status);
+			repositoryRecord.setSize(size);
+			repositoryRecord.setMillisCreationDate(millisCreationDateTime);
 
 		}
 
@@ -211,11 +235,11 @@ public class BaseRepositoryOperations {
 	 * access file
 	 *
 	 * Record format(defined by RecordConstants)
-	 * ------------------------------------------------------------------- 
-	 * | 8bytes| 8 bytes 		  | 500 bytes| 	   1 byte |
-	 * ------------------------------------------------------------------- 
-	 * |fileId | size of fileName | fileName | fileStatus |
-	 * -------------------------------------------------------------------
+	 * -----------------------------------------------------------------------------------------
+	 * | 8bytes| 8 bytes 		  | 500 bytes| 	   1 byte |	 8 bytes |                 8 bytes |
+	 * -----------------------------------------------------------------------------------------
+	 * |fileId | size of fileName | fileName | fileStatus | fileSize | file creation date time |
+	 * -----------------------------------------------------------------------------------------
 	 *
 	 * @param rrs
 	 *            - list of repository records, corresponded to master repository file system
@@ -241,18 +265,17 @@ public class BaseRepositoryOperations {
 			
 			// write body
 			for (RepositoryRecord rr : rrs) {
-
-				String fileName = rr.getFileName();
 				
 				// file id
-				byte[] bSize = longTransformer.packLong(++id);
-				System.arraycopy(bSize, 0, buffer, offset, RecordConstants.ID_SIZE);
+				byte[] byteArray = longTransformer.packLong(++id);
+				System.arraycopy(byteArray, 0, buffer, offset, RecordConstants.ID_SIZE);
 				offset += RecordConstants.ID_SIZE;
 
 				// file name length
+				String fileName = rr.getFileName();
 				long length = fileName.getBytes("UTF-8").length;
-				bSize = longTransformer.packLong(length);
-				System.arraycopy(bSize, 0, buffer, offset, RecordConstants.NAME_LENGTH_SIZE);
+				byteArray = longTransformer.packLong(length);
+				System.arraycopy(byteArray, 0, buffer, offset, RecordConstants.NAME_LENGTH_SIZE);
 				offset += RecordConstants.NAME_LENGTH_SIZE;
 
 				// Set maximum number of bytes for file name
@@ -270,6 +293,18 @@ public class BaseRepositoryOperations {
 				byte status = 1;
 				buffer[offset] = status;
 				offset += RecordConstants.STATUS_SIZE;
+				
+				// file size
+				long fileSize = rr.getSize();
+				byteArray = longTransformer.packLong(fileSize);
+				System.arraycopy(byteArray, 0, buffer, offset, RecordConstants.FILE_SIZE);
+				offset += RecordConstants.FILE_SIZE;
+				
+				// file creation date time
+				long creationDateTime = rr.getMillisCreationDate();
+				byteArray = longTransformer.packLong(creationDateTime);
+				System.arraycopy(byteArray, 0, buffer, offset, RecordConstants.FILE_CREATION_DATETIME);
+				offset += RecordConstants.FILE_CREATION_DATETIME;
 
 				if (offset == buffer.length) {
 

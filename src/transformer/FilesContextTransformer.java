@@ -11,11 +11,11 @@ import transfer.context.FileContext;
 
 public class FilesContextTransformer {
 
-	private LongTransformer frameProcessor;
+	private LongTransformer longTransformer;
 	
 	public FilesContextTransformer(LongTransformer frameProcessor) {
 		super();
-		this.frameProcessor = frameProcessor;
+		this.longTransformer = frameProcessor;
 	}
 
 	public FileContext transform(RepositoryRecord rr) {
@@ -42,12 +42,12 @@ public class FilesContextTransformer {
 
 			byte[] bId = new byte[RecordConstants.ID_SIZE];
 			System.arraycopy(bytes, offset, bId, 0, RecordConstants.ID_SIZE);
-			long id = frameProcessor.extractLong(bId);
+			long id = longTransformer.extractLong(bId);
 			offset += RecordConstants.ID_SIZE;
 
 			byte[] bSize = new byte[RecordConstants.NAME_LENGTH_SIZE];
 			System.arraycopy(bytes, offset, bSize, 0, RecordConstants.NAME_LENGTH_SIZE);
-			long length = frameProcessor.extractLong(bSize);
+			long length = longTransformer.extractLong(bSize);
 			offset += RecordConstants.NAME_LENGTH_SIZE;
 
 			byte[] bFileName = new byte[(int) RecordConstants.NAME_SIZE];
@@ -59,12 +59,24 @@ public class FilesContextTransformer {
 
 			byte status = bytes[offset];
 			offset += RecordConstants.STATUS_SIZE;
-
+			
+			byte[] bFSize = new byte[RecordConstants.FILE_SIZE];
+			System.arraycopy(bytes, offset, bFSize, 0, RecordConstants.FILE_SIZE);
+			long fileSize = longTransformer.extractLong(bFSize);
+			offset += RecordConstants.FILE_SIZE;
+			
+			byte[] bCreationDate = new byte[RecordConstants.FILE_CREATION_DATETIME];
+			System.arraycopy(bytes, offset, bCreationDate, 0, RecordConstants.FILE_CREATION_DATETIME);
+			long creationDate = longTransformer.extractLong(bCreationDate);
+			offset += RecordConstants.FILE_CREATION_DATETIME;
+			
 			RepositoryRecord rr = new RepositoryRecord();
 			rr.setId(id);
 			rr.setFileameSize(length);
 			rr.setFileName(fileName);
 			rr.setStatus(status);
+			rr.setSize(fileSize);
+			rr.setMillisCreationDate(creationDate);
 			records.add(rr);
 		}
 		
