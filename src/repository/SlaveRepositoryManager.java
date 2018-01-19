@@ -96,19 +96,21 @@ public class SlaveRepositoryManager {
 		//step1
 		//Delegate to another class (RepositoryConsistencyChecker) create in BaseRepositoryOperations
 		//check data repo file status
-		//for each record from data.repo(DataRepo iterator) compare records parameter with actual file parameters
-		//create FileDescriptor for this
-		//create and return RepositoryDescriptor to reflect repository state
-		RepositoryConsistencyChecker checker = bro.repositoryConsistencyChecker();
-		RepositoryStatusDescriptor repoDescriptor = checker.check();
-		repoDescriptor.getRepositoryFileStatus();
-		
-		//step2
-		//save RepositoryDescriptor into a file in /.sys
-		bro.writeRepositoryStatusDescriptor(repoDescriptor);
-		
-		//step3
-		//remove corrupted files
+		if(bro.existsFile(Paths.get("data.repo"))) {
+			//for each record from data.repo(DataRepo iterator) compare records parameter with actual file parameters
+			//create FileDescriptor for this
+			//create and return RepositoryDescriptor to reflect repository state
+			RepositoryConsistencyChecker checker = bro.repositoryConsistencyChecker();
+			RepositoryStatusDescriptor repoDescriptor = checker.check();
+			repoDescriptor.getRepositoryFileStatus();
+			
+			//step2
+			//save RepositoryDescriptor into a file in /.sys
+			bro.writeRepositoryStatusDescriptor(repoDescriptor);
+			
+			//step3
+			//remove corrupted files
+		}
 	}
 	
 }
