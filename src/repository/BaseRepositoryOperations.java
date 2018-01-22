@@ -466,6 +466,10 @@ public class BaseRepositoryOperations {
 		return header;
 	}
 	
+	public void readDataRepoStatus(RepositoryFileStatus status) {
+		
+	}
+	
 	/**
 	 * Updates status of data.repo file 
 	 * @param status - data.repo file status to be set
@@ -772,13 +776,21 @@ public class BaseRepositoryOperations {
 		 * 
 		 * @return null - if file is valid
 		 * 		   FileDescriptor - if file is invalid
+		 * @throws IOException 
 		 */
 		// TODO(HIGH): add size and data creation check
-		private FileDescriptor check(RepositoryRecord rr) {
+		private FileDescriptor check(RepositoryRecord rr) throws IOException {
 			FileDescriptor fd = null;
-			if(!existsFile(Paths.get(rr.getFileName()))) {
+			Path p = Paths.get(rr.getFileName());
+			if(!existsFile(p)) {
 				fd = new FileDescriptor(rr, FileErrorStatus.NOT_EXIST);
 			} 
+			else if(getSize(p) != rr.getSize()) {
+				fd = new FileDescriptor(rr, FileErrorStatus.SIZE_MISMATCH);
+			}
+			else if(getCreationDateTime(p) != rr.getMillisCreationDate()){
+				fd = new FileDescriptor(rr, FileErrorStatus.CREATION_DATE_MISMATH);
+			}
 			return fd;
 		}
 		
