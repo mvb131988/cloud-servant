@@ -18,6 +18,7 @@ import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileTime;
 import java.time.Instant;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -35,6 +36,8 @@ import repository.status.FileErrorStatus;
 import repository.status.RepositoryFileStatus;
 import transformer.FilesContextTransformer;
 import transformer.LongTransformer;
+
+import static repository.status.FileErrorStatus.*;
 
 public class BaseRepositoryOperations {
 
@@ -199,13 +202,42 @@ public class BaseRepositoryOperations {
 			bw.write("Total number of corrupted files in slave repository: " + descriptor.getNumberOfCorruptedFiles());
 			bw.newLine();
 			
-			bw.write("-----------------------");
+			bw.write("====================================================");
 			bw.newLine();
 			
 			if(descriptor.getNumberOfCorruptedFiles() > 0) {
 				for(FileDescriptor fd: descriptor.getCorruptedFiles()) {
-					bw.write("expected: " + fd.getRepositoryRecord().getFileName());
-					bw.newLine();
+					switch(fd.getFileErrorStatus()) {
+					
+					case NOT_EXIST:
+						bw.write("file not found: " + fd.getRepositoryRecord().getFileName());
+						bw.write("----------------------------------------------------");
+						bw.newLine();
+						break;
+						
+					case SIZE_MISMATCH:
+						bw.write("expected file size: " + fd.getRepositoryRecord().getSize()  + " bytes");
+						bw.write("  actual file size: " + fd.getActualSize() + " bytes");
+						bw.write("----------------------------------------------------");
+						bw.newLine();
+						break;
+						
+					case CREATION_DATE_MISMATH:
+						ZonedDateTime expectedDateTime = 
+							ZonedDateTime.ofInstant(Instant.ofEpochSecond(fd.getRepositoryRecord().getMillisCreationDate()), 
+													ZoneId.systemDefault());
+						ZonedDateTime actualDateTime = 
+								ZonedDateTime.ofInstant(Instant.ofEpochSecond(fd.getMillisActualCreationDateTime()), 
+														ZoneId.systemDefault());
+						bw.write("expected creation date time: " + expectedDateTime);
+						bw.write("  actual creation date time: " + actualDateTime);
+						bw.write("----------------------------------------------------");
+						bw.newLine();
+						break;
+						
+					default: break;	
+					
+					}
 				}
 			}
 		}
@@ -782,14 +814,19 @@ public class BaseRepositoryOperations {
 		private FileDescriptor check(RepositoryRecord rr) throws IOException {
 			FileDescriptor fd = null;
 			Path p = Paths.get(rr.getFileName());
+			long size = getSize(p);
+			long creationDateTime = getCreationDateTime(p);
+			
 			if(!existsFile(p)) {
 				fd = new FileDescriptor(rr, FileErrorStatus.NOT_EXIST);
 			} 
-			else if(getSize(p) != rr.getSize()) {
+			else if(size != rr.getSize()) {
 				fd = new FileDescriptor(rr, FileErrorStatus.SIZE_MISMATCH);
+				fd.setActualSize(size);
 			}
 			else if(getCreationDateTime(p) != rr.getMillisCreationDate()){
 				fd = new FileDescriptor(rr, FileErrorStatus.CREATION_DATE_MISMATH);
+				fd.setMillisActualCretionDateTime(creationDateTime);
 			}
 			return fd;
 		}

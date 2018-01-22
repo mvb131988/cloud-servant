@@ -8,6 +8,10 @@ public class FileDescriptor {
 	
 	private FileErrorStatus fileErrorStatus;
 
+	private long actualSize;
+	
+	private long millisActualCretionDateTime;
+	
 	public FileDescriptor() {
 		
 	}
@@ -32,6 +36,22 @@ public class FileDescriptor {
 
 	public void setFileErrorStatus(FileErrorStatus fileErrorStatus) {
 		this.fileErrorStatus = fileErrorStatus;
+	}
+
+	public long getActualSize() {
+		return actualSize;
+	}
+
+	public void setActualSize(long actualSize) {
+		this.actualSize = actualSize;
+	}
+
+	public long getMillisActualCreationDateTime() {
+		return millisActualCretionDateTime;
+	}
+
+	public void setMillisActualCretionDateTime(long millisActualCretionDateTime) {
+		this.millisActualCretionDateTime = millisActualCretionDateTime;
 	}
 	
 }
