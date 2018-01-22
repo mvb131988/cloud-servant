@@ -182,7 +182,7 @@ public class BaseRepositoryOperations {
 	// --------------------------------------------------------------------------------------------------------------------------------
 	
 	/**
-	 * Persists repository status descriptor on disc.
+	 * Persists repository status descriptor on disc (in /.sys).
 	 * Determines structure of file where repository status descriptor will be stored. 
 	 * @throws IOException 
 	 */
@@ -211,26 +211,35 @@ public class BaseRepositoryOperations {
 					
 					case NOT_EXIST:
 						bw.write("file not found: " + fd.getRepositoryRecord().getFileName());
+						bw.newLine();
 						bw.write("----------------------------------------------------");
 						bw.newLine();
 						break;
 						
 					case SIZE_MISMATCH:
+						bw.write("file name: " + fd.getRepositoryRecord().getFileName());
+						bw.newLine();
 						bw.write("expected file size: " + fd.getRepositoryRecord().getSize()  + " bytes");
+						bw.newLine();
 						bw.write("  actual file size: " + fd.getActualSize() + " bytes");
+						bw.newLine();
 						bw.write("----------------------------------------------------");
 						bw.newLine();
 						break;
 						
 					case CREATION_DATE_MISMATH:
 						ZonedDateTime expectedDateTime = 
-							ZonedDateTime.ofInstant(Instant.ofEpochSecond(fd.getRepositoryRecord().getMillisCreationDate()), 
+							ZonedDateTime.ofInstant(Instant.ofEpochMilli(fd.getRepositoryRecord().getMillisCreationDate()), 
 													ZoneId.systemDefault());
 						ZonedDateTime actualDateTime = 
-								ZonedDateTime.ofInstant(Instant.ofEpochSecond(fd.getMillisActualCreationDateTime()), 
+								ZonedDateTime.ofInstant(Instant.ofEpochMilli(fd.getMillisActualCreationDateTime()), 
 														ZoneId.systemDefault());
+						bw.write("file name: " + fd.getRepositoryRecord().getFileName());
+						bw.newLine();
 						bw.write("expected creation date time: " + expectedDateTime);
+						bw.newLine();
 						bw.write("  actual creation date time: " + actualDateTime);
+						bw.newLine();
 						bw.write("----------------------------------------------------");
 						bw.newLine();
 						break;
@@ -758,6 +767,8 @@ public class BaseRepositoryOperations {
 		public RepositoryStatusDescriptor check() {
 			int recordsCounter = 0;
 			long totalSize = 0;
+			//TODO(FUTURE): In scan is done on empty repo and data.repo list is huge can lead 
+			//to memory over consumption. Needs to be implemented lazily.
 			List<FileDescriptor> corruptedFiles = new ArrayList<>();
 			RepositoryStatusDescriptor repoDescriptor = new RepositoryStatusDescriptor();
 			DataRepoIterator iterator = null;
@@ -810,21 +821,20 @@ public class BaseRepositoryOperations {
 		 * 		   FileDescriptor - if file is invalid
 		 * @throws IOException 
 		 */
-		// TODO(HIGH): add size and data creation check
 		private FileDescriptor check(RepositoryRecord rr) throws IOException {
 			FileDescriptor fd = null;
 			Path p = Paths.get(rr.getFileName());
-			long size = getSize(p);
-			long creationDateTime = getCreationDateTime(p);
+			long size = -1;
+			long creationDateTime = -1;
 			
 			if(!existsFile(p)) {
 				fd = new FileDescriptor(rr, FileErrorStatus.NOT_EXIST);
 			} 
-			else if(size != rr.getSize()) {
+			else if((size = getSize(p)) != rr.getSize()) {
 				fd = new FileDescriptor(rr, FileErrorStatus.SIZE_MISMATCH);
 				fd.setActualSize(size);
 			}
-			else if(getCreationDateTime(p) != rr.getMillisCreationDate()){
+			else if((creationDateTime = getCreationDateTime(p)) != rr.getMillisCreationDate()){
 				fd = new FileDescriptor(rr, FileErrorStatus.CREATION_DATE_MISMATH);
 				fd.setMillisActualCretionDateTime(creationDateTime);
 			}

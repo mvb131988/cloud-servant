@@ -92,25 +92,25 @@ public class SlaveRepositoryManager {
 	 * ==========================================================================================
 	 */
 	
-	//repository check scan(consistency scan) goes here 
+	/**
+	 * Scans slave repository and looks for divergency between record in data.repo file and actual
+	 * file stored in file system. 
+	 * 
+	 * @throws IOException
+	 */
 	public void checkScan() throws IOException {
-		//step1
-		//Delegate to another class (RepositoryConsistencyChecker) create in BaseRepositoryOperations
-		//check data repo file status
-			
-		//for each record from data.repo(DataRepo iterator) compare records parameter with actual file parameters
-		//create FileDescriptor for this
-		//create and return RepositoryDescriptor to reflect repository state
+		logger.info("[" + this.getClass().getSimpleName() + "] slave repo check started");
 		RepositoryConsistencyChecker checker = bro.repositoryConsistencyChecker();
 		RepositoryStatusDescriptor repoDescriptor = checker.check();
+		logger.info("[" + this.getClass().getSimpleName() + "] slave repo check started terminated");
 		
 		RepositoryFileStatus status = repoDescriptor.getRepositoryFileStatus();
 		if(status == RepositoryFileStatus.RECEIVE_END) {
-			//step2
-			//save RepositoryDescriptor into a file in /.sys
+			logger.info("[" + this.getClass().getSimpleName() + "] slave repo report generation started");
 			bro.writeRepositoryStatusDescriptor(repoDescriptor);
+			logger.info("[" + this.getClass().getSimpleName() + "] slave repo report generation terminated");
 			
-			//step3
+			//TODO: step 3
 			//remove corrupted files
 		}
 	}
