@@ -4,16 +4,20 @@
 
 (1) Install RASPBIAN Os on SD card. Use Etcher only(command line tools don't write image correct)
 (2) Enable ssh (by default disabled) 
+
+sudo service ssh start
 	
 	default username: pi
 	standard password
-
+	
 (3) Change pi password(by default raspberry)
 
 	Connect to raspberry via ssh and use command passwd in terminal:
 	passwd
 
 (4) In local network assign static ip(bind by MAC address) to raspberry
+(192.168.0.13, 192.168.0.31)
+
 (5) Configure port forwarding on the router. Necessary for external ssh access(port 22) as well as for 
 application communication(port from app configuration)
 
@@ -21,6 +25,7 @@ application communication(port from app configuration)
 	1. sudo nano /etc/ssh/sshd_config
 	2. Uncomment #Port and set 51313
 	3. sudo /etc/init.d/ssh restart
+	        service ssh restart 
 	4. ssh pi@192.168.0.13 -p 51313
 
 (7) Logs location:
@@ -40,29 +45,29 @@ application communication(port from app configuration)
 wget --no-check-certificate -c --header "Cookie: oraclelicense=accept-securebackup-cookie" http://download.oracle.com/otn-pub/java/jdk/8u151-b12/e758a0de34e24606bca991d704f6dcbf/jdk-8u151-linux-x64.tar.gz
 
 !!!ARM 32 bit version for raspberry
-wget --no-check-certificate -c --header "Cookie: oraclelicense=accept-securebackup-cookie" http://download.oracle.com/otn-pub/java/jdk/8u151-b12/e758a0de34e24606bca991d704f6dcbf/jdk-8u151-linux-arm32-vfp-hflt.tar.gz
+wget --no-check-certificate -c --header "Cookie: oraclelicense=accept-securebackup-cookie" https://download.oracle.com/otn-pub/java/jdk/8u191-b12/2787e4a523244c269598db4e85c51e0c/jdk-8u191-linux-arm32-vfp-hflt.tar.gz
 
 (3) Extract
-tar -xvzf jdk-8u151-linux-x64.tar.gz
+tar -xvzf jdk-8u191-linux-x64.tar.gz
 
 (4) Copy to /usr/java
 
-from /user
-sudo mkdir /usr/java
+from /usr
+sudo mkdir java
 
 from ~/Downloads
-sudo cp -R jdk1.8.0_151/ /usr/java/
-sudo rm -R jdk1.8.0_151
+sudo cp -R jdk1.8.0_191/ /usr/java/
+sudo rm -R jdk1.8.0_191
 
 (5) Add JAVA_HOME and modifythe PATH (after logout)
 from /etc
 
 sudo nano environment
 Example:
-JAVA_HOME="/usr/java/jdk1.8.0_151"
+JAVA_HOME="/usr/java/jdk1.8.0_191"
 
 sudo nano profile 
-PATH="/usr/java/jdk1.8.0_151/bin:[existed path]" (first entry in the PATH to override other installed JDKs)
+PATH="/usr/java/jdk1.8.0_191/bin:[existed path]" (first entry in the PATH to override other installed JDKs)
 
 restart with:
 sudo reboot
@@ -71,26 +76,26 @@ sudo reboot
 
 cd ~/Downloads/
 
-wget "http://mirrors.hostingromania.ro/apache.org/maven/maven-3/3.5.2/binaries/apache-maven-3.5.2-bin.tar.gz"
+wget "https://www-eu.apache.org/dist/maven/maven-3/3.6.0/binaries/apache-maven-3.6.0-bin.tar.gz"
 
 (7) Extract
-tar -xvzf apache-maven-3.5.2-bin.tar.gz
+tar -xvzf apache-maven-3.6.0-bin.tar.gz
 
 (8) Copy to /usr/maven
 
-from /user
+from /usr
 sudo mkdir /usr/maven
 
 from ~/Downloads
-sudo cp -R apache-maven-3.5.2/ /usr/maven/
-sudo rm -R apache-maven-3.5.2
+sudo cp -R apache-maven-3.6.0/ /usr/maven/
+sudo rm -R apache-maven-3.6.0
 
-(9) Add MAVEN_HOME and modifythe PATH (after logout) (save ctrl+O; exit ctrl+X)
+(9) Add MAVEN_HOME and modify the PATH (after logout) (save ctrl+O; exit ctrl+X)
 from /etc
 
 sudo nano environment 
 Example:
-MAVEN_HOME="/usr/maven/apache-maven-3.5.2"
+MAVEN_HOME="/usr/maven/apache-maven-3.6.0"
 
 sudo nano profile 
 PATH="/usr/maven/apache-maven-3.5.2/bin:/usr/java/jdk1.8.0_151/bin:[existed path]"
@@ -125,7 +130,7 @@ In order to be able to write to NTFS you need to install the ntfs-3g driver (whi
 	
 To ALWAYS mount external hard drive to the same location
 	1. sudo mkdir /media/pi/seagate	
-	2. sudo chown -R pi:1000 /media/pi/seagate (check passwd file to find user group)
+	2. sudo chown -R pi:1000 /media/pi/seagate (check /etc/passwd file to find user group)
 	3. sudo nano /etc/fstab
 	   /dev/sda1 /media/pi/seagate ntfs uid=pi,gid=1000,rw,nosuid,nodev,default_permissions 0 0 (add this line)
 	4. sudo reboot
@@ -144,6 +149,8 @@ To ALWAYS mount external hard drive to the same location
 	
 (3) !!! stop.bat doesn't work, because jps -v doesn't display process information
 
+(4) Check&set permissions on .log directory and also on cloud_servant.jar and launch.bat
+
 ########################################################################################################
 
 
@@ -161,9 +168,33 @@ To ALWAYS mount external hard drive to the same location
 	
 (4) Start as service:
 	
-	sudo systemctl enable mouselogger.service
-	sudo systemctl start mouselogger.service
+	sudo systemctl enable cloud-servant.service
+	sudo systemctl start cloud-servant.service
 	
 	To check servcie status:
 	
-	sudo systemctl status mouselogger.service
+	sudo systemctl status cloud-servant.service
+	
+	
+########################################################################################################
+### FTP server setup
+########################################################################################################
+
+https://www.raspberrypi.org/documentation/remote-access/ftp.md
+
+Note: it's very slow
+
+(1) sudo apt-get install pure-ftpd
+
+(2) sudo groupadd ftpgroup
+	sudo useradd ftpuser -g ftpgroup -s /sbin/nologin -d /dev/null
+
+(3) Virtual user(why?) 	
+	sudo pure-pw useradd ftpuser1 -u ftpuser -g ftpgroup -d /media/pi/seagate/repo -m
+	standard password
+	
+(4)	sudo pure-pw mkdb
+	sudo ln -s /etc/pure-ftpd/conf/PureDB /etc/pure-ftpd/auth/60puredb
+	sudo service pure-ftpd restart
+	
+access ftp://192.168.0.13/
