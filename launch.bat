@@ -13,5 +13,5 @@ exit
 
 
 @REM Or
-start full_path_to\javaw -jar -Dcloud-servant full_path_to\cloud-servant.jar start
-exit
+@REM start full_path_to\javaw -jar -Dcloud-servant full_path_to\cloud-servant.jar start
+@REM exit

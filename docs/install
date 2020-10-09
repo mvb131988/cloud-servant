@@ -201,3 +201,13 @@ Note: it's very slow
 	sudo service pure-ftpd restart
 	
 access ftp://192.168.0.13/
+
+########################################################################################################
+### Recently find issue
+########################################################################################################
+
+On windows after an update raspberry pi nodes are unable to ping windows/PC node. 
+The issue looks like: from raspberry pi node it's impossible to ping windows/PC node.
+					  However the error isn't 'host unreachable', instead it gets 'packet loss 100%'
+This happens because windows firewall configuration	(see firewall configuration for private networks)				  
+					
