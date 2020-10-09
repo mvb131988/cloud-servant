@@ -10,3 +10,8 @@ cd C:\Users\vminacov\eclipse-workspace\cloud-servant\target
 
 start javaw -jar -Dcloud-servant cloud-servant.jar start
 exit
+
+
+@REM Or
+start full_path_to\javaw -jar -Dcloud-servant full_path_to\cloud-servant.jar start
+exit

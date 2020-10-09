@@ -18,6 +18,9 @@ sudo service ssh start
 (4) In local network assign static ip(bind by MAC address) to raspberry
 (192.168.0.13, 192.168.0.31)
 
+To find auto assigned ip address use: for /l %i in (1,1,254) do @ping 192.168.0.%i -n 1 -w 100 | find "Reply"
+To find MAC on raspberry node use: ifconfig(ether address)
+
 (5) Configure port forwarding on the router. Necessary for external ssh access(port 22) as well as for 
 application communication(port from app configuration)
 

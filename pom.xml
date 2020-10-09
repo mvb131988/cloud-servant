@@ -58,8 +58,8 @@
 			<id>master</id>
 			<properties>
 				<master>true</master>
-				<root>D:\temp</root>
-				<log>D:\temp\.log</log>
+				<root>D:\photo_files</root>
+				<log>D:\photo_files\.log</log>
 			</properties>
 		</profile>
 		<profile>
@@ -68,6 +68,15 @@
 				<master>false</master>
 				<root>/media/pi/seagate/repo</root>
 				<log>/media/pi/seagate/repo/.log</log>
+			</properties>
+		</profile>
+		<!-- test profiles -->
+		<profile>
+			<id>master_windows</id>
+			<properties>
+				<master>true</master>
+				<root>D:\temp</root>
+				<log>D:\temp\.log</log>
 			</properties>
 		</profile>
 		<profile>
