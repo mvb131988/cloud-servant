@@ -1,8 +1,12 @@
 package autodiscovery;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import ipscanner.IpValidator;
 import main.AppProperties;
 
 /**
@@ -19,23 +23,24 @@ public class SlaveAutodiscoverer implements Autodiscovery {
 	// local autodiscoverer here
 	private Autodiscovery autodiscovery;
 	
-	// contains last found master ip or null otherwise
-	private String masterIp;
+	// contains all last found master ips or empty list otherwise
+	private List<String> masterIps;
 	
 	public SlaveAutodiscoverer(Autodiscovery autodiscovery, AppProperties ap) {
 		super();
 		this.autodiscovery = autodiscovery;
 		this.bigTimeout = ap.getBigPoolingTimeout();
+		this.masterIps = new ArrayList<String>();
 	}
 	
 	@Override
-	public String discover(int failureCounter) {
-		String newMasterIp = null;
+	public List<String> discover(int failureCounter) {
+		List<String> newMasterIps = new ArrayList<>();
 		
-		if(masterIp == null) {
+		if(masterIps.size() == 0) {
 			int localFailureCounter = failureCounter;
-			while(newMasterIp == null) {
-				newMasterIp = autodiscovery.discover(localFailureCounter);
+			while(newMasterIps.size() == 0) {
+			  newMasterIps.addAll(autodiscovery.discover(localFailureCounter));
 				
 				localFailureCounter++;
 				
@@ -46,19 +51,20 @@ public class SlaveAutodiscoverer implements Autodiscovery {
 				}
 				
 			}
-			masterIp = newMasterIp;
+			masterIps.addAll(newMasterIps);
 		} 
 		else {
-			newMasterIp = autodiscovery.discover(failureCounter);
+		  newMasterIps.addAll(autodiscovery.discover(failureCounter));
 
-			//if new master ip not found, use old value. If its value not null then it's the last found master ip.
+			//if new master ip not found, use old value. If its value presents in the list then it's the last found master ip.
 			//try it to reconnect to the master.
-			if(newMasterIp != null) {
-				masterIp = newMasterIp;
+			if(newMasterIps.size() > 0) {
+			  masterIps.clear();
+				masterIps.addAll(newMasterIps);
 			}
 		}
 		
-		return masterIp;
+		return masterIps;
 	}
 
 }

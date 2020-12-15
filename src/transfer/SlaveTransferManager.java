@@ -5,6 +5,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -13,6 +15,7 @@ import autodiscovery.SlaveAutodiscoveryAdapter;
 import exception.BatchFileTransferException;
 import exception.MasterNotReadyDuringBatchTransfer;
 import exception.WrongOperationException;
+import ipscanner.IpValidator;
 import main.AppProperties;
 import scheduler.SlaveScheduler;
 import transfer.constant.MasterStatus;
@@ -121,9 +124,19 @@ public class SlaveTransferManager {
 		
 		@Override
 		public void run() {
-			String masterIp = saa.startup(failureCounter);
-			int masterPort = ap.getMasterPort();
+			List<String> masterIps = saa.startup(failureCounter);
 			
+			//At this point only one master ip is expected
+			if(masterIps.size() > 1) {
+			  String errorMessage = "Only one masterIp is expected, found: " + masterIps.size();
+			  String ips = masterIps.stream().collect(Collectors.joining(","));  
+			  throw new RuntimeException(errorMessage + " { " + ips + " } ");
+			}
+			
+			String masterIp = masterIps.get(0);
+		  
+			int masterPort = ap.getMasterPort();
+
 			for(;;) {
 				try {
 					slaveMasterCommunicationThread = connect(masterIp, masterPort);
@@ -141,7 +154,8 @@ public class SlaveTransferManager {
 					logger.error("[" + this.getClass().getSimpleName() + "] thread fail", e);
 					
 					slaveMasterCommunicationThread = null;
-					masterIp = saa.failure(++failureCounter);
+					masterIps = saa.failure(++failureCounter);
+					masterIp = masterIps.get(0);
 					
 					//TODO: Put timeout here(protection for case when network fails)
 					try {

@@ -11,6 +11,7 @@ import autodiscovery.SlaveAutodiscoveryScheduler;
 import ipscanner.IpFJPScanner;
 import ipscanner.IpRangeAnalyzer;
 import ipscanner.IpRangesAnalyzer;
+import ipscanner.IpValidator;
 import provider.MasterCommunicationProvider;
 import provider.SlaveCommunicationProvider;
 import repository.BaseRepositoryOperations;
@@ -94,6 +95,8 @@ public class AppContext {
 	
 	private SlaveCommunicationProvider slaveCommunicationProvider;
 	
+	private IpValidator ipValidator;
+	
 	//============================================================
 	//	Prototypes. Classes with states go here 
 	//============================================================
@@ -122,7 +125,7 @@ public class AppContext {
 	}
 	
 	public SlaveGlobalAutodiscoverer getGlobalDiscoverer() {
-		return new SlaveGlobalAutodiscoverer(getSlaveGlobalScheduler(), getGlobalIpFJPScanner(), getSysManager(), appProperties);
+		return new SlaveGlobalAutodiscoverer(getSlaveGlobalScheduler(), getGlobalIpFJPScanner(), getSysManager(), getIpValidator(), appProperties);
 	}
 	
 	public SlaveLocalAutodiscoverer getLocalDiscoverer() {
@@ -222,9 +225,6 @@ public class AppContext {
 		slaveRepositoryManager.init();
 		sysManager = new SysManager(getBaseRepositoryOperations());
 		
-		//autodiscovering
-		slaveAutodiscoveryAdapter = new SlaveAutodiscoveryAdapter(getDiscoverer(), appProperties);
-		
 		//Transfer operations
 		baseTransferOperations = new BaseTransferOperations(getIntegerTransformer(),
 															getLongTransformer(), 
@@ -246,6 +246,10 @@ public class AppContext {
 																  getStatusTransferOperation(),
 																  getHealthCheckOperation(),
 																  getBatchFilesTransferOperation());
+		
+		//autodiscovering
+		ipValidator = new IpValidator(healthCheckOperation, appProperties.getMasterPort());
+    slaveAutodiscoveryAdapter = new SlaveAutodiscoveryAdapter(getDiscoverer(), appProperties);
 		
 		//Top layer: layer 0 
 		slaveTransferManager = new SlaveTransferManager(appProperties);
@@ -376,5 +380,9 @@ public class AppContext {
 	public SlaveCommunicationProvider getSlaveCommunicationProvider() {
 		return slaveCommunicationProvider;
 	}
+
+  public IpValidator getIpValidator() {
+    return ipValidator;
+  }
 	
 }

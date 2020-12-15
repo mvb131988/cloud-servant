@@ -1,0 +1,2 @@
+(1) when read() is invoked on Socket object, how long would it stay on hold in case
+when counterpart Socket is keeping silence(no data is sent from it's side) 

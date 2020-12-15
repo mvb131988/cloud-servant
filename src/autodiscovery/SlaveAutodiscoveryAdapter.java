@@ -1,5 +1,7 @@
 package autodiscovery;
 
+import java.util.List;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -27,7 +29,7 @@ public class SlaveAutodiscoveryAdapter {
 	 * 
 	 * @return master ip address
 	 */
-	public String startup(int failureCounter) {
+	public List<String> startup(int failureCounter) {
 		return failure(failureCounter);
 	}
 	
@@ -38,7 +40,7 @@ public class SlaveAutodiscoveryAdapter {
 	 * 
 	 * @return master ip address
 	 */
-	public String failure(int failureCounter) {
+	public List<String> failure(int failureCounter) {
 		return sa.discover(failureCounter);
 	}
 	

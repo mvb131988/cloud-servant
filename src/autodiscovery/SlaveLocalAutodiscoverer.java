@@ -1,5 +1,8 @@
 package autodiscovery;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -30,29 +33,34 @@ public class SlaveLocalAutodiscoverer implements Autodiscovery {
 	}
 	
 	@Override
-	public String discover(int failureCounter) {
-		String masterIp = null;
+	public List<String> discover(int failureCounter) {
+		List<String> masterIps = new ArrayList<String>();
 		
 		// Local autodiscovery
 		slaveScheduler.checkAndUpdateBaseTime(failureCounter);
 		boolean isLocalScheduled = slaveScheduler.isScheduled(failureCounter);
 		if(isLocalScheduled) {
-			
 			logger.info("[" + this.getClass().getSimpleName() + "] local scan start");
-			masterIp = ipScanner.scan(localRanges);
-			logger.info("[" + this.getClass().getSimpleName() + "] local scan finish with masterIp = " + masterIp);
+
+			//no filtering, all candidates in local network are supposed to be valid cloud-servant nodes
+			masterIps.addAll(ipScanner.scan(localRanges));
+			
+			masterIps.stream().forEach(
+			    masterIp -> logger.info("[" + this.getClass().getSimpleName() + "] "
+			                + "local scan finish with masterIp = " + masterIp)
+			);
 			
 			slaveScheduler.updateBaseTime();
 		} 
 		
 		// Global autodiscovery
-		if(masterIp == null || !isLocalScheduled) {
-			//is global scan scheduled
-			//invoke global autodiscoverer
-			masterIp = autodiscovery.discover(failureCounter);
+		if(masterIps.size() == 0 || !isLocalScheduled) {
+			//if global scan scheduled, invoke global auto discoverer
+		  //no filtering, filtering is done at the level of global auto discovery scan
+		  masterIps.addAll(autodiscovery.discover(failureCounter));
 		}
 		
-		return masterIp;
+		return masterIps;
 	}
 
 }

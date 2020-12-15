@@ -40,7 +40,7 @@ public class IpFJPScanner {
 		this.fjpSize = appProperties.getFjpSize();
 	}
 
-	public String scan(String ipRanges) {
+	public List<String> scan(String ipRanges) {
 		ipRangesAnalyzer.reset(ipRanges);
 		
 		//Run scan process in fork/join pool
@@ -56,20 +56,11 @@ public class IpFJPScanner {
 		
 		fjp.shutdownNow();
 		
-		//Get the result
+		//Get the result. More than 1 active ips possible for different reasons:
+		// - multiple cloud-servant nodes found
+		// - non cloud-servant nodes, run on the same as cloud-servant node port 
 		List<String> activeIps = ipAction.getActiveIps();
-		String masterIp = null;
-
-		//Analyze the result
-		if(activeIps.size() == 1) {
-			masterIp = activeIps.get(0);
-		}
-		if(activeIps.size() > 1) {
-			//TODO: throw an exception
-			//		Will change in the future. One node will be able to find all of the other nodes in the system
-		}
-		
-		return masterIp;
+		return activeIps;
 	}
 	
 	private class IpAction extends RecursiveAction {
