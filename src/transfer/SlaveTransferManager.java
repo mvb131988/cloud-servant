@@ -102,6 +102,7 @@ public class SlaveTransferManager {
 		logger.info("[" + this.getClass().getSimpleName() + "] master status: " + status);
 	}
 
+	//TODO: review the method
 	public SlaveTransferThread getSlaveTransferThread() {
 		logger.info("[" + this.getClass().getSimpleName() + "] initialization of SlaveTransferThread start");
 		

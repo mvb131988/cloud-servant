@@ -5,7 +5,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -15,8 +14,8 @@ import org.apache.logging.log4j.Logger;
 import transfer.HealthCheckOperation;
 
 /**
- * Checks list of candidate ips. Tries to connect to any candidate and initiate a health check routine.
- * If candidate is indeed cloud-servant node, would successfully complete health check routine. 
+ * Checks list of candidate ips. Tries to connect to each candidate from the given list and initiate
+ * a health check routine. If candidate is indeed cloud-servant node, would successfully complete health check routine. 
  */
 public class IpValidator {
 
@@ -26,10 +25,13 @@ public class IpValidator {
   
   private int masterPort;
   
-  public IpValidator(HealthCheckOperation hco, int masterPort) {
+  private int soTimeout;
+  
+  public IpValidator(HealthCheckOperation hco, int masterPort, int soTimeout) {
     super();
     this.hco = hco;
     this.masterPort = masterPort;
+    this.soTimeout = soTimeout;
   }
 
   public List<String> getValid(List<String> masterIpCandidates) {
@@ -46,6 +48,7 @@ public class IpValidator {
     InputStream is = null;
     OutputStream os = null;
     try {
+      s.setSoTimeout(soTimeout);
       s.connect(new InetSocketAddress(ip, masterPort), 1000);
       is = s.getInputStream();
       os = s.getOutputStream();

@@ -248,7 +248,7 @@ public class AppContext {
 																  getBatchFilesTransferOperation());
 		
 		//autodiscovering
-		ipValidator = new IpValidator(healthCheckOperation, appProperties.getMasterPort());
+		ipValidator = new IpValidator(healthCheckOperation, appProperties.getMasterPort(), appProperties.getSocketSoTimeout());
     slaveAutodiscoveryAdapter = new SlaveAutodiscoveryAdapter(getDiscoverer(), appProperties);
 		
 		//Top layer: layer 0 

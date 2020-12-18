@@ -121,9 +121,10 @@ In pom.xml set:
 (13) Copy .jar to /usr/cloud-servant
 sudo chown -R pi:1000 /usr/cloud-servant
 scp -P 51313 cloud-servant.jar pi@92.115.183.17:/usr/cloud-servant
+scp -P 51313 cloud-servant.jar pi@95.65.61.110:/usr/cloud-servant
 
 Run in background. Don't close on session disconnection
-nohup java -jar cloud-servant start >/dev/null &
+nohup java -jar cloud-servant.jar start >/dev/null &
 	
 ########################################################################################################
 ###	External storage

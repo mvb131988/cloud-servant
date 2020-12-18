@@ -51,18 +51,23 @@ public class SlaveGlobalAutodiscoverer implements Autodiscovery {
 			logger.info("[" + this.getClass().getSimpleName() + "] global scan start");
 			List<String> masterIpCandidates = ipScanner.scan(globalRanges);
 			
-			//at this moment the list contains of only one master ip
+			masterIpCandidates.stream().forEach(
+          mic -> logger.info("[" + this.getClass().getSimpleName() 
+                 + "] global scan finished with master ip candidate = " + mic)
+      );
+			
+			//at this moment the list contains only one master ip
 			masterIps = ipValidator.getValid(masterIpCandidates);
+			
+			masterIps.stream().forEach(
+          mi -> logger.info("[" + this.getClass().getSimpleName() 
+                + "] found master ip = " + mi)
+      );
 			
 			//TODO: need to support multiple ips reads, writes
 			if(masterIps.size() > 0) {
 				sysManager.persistMasterIp(masterIps.get(0));
 			}
-			
-			masterIps.stream().forEach(
-			    masterIp -> logger.info("[" + this.getClass().getSimpleName() 
-			                + "] global scan finish with masterIp = " + masterIp)
-			);
 			
 			slaveScheduler.updateBaseTime();
 		} 
