@@ -214,5 +214,20 @@ access ftp://192.168.0.13/
 On windows after an update raspberry pi nodes are unable to ping windows/PC node. 
 The issue looks like: from raspberry pi node it's impossible to ping windows/PC node.
 					  However the error isn't 'host unreachable', instead it gets 'packet loss 100%'
-This happens because windows firewall configuration	(see firewall configuration for private networks)				  
-					
+This happens because windows firewall configuration	(see firewall configuration for private networks)	
+
+########################################################################################################
+### Install procedure
+########################################################################################################			  
+(1) compile_slave.bat
+(2) from target:
+	scp -P 51313 cloud-servant.jar pi@92.115.183.17:/usr/cloud-servant
+	scp -P 51313 cloud-servant.jar pi@95.65.61.110:/usr/cloud-servant
+(3) ssh pi@92.115.183.17 -p 51313		
+	ssh pi@95.65.61.110 -p 51313
+(4) htop
+	kill cloud-servant process if there is running one
+(5) cd /usr/cloud-servant/
+(6) sudo reboot	
+	or
+	nohup java -jar cloud-servant.jar start >/dev/null &
