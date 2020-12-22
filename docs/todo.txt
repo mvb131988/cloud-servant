@@ -1,0 +1,12 @@
+(1) Create separate thread for both local/global scan, run it periodically (once a week)
+if no ip addresses found run it immediately after the previous run.
+On get ip addresses(different thread) read already discovered/persisted addresses and try them 
+to connect, use only PersistenceManager.  
+
+Goal: autodiscovery is run is separate thread, all found addresses are persisted, based on
+	  the result of previous autodiscovery scheduling decision is made.
+	  
+	  Get ip addresses tries addresses persisted by PersistenceManager. No need to use 
+	  failure counter. If there are no ip addresses just keep reading PersistnceManager
+	  until it gets something.
+	    

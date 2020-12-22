@@ -42,6 +42,8 @@ public class SlaveGlobalAutodiscoverer implements Autodiscovery {
 		//TODO: need to support multiple ips reads, writes
 	  List<String> masterIps = new ArrayList<>();
 	  masterIps.add(sysManager.getMasterIp());
+	  
+	  List<String> newMasterIps = new ArrayList<String>();
 		
 		// Global autodiscovery
 		slaveScheduler.checkAndUpdateBaseTime(failureCounter);
@@ -57,22 +59,22 @@ public class SlaveGlobalAutodiscoverer implements Autodiscovery {
       );
 			
 			//at this moment the list contains only one master ip
-			masterIps = ipValidator.getValid(masterIpCandidates);
+			newMasterIps = ipValidator.getValid(masterIpCandidates);
 			
-			masterIps.stream().forEach(
+			newMasterIps.stream().forEach(
           mi -> logger.info("[" + this.getClass().getSimpleName() 
                 + "] found master ip = " + mi)
       );
 			
-			//TODO: need to support multiple ips reads, writes
-			if(masterIps.size() > 0) {
-				sysManager.persistMasterIp(masterIps.get(0));
-			}
-			
 			slaveScheduler.updateBaseTime();
 		} 
 		
-		return masterIps;
+		//TODO: need to support multiple ips reads, writes
+		if(newMasterIps.size() > 0) {
+		  sysManager.persistMasterIp(newMasterIps.get(0));
+		}
+
+		return newMasterIps.size() > 0 ? newMasterIps: masterIps;
 	}
 
 }
