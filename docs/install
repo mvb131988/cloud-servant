@@ -170,6 +170,10 @@ To ALWAYS mount external hard drive to the same location
 
 (2) Copy cloud-servant.service into
 
+scp -P 51313 cloud-servant.service pi@<ip>:/usr/cloud-servant
+then
+sudo cp /usr/cloud-servant/cloud-servant.service /lib/systemd/system
+
 (3) Adjust ExecStart:
 	- set correct full java path
 	- set correct full cloud-servant path

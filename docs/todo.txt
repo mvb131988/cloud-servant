@@ -9,4 +9,9 @@ Goal: autodiscovery is run is separate thread, all found addresses are persisted
 	  Get ip addresses tries addresses persisted by PersistenceManager. No need to use 
 	  failure counter. If there are no ip addresses just keep reading PersistnceManager
 	  until it gets something.
-	    
+	  
+===============================================================================================
+Describe 
++ where logs are stored
++ where .tmp and .sys files are stored
++ how to configure wi-fi on raspberry	    
