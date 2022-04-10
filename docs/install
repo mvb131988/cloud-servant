@@ -15,29 +15,70 @@ sudo service ssh start
 	Connect to raspberry via ssh and use command passwd in terminal:
 	passwd
 
-(4) In local network assign static ip(bind by MAC address) to raspberry
-(192.168.0.13, 192.168.0.31)
-
-To find auto assigned ip address use: for /l %i in (1,1,254) do @ping 192.168.0.%i -n 1 -w 100 | find "Reply"
-To find MAC on raspberry node use: ifconfig(ether address)
-
-(5) Configure port forwarding on the router. Necessary for external ssh access(port 22) as well as for 
-application communication(port from app configuration)
-
-(6) Change ssh port 
+(4) Change ssh port (on default 22 port would come lots of the external requests,
+somebody tries to break through ssh security);
+	
 	1. sudo nano /etc/ssh/sshd_config
 	2. Uncomment #Port and set 51313
 	3. sudo /etc/init.d/ssh restart
 	        service ssh restart 
 	4. ssh pi@192.168.0.13 -p 51313
 
-(7) Logs location:
+(5) Optional:
+	Connecting to wifi
+	(1)	Check wlan0 exists
+		iwconfig
+	(2) Start interface	
+		sudo ifconfig wlan0 up
+	(3) Get list of available networks	
+		sudo iwlist wlan0 scan
+	(4)	Install wpasupplicant
+		sudo apt-get install wpasupplicant
+	(5) Create or edit /etc/wpa_supplicant/wpa_supplicant.conf 
+		sudo nano wpa_supplicant.conf
+		------------------------------------
+		file content(get network name from 3)
+		------------------------------------
+		network={
+		    ssid="network_name"
+		    psk="network_pas"
+		}
+		------------------------------------
+	(6) Run and check there is wext driver 
+		wpa_supplicant -h
+	(7) Intialize wpa_supplicant and connect to the network in(5)
+		sudo wpa_supplicant -B -i wlan0 -c /etc/wpa_supplicant/wpa_supplicant.conf -D wext
+		sudo dhclient wlan0
+	
+	Optional: To disconnect from the network
+	sudo killall wpa_supplicant
+
+
+(6) In local network assign static ip(bind by MAC address) to raspberry
+(192.168.0.13 or 192.168.0.31)
+
+To find auto assigned ip address use: for /l %i in (1,1,254) do @ping 192.168.0.%i -n 1 -w 100 | find "Reply"
+To find MAC on raspberry node use: ifconfig(ether address)
+
+(7) Configure port forwarding on the router. Necessary for external ssh access(port 22) as well as for 
+application communication(port from app configuration)
+
+Ports:
+	- 22222 communication between nodes
+	- 51313 ssh control
+	- 53131 web interface port(part of cloud-servant-view), no need to configure here
+
+(8) Logs location:
 	/var/log/auth.log (grep "Failed" /var/log/auth.log)
 
-(8) Copy files from remote to local
+(9) Copy files from remote to local
 	scp -r -P 51313 pi@92.115.183.17:/media/pi/seagate/repo/.log /d/temp/remote_logs
 	
 	scp -r -P 51313 pi@95.65.61.110:/media/pi/seagate/repo/.log/app.log /c/endava/temp/95.65.61.110/
+	
+Node list (assuming ips are static):
+(1) 92.115.183.17
+(2)	95.65.61.110
 
 ########################################################################################################
 ### Environment configuration
