@@ -68,7 +68,7 @@ Ports:
 	- 51313 ssh control
 	- 53131 web interface port(part of cloud-servant-view), no need to configure here
 
-(8) Logs location:
+(8) ssh logs location:
 	/var/log/auth.log (grep "Failed" /var/log/auth.log)
 
 (9) Copy files from remote to local
@@ -79,6 +79,22 @@ Ports:
 Node list (assuming ips are static):
 (1) 92.115.183.17
 (2)	95.65.61.110
+
+########################################################################################################
+### Logs & sys files location
+########################################################################################################
+
++ logs: 
+	/media/pi/seagate/repo/.log
+
++ tmp(used during file transfer, when not fully file is stored here):
+	/media/pi/seagate/repo/.temp
+
++ registry of all files in the repository	
+	/media/pi/seagate/repo
+
++ system files:	
+	/media/pi/seagate/repo/.sys
 
 ########################################################################################################
 ### Environment configuration
