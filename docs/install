@@ -1,4 +1,42 @@
 ########################################################################################################
+### Pi setup (OS Lite version, no UI)
+########################################################################################################
+
+(1) Unblock wireless card
+sudo rfkill list
+sudo rfkill unblock wifi; or sudo rfkill unblock all;
+
+(2) Scan for all available networks and choose the right one:
+(to get wireless interface name use: ip a)
+sudo iwlist wlan0 scan
+
+(3) Edit: 
+/etc/wpa_supplicant/wpa_supplicant.conf
+
+Replace content by 
+
+network={
+    ssid="<network name chosen from 2>"
+    psk="<network pas as string>"
+}
+
+(4) At this point to connect manually:
+sudo killall wpa_supplicant
+sudo wpa_supplicant -B -i wlan0 -c /etc/wpa_supplicant.conf 
+sudo dhclient wlan0
+
+(5) To run automatically on startup:
+
+edit /etc/network/interfaces
+
+Add to the end:
+
+allow-hotplug wlan0
+iface wlan0 inet dhcp
+wpa-conf /etc/wpa_supplicant/wpa_supplicant.conf
+
+
+########################################################################################################
 ### Pi setup
 ########################################################################################################
 

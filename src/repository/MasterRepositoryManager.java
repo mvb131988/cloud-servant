@@ -121,8 +121,9 @@ public class MasterRepositoryManager {
 						logger.info("[" + this.getClass().getSimpleName() + "] scan ended");
 					}
 					
-					RepositoryRecord rr = bro.read(BaseRepositoryOperations.HEADER_SIZE + 13*RecordConstants.FULL_SIZE);
-					rr.getId();
+					//TODO: Check and remove
+					//RepositoryRecord rr = bro.read(BaseRepositoryOperations.HEADER_SIZE + 13*RecordConstants.FULL_SIZE);
+					//rr.getId();
 					
 					//Thread idle timeout.
 					//Wait 1 second to avoid resources overconsumption.
