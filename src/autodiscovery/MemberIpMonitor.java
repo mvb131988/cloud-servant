@@ -56,8 +56,8 @@ public class MemberIpMonitor {
 			ds = bro.loadRemoteMembers(pathTxt);
 		} catch (IOException ex) {
 			logger.error("Exception during members txt (dynamic file) file read", ex);
-			throw new InitializationException("Exception during members  txt (dynamic file) "
-					+ "file read ", ex);
+			throw new InitializationException("Exception during members txt (dynamic file) "
+					+ "file read", ex);
 		}
 	}
 	
