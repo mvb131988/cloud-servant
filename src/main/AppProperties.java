@@ -4,11 +4,15 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ResourceBundle;
 
+import repository.BaseRepositoryOperations;
+
 public class AppProperties {
 	
 	private boolean isMaster;
 	
 	private Path repositoryRoot;
+	
+	private Path pathSys;
 	
 	private Integer masterPort;
 	
@@ -48,6 +52,7 @@ public class AppProperties {
 	
 	public AppProperties() {
 		repositoryRoot = Paths.get(ResourceBundle.getBundle("app").getString("root"));
+		pathSys = Paths.get(ResourceBundle.getBundle("app").getString("path.sys"));
 		isMaster = Boolean.parseBoolean(ResourceBundle.getBundle("app").getString("master"));
 		masterPort = Integer.parseInt(ResourceBundle.getBundle("app").getString("master.port"));
 		adminPort = Integer.parseInt(ResourceBundle.getBundle("app").getString("admin.port"));
@@ -137,6 +142,10 @@ public class AppProperties {
 
 	public int getSlaveRepositoryScheduleInterval() {
 		return slaveRepositoryScheduleInterval;
+	}
+
+	public Path getPathSys() {
+		return pathSys;
 	}
 
 }

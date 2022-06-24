@@ -1,5 +1,4 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>cloud-servant</groupId>
 	<artifactId>cloud-servant</artifactId>
@@ -11,12 +10,18 @@
 
 	<build>
 		<sourceDirectory>src</sourceDirectory>
+		<testSourceDirectory>test</testSourceDirectory>
 		<resources>
 			<resource>
 				<directory>resources</directory>
 				<filtering>true</filtering>
 			</resource>
 		</resources>
+		<testResources>
+			<testResource>
+				<directory>test-resources</directory>
+			</testResource>
+		</testResources>
 		<plugins>
 			<!-- download source code in Eclipse, best practice -->
 			<plugin>
@@ -51,6 +56,23 @@
 					<appendAssemblyId>false</appendAssemblyId>
 				</configuration>
 			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>2.21.0</version>
+				<dependencies>
+					<dependency>
+						<groupId>org.junit.platform</groupId>
+						<artifactId>junit-platform-surefire-provider</artifactId>
+						<version>1.2.0-M1</version>
+					</dependency>
+					<dependency>
+						<groupId>org.junit.jupiter</groupId>
+						<artifactId>junit-jupiter-engine</artifactId>
+						<version>5.2.0-M1</version>
+					</dependency>
+				</dependencies>
+			</plugin>
 		</plugins>
 	</build>
 	<profiles>
@@ -75,16 +97,17 @@
 			<id>master_windows</id>
 			<properties>
 				<master>true</master>
-				<root>D:\temp</root>
-				<log>D:\temp\.log</log>
+				<root>C:\endava\workspace\cloud-servant\master_repo</root>
+				<log>C:\endava\workspace\cloud-servant\master_repo\.log</log>
 			</properties>
 		</profile>
 		<profile>
 			<id>slave_windows</id>
 			<properties>
 				<master>false</master>
-				<root>C:/temp</root>
-				<log>C:/temp/.log</log>
+				<root>C:\endava\workspace\cloud-servant\slave_repo</root>
+				<log>C:\endava\workspace\cloud-servant\slave_repo\.log</log>
+				<path.sys>C:\endava\workspace\cloud-servant\slave_repo\.sys</path.sys>
 			</properties>
 		</profile>
 	</profiles>
@@ -93,6 +116,18 @@
 			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j-core</artifactId>
 			<version>2.7</version>
+		</dependency>
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter-engine</artifactId>
+			<version>5.8.1</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-core</artifactId>
+			<version>3.0.0</version>
+			<scope>test</scope>
 		</dependency>
 	</dependencies>
 </project>

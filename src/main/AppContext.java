@@ -3,6 +3,8 @@ package main;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import autodiscovery.IpAutodiscoverer;
+import autodiscovery.MemberIpMonitor;
 import autodiscovery.SlaveAutodiscoverer;
 import autodiscovery.SlaveAutodiscoveryAdapter;
 import autodiscovery.SlaveGlobalAutodiscoverer;
@@ -96,6 +98,10 @@ public class AppContext {
 	private SlaveCommunicationProvider slaveCommunicationProvider;
 	
 	private IpValidator ipValidator;
+	
+	private IpAutodiscoverer ipAutodiscoverer;
+	
+	private MemberIpMonitor memberIpManager;
 	
 	//============================================================
 	//	Prototypes. Classes with states go here 
@@ -249,7 +255,7 @@ public class AppContext {
 		
 		//autodiscovering
 		ipValidator = new IpValidator(healthCheckOperation, appProperties.getMasterPort(), appProperties.getSocketSoTimeout());
-    slaveAutodiscoveryAdapter = new SlaveAutodiscoveryAdapter(getDiscoverer(), appProperties);
+		slaveAutodiscoveryAdapter = new SlaveAutodiscoveryAdapter(getDiscoverer(), appProperties);
 		
 		//Top layer: layer 0 
 		slaveTransferManager = new SlaveTransferManager(appProperties);
@@ -266,8 +272,15 @@ public class AppContext {
 																	appProperties);
 		
 		//After all beans are created start initialization process
-		appInitializer = new AppInitializer(getBaseRepositoryOperations());
+		appInitializer = new AppInitializer(getBaseRepositoryOperations(), appProperties);
 		appInitializer.initSysDirectory();		
+		
+		/// autodiscovering ///
+		memberIpManager = new MemberIpMonitor(getBaseRepositoryOperations(), appProperties);
+		ipAutodiscoverer = new IpAutodiscoverer(getMemberIpManager());
+		Thread ipAutodiscovererThread = new Thread(ipAutodiscoverer);
+		ipAutodiscovererThread.setName("IpAutodiscovererThread");
+		ipAutodiscovererThread.start();
 	}
 	
 	public void start(AppProperties appProperties) {
@@ -384,5 +397,9 @@ public class AppContext {
   public IpValidator getIpValidator() {
     return ipValidator;
   }
+
+public MemberIpMonitor getMemberIpManager() {
+	return memberIpManager;
+}
 	
 }

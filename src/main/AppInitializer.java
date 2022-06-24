@@ -18,9 +18,12 @@ public class AppInitializer {
 	
 	private BaseRepositoryOperations bro;
 
-	public AppInitializer(BaseRepositoryOperations bro) {
+	private Path pathSys;
+	
+	public AppInitializer(BaseRepositoryOperations bro, AppProperties appProperties) {
 		super();
 		this.bro = bro;
+		this.pathSys = appProperties.getPathSys();
 	}
 	
 	/**
@@ -28,14 +31,17 @@ public class AppInitializer {
 	 */
 	public void initSysDirectory() {
 		try {
+			logger.info("System path is: " + pathSys);
+			
 			//check sys directory existence
-			Path sys = Paths.get(".sys");
-			bro.createDirectoryIfNotExist(sys);
-			bro.hideDirectory(sys);
+			bro.createDirectoryIfNotExist0(pathSys);
+			bro.hideDirectory(pathSys);
 			
 			//check nodes file existence
-			Path nodes = sys.resolve(Paths.get("nodes.txt"));
+			//TODO: Deprecated substitute nodes.txt with members.txt
+			Path nodes = pathSys.resolve(Paths.get("nodes.txt"));
 			bro.createFileIfNotExist(nodes);
+			////////////////////////////////////////////////////////
 		} catch (IOException e) {
 			logger.error("[" + this.getClass().getSimpleName() + "] unable to create sys file", e);
 		} 

@@ -3,3 +3,10 @@
 bin
 target
 .settings
+*.jar
+*.bkp
+*.dtmp
+master_repo/*
+${log}/*
+slave_repo/*
+test-repo-root/*

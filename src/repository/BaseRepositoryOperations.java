@@ -2,7 +2,6 @@ package repository;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -29,6 +28,8 @@ import java.util.concurrent.ArrayBlockingQueue;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import autodiscovery.MemberDescriptor;
+import autodiscovery.MemberType;
 import exception.FilePathMaxLengthException;
 import main.AppProperties;
 import repository.status.AsynchronySearcherStatus;
@@ -36,8 +37,6 @@ import repository.status.FileErrorStatus;
 import repository.status.RepositoryFileStatus;
 import transformer.FilesContextTransformer;
 import transformer.LongTransformer;
-
-import static repository.status.FileErrorStatus.*;
 
 public class BaseRepositoryOperations {
 
@@ -411,6 +410,7 @@ public class BaseRepositoryOperations {
 	 * 
 	 * @throws IOException
 	 */
+	@Deprecated
 	public void createDirectoryIfNotExist(Path relativePath) throws IOException {
 		if (relativePath != null) {
 			Path newPath = repositoryRoot.resolve(relativePath);
@@ -420,6 +420,23 @@ public class BaseRepositoryOperations {
 		}
 	}
 
+	/**
+	 * Creates directory given by the path
+	 * 
+	 * @throws IOException
+	 */
+	public void createDirectoryIfNotExist0(Path path) throws IOException {
+		if (path != null) {
+			if (!Files.exists(path)) {
+				logger.info("Path : " + path + " does not exist");
+				
+				Files.createDirectories(path);
+				
+				logger.info("Path : " + path + " is created");
+			}
+		}
+	}
+	
 	/**
 	 * Creates file relative to the repository root
 	 * 
@@ -432,6 +449,148 @@ public class BaseRepositoryOperations {
 				Files.createFile(newPath);
 			}
 		}
+	}
+	
+	/**
+	 * Two similar files exist: members.properties and members.txt
+	 * members.properties - is internal default read-only config in classpath
+	 * 						contains no info about ips
+	 * 
+	 * members.txt - external editable config with the same structure and content
+	 * 				 as members.properties, but with ip addresses to each remote
+	 * 				 member(or empty if address is not found yet)
+	 * 
+	 * Creates members.txt file given by the path. Initializes members.txt file
+	 * with local member id and list of remote members configuration.
+	 * 
+	 * @param path - path to the member.txt file, located in .sys dir
+	 * @param memberId - local member id
+	 * @param ds - remote members descriptors
+	 * @throws IOException
+	 */
+	public void createMembersFileIfNotExist(Path path, 
+											String memberId, 
+											List<MemberDescriptor> ds) throws IOException 
+	{
+		if (path != null) {
+			if (!Files.exists(path)) {
+				
+				String s = "memberId=" + memberId + System.lineSeparator();
+				s += System.lineSeparator();
+				
+				for(int i=0; i<ds.size()-1; i++) {
+					s += ds.get(i).getMemberId() + ":" +
+						 ds.get(i).getMemberType() + ":" + 
+						 System.lineSeparator();
+				}
+				if(ds.size() > 0) {
+					s += ds.get(ds.size()-1).getMemberId() + ":" +
+						 ds.get(ds.size()-1).getMemberType() + ":";
+				}
+
+				logger.info("Members.txt file : " + path + " does not exist");
+				
+				Files.createFile(path);
+				Files.write(path, s.getBytes());
+				
+				logger.info("Members.txt file : " + path + " is created");
+			}
+		}
+	}
+	
+	/**
+	 * Load local member id from members.txt (members.txt is outside of the .jar file)
+	 * 
+	 * @param path - path to members.txt
+	 * @return
+	 * @throws IOException
+	 */
+	public String loadLocalMemberId(Path path) throws IOException {
+		List<String> lines = Files.readAllLines(path);
+		//memberId of the local member
+		String memberId = (lines.get(0).split("="))[1];
+		return memberId;
+	}
+	
+	/**
+	 * Load local member id from members.properties located in classpath (inside the .jar file)
+	 * 
+	 * @param name - members.properties file name in classpath
+	 * @return
+	 * @throws IOException
+	 */
+	public String loadLocalMemberId(String name) throws IOException {
+		List<String> lines = loadAsLinesFromClasspath(name);
+		//memberId of the local member
+		String memberId = (lines.get(0).split("="))[1];
+		return memberId;
+	}
+	
+	/**
+	 * Load external member descriptor from members.txt (members.txt is outside of the .jar file)
+	 * 
+	 * @param path - path to members.txt
+	 * @return
+	 * @throws IOException
+	 */
+	public List<MemberDescriptor> loadRemoteMembers(Path path) throws IOException {
+		List<String> lines = Files.readAllLines(path);
+		return toRemoteMembersDescriptors(lines);
+	}
+	
+	/**
+	 * Load external member descriptor from members.properties located in classpath
+	 * (inside the .jar file)
+	 * 
+	 * @param name - members.properties file name in classpath
+	 * @return
+	 * @throws IOException
+	 */
+	public List<MemberDescriptor> loadRemoteMembers(String name) throws IOException {
+		List<String> lines = loadAsLinesFromClasspath(name);
+		return toRemoteMembersDescriptors(lines);
+	}
+	
+	/**
+	 * Convert lines from members.txt or members.properties into member descriptors
+	 * 
+	 * @param lines - lines from members.txt or members.properties
+	 * @return
+	 */
+	private List<MemberDescriptor> toRemoteMembersDescriptors(List<String> lines) {
+		//skip local memberId & empty line
+
+		List<MemberDescriptor> ds = new ArrayList<>();
+		for(int i=2; i<lines.size(); i++) {
+			String[] parts = lines.get(i).split(":");
+			MemberDescriptor d = 
+					new MemberDescriptor(parts[0], 
+										 MemberType.valueOf(parts[1]), 
+										 parts.length == 3 ? parts[2] : null);
+			ds.add(d);
+		}		
+		
+		return ds;
+	}
+	
+	/**
+	 * Load members.properties located in classpath (inside the .jar file) in form of lines,
+	 * no transformation to local member id or external member descriptors happens here.   
+	 * 
+	 * @param name
+	 * @return
+	 * @throws IOException
+	 */
+	private List<String> loadAsLinesFromClasspath(String name) throws IOException {
+		List<String> lines = new ArrayList<>();
+		try(InputStream is = getClass().getClassLoader().getResourceAsStream(name);
+			BufferedReader reader = new BufferedReader(new InputStreamReader(is))) 
+		{
+			while(reader.ready()) {
+				lines.add(reader.readLine());
+			}
+		}
+		return lines;
 	}
 	
 	public long getSize(Path relativePath) throws IOException {
