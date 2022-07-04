@@ -475,27 +475,40 @@ public class BaseRepositoryOperations {
 		if (path != null) {
 			if (!Files.exists(path)) {
 				
-				String s = "memberId=" + memberId + System.lineSeparator();
-				s += System.lineSeparator();
-				
-				for(int i=0; i<ds.size()-1; i++) {
-					s += ds.get(i).getMemberId() + ":" +
-						 ds.get(i).getMemberType() + ":" + 
-						 System.lineSeparator();
-				}
-				if(ds.size() > 0) {
-					s += ds.get(ds.size()-1).getMemberId() + ":" +
-						 ds.get(ds.size()-1).getMemberType() + ":";
-				}
-
 				logger.info("Members.txt file : " + path + " does not exist");
 				
-				Files.createFile(path);
-				Files.write(path, s.getBytes());
+				createMembersFile(path, memberId, ds);
 				
 				logger.info("Members.txt file : " + path + " is created");
 			}
 		}
+	}
+	
+	private void createMembersFile(Path path, 
+								   String memberId, 
+								   List<MemberDescriptor> ds) throws IOException 
+	{
+		String s = "memberId=" + memberId + System.lineSeparator();
+		s += System.lineSeparator();
+		
+		for(int i=0; i<ds.size()-1; i++) {
+			String ip = ds.get(i).getIpAddress() != null ? ds.get(i).getIpAddress(): "";
+			s += ds.get(i).getMemberId() + ":" +
+				 ds.get(i).getMemberType() + ":" + 
+				 ip +
+				 System.lineSeparator();
+		}
+		if(ds.size() > 0) {
+			String ip = ds.get(ds.size()-1).getIpAddress() != null ? 
+						ds.get(ds.size()-1).getIpAddress() : 
+						"";
+			s += ds.get(ds.size()-1).getMemberId() + ":" +
+				 ds.get(ds.size()-1).getMemberType() + ":" +
+				 ip;
+		}
+		
+		Files.createFile(path);
+		Files.write(path, s.getBytes());
 	}
 	
 	/**
@@ -591,6 +604,24 @@ public class BaseRepositoryOperations {
 			}
 		}
 		return lines;
+	}
+	
+	/**
+	 * Persists members descriptors by rewriting memebers.txt configuration file. 
+	 * 
+	 * @param path
+	 * @param memberId
+	 * @param ds
+	 * @throws IOException
+	 */
+	public void persistMembersDescriptors(Path path, 
+										  String memberId, 
+										  List<MemberDescriptor> ds) throws IOException
+	{
+		Path tmpPath = path.getParent().resolve("members_tmp.txt");
+		createMembersFile(tmpPath, memberId, ds);
+		Files.write(path, Files.readAllBytes(tmpPath));
+		Files.delete(tmpPath);
 	}
 	
 	public long getSize(Path relativePath) throws IOException {

@@ -67,7 +67,8 @@ public class BaseRepositoryOperationsTest {
 				() -> assertEquals(expected.get(1), actual.get(1)),
 				() -> assertEquals(expected.get(2), actual.get(2)),
 				() -> assertEquals(expected.get(3), actual.get(3)),
-				() -> assertEquals(expected.get(4), actual.get(4)));
+				() -> assertEquals(expected.get(4), actual.get(4)),
+				() -> assertEquals(expected.get(5), actual.get(5)));
 	}
 	
 	@Test
@@ -180,6 +181,55 @@ public class BaseRepositoryOperationsTest {
 				() -> assertEquals("member5", ds.get(3).getMemberId()),
 				() -> assertEquals(MemberType.SOURCE, ds.get(3).getMemberType()),
 				() -> assertEquals(null, ds.get(3).getIpAddress()));
+	}
+	
+	@Test
+	public void testPersistMembersDescriptors() throws IOException {
+		//cleanup
+		Path pathSys = Paths.get("").resolve("test-repo-root")
+									.resolve(".sys")
+									.toAbsolutePath();
+		
+		if (Files.exists(pathSys)) {
+			Files.walk(pathSys)
+				 .sorted(Comparator.reverseOrder())
+				 .map(Path::toFile)
+				 .forEach(File::delete);
+			Files.deleteIfExists(pathSys);
+		}
+		
+		Files.createDirectories(pathSys);
+		//
+		
+		Path pathMembers = pathSys.resolve("members.txt");
+		
+		AppProperties appPropertiesMock = mock(AppProperties.class);
+		BaseRepositoryOperations bro = new BaseRepositoryOperations(null, null, appPropertiesMock);
+		
+		List<MemberDescriptor> ds0 = new ArrayList<>();
+		ds0.add(new MemberDescriptor("member2", MemberType.CLOUD, null));
+		ds0.add(new MemberDescriptor("member3", MemberType.CLOUD, null));
+		ds0.add(new MemberDescriptor("member4", MemberType.CLOUD, null));
+		ds0.add(new MemberDescriptor("member5", MemberType.SOURCE, "192.168.0.13"));
+		
+		bro.persistMembersDescriptors(pathMembers, "member1", ds0);
+		
+		Path expectedPathMembers = Paths.get("").resolve("test-resources")
+												.resolve("base-repository-operations")
+											  	.resolve("persist-members.txt")
+											  	.toAbsolutePath();
+
+		List<String> actual = Files.lines(pathMembers).collect(Collectors.toList());
+		List<String> expected = Files.lines(expectedPathMembers).collect(Collectors.toList());
+		
+		assertAll("membersFile",
+				() -> assertEquals(expected.size(), actual.size()),
+				() -> assertEquals(expected.get(0), actual.get(0)),
+				() -> assertEquals(expected.get(1), actual.get(1)),
+				() -> assertEquals(expected.get(2), actual.get(2)),
+				() -> assertEquals(expected.get(3), actual.get(3)),
+				() -> assertEquals(expected.get(4), actual.get(4)),
+				() -> assertEquals(expected.get(5), actual.get(5)));
 	}
 	
 }

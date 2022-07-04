@@ -9,6 +9,7 @@ import autodiscovery.SlaveAutodiscoverer;
 import autodiscovery.SlaveAutodiscoveryAdapter;
 import autodiscovery.SlaveGlobalAutodiscoverer;
 import autodiscovery.SlaveLocalAutodiscoverer;
+import exception.InitializationException;
 import autodiscovery.SlaveAutodiscoveryScheduler;
 import ipscanner.IpFJPScanner;
 import ipscanner.IpRangeAnalyzer;
@@ -215,7 +216,7 @@ public class AppContext {
 																	  appProperties);
 	}
 	
-	public void initAsSlave() {
+	public void initAsSlave() throws InitializationException {
 		//Others
 		longTransformer = new LongTransformer();
 		integerTransformer = new IntegerTransformer();
@@ -277,13 +278,15 @@ public class AppContext {
 		
 		/// autodiscovering ///
 		memberIpManager = new MemberIpMonitor(getBaseRepositoryOperations(), appProperties);
-		ipAutodiscoverer = new IpAutodiscoverer(getMemberIpManager());
+		ipAutodiscoverer = new IpAutodiscoverer(getMemberIpManager(), 
+												getLocalDiscoverer(), 
+												getGlobalDiscoverer());
 		Thread ipAutodiscovererThread = new Thread(ipAutodiscoverer);
 		ipAutodiscovererThread.setName("IpAutodiscovererThread");
 		ipAutodiscovererThread.start();
 	}
 	
-	public void start(AppProperties appProperties) {
+	public void start(AppProperties appProperties) throws InitializationException {
 		this.appProperties = appProperties;
 		if (this.appProperties.isMaster()) {
 			initAsMaster();

@@ -124,6 +124,7 @@ public class IpFJPScanner {
 						logger.trace("[" + this.getClass().getSimpleName() + "] checking " + ip);
 						
 						s.connect(new InetSocketAddress(ip, masterPort), 1000);
+						//TODO: get memberId here
 						activeIps.add(ip);
 						
 						logger.trace("[" + this.getClass().getSimpleName() + "] connecting to " + ip);

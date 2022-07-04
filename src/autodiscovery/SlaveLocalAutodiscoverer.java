@@ -25,6 +25,8 @@ public class SlaveLocalAutodiscoverer implements Autodiscovery {
 	
 	private String localRanges;
 	
+	private MemberDescriptor md;
+	
 	public SlaveLocalAutodiscoverer(Autodiscovery autodiscovery, SlaveAutodiscoveryScheduler slaveScheduler, IpFJPScanner ipScanner, AppProperties ap) {
 		this.autodiscovery = autodiscovery;
 		this.slaveScheduler = slaveScheduler;
@@ -32,9 +34,11 @@ public class SlaveLocalAutodiscoverer implements Autodiscovery {
 		this.localRanges = ap.getLocalRanges();
 	}
 	
+	//TODO: change return type to void
 	@Override
 	public List<String> discover(int failureCounter) {
 		List<String> masterIps = new ArrayList<String>();
+		md = null;
 		
 		// Local autodiscovery
 		slaveScheduler.checkAndUpdateBaseTime(failureCounter);
@@ -60,7 +64,15 @@ public class SlaveLocalAutodiscoverer implements Autodiscovery {
 		  masterIps.addAll(autodiscovery.discover(failureCounter));
 		}
 		
+		if(masterIps.size() == 1) {
+			md = new MemberDescriptor(masterIps.get(0), MemberType.SOURCE, null);
+		}
+			
 		return masterIps;
+	}
+
+	public MemberDescriptor getMemberDescriptor() {
+		return md;
 	}
 
 }
