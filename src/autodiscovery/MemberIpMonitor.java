@@ -13,6 +13,7 @@ import org.apache.logging.log4j.Logger;
 
 import exception.InitializationException;
 import exception.NotUniqueSourceMemberException;
+import exception.WrongMemberId;
 import exception.WrongSourceMemberId;
 import main.AppProperties;
 import repository.BaseRepositoryOperations;
@@ -82,7 +83,7 @@ public class MemberIpMonitor {
 	 * @return true if exists only one SOURCE member with defined ip
 	 * @throws NotUniqueSourceMemberException 
 	 */
-	public boolean isActiveSourceMember() throws NotUniqueSourceMemberException {
+	public synchronized boolean isActiveSourceMember() throws NotUniqueSourceMemberException {
 		//not reachable(makes sense no check ip not null)
 		Predicate<EnhancedMemberDescriptor> notNull = d -> d.getMd().getIpAddress() != null;
 		Predicate<EnhancedMemberDescriptor> isActive = d -> d.getFailureCounter() == 0;
@@ -111,7 +112,7 @@ public class MemberIpMonitor {
 	 * @return failure counter value or 0 if members exist
 	 * @throws NotUniqueSourceMemberException
 	 */
-	public int sourceFailureCounter() throws NotUniqueSourceMemberException {
+	public synchronized int sourceFailureCounter() throws NotUniqueSourceMemberException {
 		//not reachable(makes sense no check ip not null)
 		Map<MemberType, List<EnhancedMemberDescriptor>> dsByType = 
 				ds.stream()
@@ -137,7 +138,7 @@ public class MemberIpMonitor {
 	 * @throws WrongSourceMemberId
 	 * @throws IOException 
 	 */
-	public void setSourceIp(String memberId, String sourceIp) 
+	public synchronized void setSourceIp(String memberId, String sourceIp) 
 			throws NotUniqueSourceMemberException, WrongSourceMemberId, IOException
 	{
 		Predicate<EnhancedMemberDescriptor> equals = d -> d.getMd().getMemberId().equals(memberId);
@@ -166,10 +167,10 @@ public class MemberIpMonitor {
 	 * Walk through the list of members and check if exist any CLOUD member with undefined ip
 	 * or any CLOUD member's failure counter exceeded the limit.
 	 * 
-	 * @return true if all CLOUD members are active (ip address not null and failure counter limit 
+	 * @return true if all CLOUD members are active (ip address not null and failure counter limit
 	 * 		   not reached) and false otherwise
 	 */ 
-	public boolean areActiveCloudMembers() {
+	public synchronized boolean areActiveCloudMembers() {
 		Predicate<EnhancedMemberDescriptor> isCloud =
 				d -> MemberType.CLOUD.equals(d.getMd().getMemberType());
 		Predicate<EnhancedMemberDescriptor> notNull = d -> d.getMd().getIpAddress() != null;
@@ -192,7 +193,7 @@ public class MemberIpMonitor {
 	 * 
 	 * @param mds - list of newly discovered members
 	 */
-	public void setCloudIps(List<MemberDescriptor> mds) throws IOException {
+	public synchronized void setCloudIps(List<MemberDescriptor> mds) throws IOException {
 		Map<String, MemberDescriptor> map = 
 				mds.stream().collect(Collectors.toMap(d -> d.getMemberId(), d -> d));
 		
@@ -216,7 +217,7 @@ public class MemberIpMonitor {
 	 * 
 	 * @return max failure counter among all CLOUD members
 	 */
-	public int cloudFailureCounter() {
+	public synchronized int cloudFailureCounter() {
 		// max failure counter across all CLOUD nodes
 		int counter= 
 				ds.stream()
@@ -228,7 +229,23 @@ public class MemberIpMonitor {
 		return counter;
 	}
 	
-	public List<String> getNotNullIps() {
+	/**
+	 * Returns member type by provided member id
+	 * 
+	 * @param memberId
+	 * @return
+	 * @throws WrongMemberId
+	 */
+	public synchronized MemberType memberTypeByMemberId(String memberId) {
+		List<EnhancedMemberDescriptor> res = 
+				ds.stream()
+				  .filter(d -> memberId.equals(d.getMd().getMemberId()))
+				  .collect(Collectors.toList());
+		
+		return res.get(0).getMd().getMemberType();
+	}
+	
+	public synchronized List<String> getNotNullIps() {
 		return null;
 	}
 }

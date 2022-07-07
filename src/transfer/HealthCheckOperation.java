@@ -7,12 +7,13 @@ import java.io.OutputStream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import autodiscovery.ipscanner.MemberIdFinder;
 import exception.WrongOperationException;
 import transfer.constant.MasterStatus;
 import transfer.constant.OperationType;
 import transfer.context.StatusTransferContext;
 
-public class HealthCheckOperation {
+public class HealthCheckOperation implements MemberIdFinder {
 
 	private Logger logger = LogManager.getRootLogger();
 	
@@ -61,6 +62,17 @@ public class HealthCheckOperation {
 		}
 		
 		return stc;
+	}
+
+	@Override
+	public String memberId(OutputStream os, InputStream is) {
+		StatusTransferContext stc = null;
+		try {
+			stc = executeAsSlave(os, is);
+		} catch (IOException | WrongOperationException e) {
+			logger.error("Exception during healthcheck operation occured: ", e);
+		}
+		return stc != null ? stc.getMemberId() : null;
 	}
 	
 }

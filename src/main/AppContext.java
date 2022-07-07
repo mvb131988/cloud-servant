@@ -7,14 +7,14 @@ import autodiscovery.IpAutodiscoverer;
 import autodiscovery.MemberIpMonitor;
 import autodiscovery.SlaveAutodiscoverer;
 import autodiscovery.SlaveAutodiscoveryAdapter;
+import autodiscovery.SlaveAutodiscoveryScheduler;
 import autodiscovery.SlaveGlobalAutodiscoverer;
 import autodiscovery.SlaveLocalAutodiscoverer;
-import exception.InitializationException;
-import autodiscovery.SlaveAutodiscoveryScheduler;
 import autodiscovery.ipscanner.IpFJPScanner;
 import autodiscovery.ipscanner.IpRangeAnalyzer;
 import autodiscovery.ipscanner.IpRangesAnalyzer;
 import autodiscovery.ipscanner.IpValidator;
+import exception.InitializationException;
 import provider.MasterCommunicationProvider;
 import provider.SlaveCommunicationProvider;
 import repository.BaseRepositoryOperations;
@@ -102,7 +102,7 @@ public class AppContext {
 	
 	private IpAutodiscoverer ipAutodiscoverer;
 	
-	private MemberIpMonitor memberIpManager;
+	private MemberIpMonitor memberIpMonitor;
 	
 	//============================================================
 	//	Prototypes. Classes with states go here 
@@ -136,7 +136,11 @@ public class AppContext {
 	}
 	
 	public SlaveLocalAutodiscoverer getLocalDiscoverer() {
-		return new SlaveLocalAutodiscoverer(getSlaveLocalScheduler(), getLocalIpFJPScanner(), getIpValidator(), appProperties);
+		return new SlaveLocalAutodiscoverer(getSlaveLocalScheduler(), 
+											getLocalIpFJPScanner(), 
+											getIpValidator(), 
+											getMemberIpMonitor(),
+											appProperties);
 	}
 	
 	public SlaveAutodiscoverer getDiscoverer() {
@@ -279,8 +283,8 @@ public class AppContext {
 		appInitializer.initSysDirectory();		
 		
 		/// autodiscovering ///
-		memberIpManager = new MemberIpMonitor(getBaseRepositoryOperations(), appProperties);
-		ipAutodiscoverer = new IpAutodiscoverer(getMemberIpManager(), 
+		memberIpMonitor = new MemberIpMonitor(getBaseRepositoryOperations(), appProperties);
+		ipAutodiscoverer = new IpAutodiscoverer(getMemberIpMonitor(), 
 												getLocalDiscoverer(), 
 												getGlobalDiscoverer());
 		Thread ipAutodiscovererThread = new Thread(ipAutodiscoverer);
@@ -295,7 +299,7 @@ public class AppContext {
 			getMasterCommunicationProvider().init();
 		} else {
 			initAsSlave();
-			getSlaveCommunicationProvider().init();
+			//getSlaveCommunicationProvider().init();
 		}
 	}
 
@@ -399,12 +403,12 @@ public class AppContext {
 		return slaveCommunicationProvider;
 	}
 
-  public IpValidator getIpValidator() {
-    return ipValidator;
-  }
+	public IpValidator getIpValidator() {
+		return ipValidator;
+	}
 
-public MemberIpMonitor getMemberIpManager() {
-	return memberIpManager;
-}
+	public MemberIpMonitor getMemberIpMonitor() {
+		return memberIpMonitor;
+	}
 	
 }

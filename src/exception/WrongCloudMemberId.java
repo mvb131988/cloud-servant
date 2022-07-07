@@ -6,7 +6,7 @@ package exception;
  */
 public class WrongCloudMemberId extends Exception {
 
-private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 1L;
 	
 	public WrongCloudMemberId() {
 		super("Wrong member id is provided. It's not found in local members list");

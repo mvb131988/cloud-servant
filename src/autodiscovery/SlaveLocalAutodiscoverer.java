@@ -8,8 +8,8 @@ import org.apache.logging.log4j.Logger;
 
 import autodiscovery.ipscanner.IpFJPScanner;
 import autodiscovery.ipscanner.IpValidator;
+import autodiscovery.ipscanner.IpValidatorResult;
 import main.AppProperties;
-import transfer.context.StatusTransferContext;
 
 /**
  * Intended for SOURCE member autodiscovering when SOURCE member and CLOUD member run in the
@@ -29,14 +29,18 @@ public class SlaveLocalAutodiscoverer implements Autodiscovery {
 	
 	private IpValidator ipValidator;
 	
+	private MemberIpMonitor mim;
+	
 	public SlaveLocalAutodiscoverer(SlaveAutodiscoveryScheduler slaveScheduler, 
 									IpFJPScanner ipScanner,
 									IpValidator ipValidator,
+									MemberIpMonitor mim,
 									AppProperties ap) 
 	{
 		this.slaveScheduler = slaveScheduler;
 		this.ipScanner = ipScanner;
 		this.ipValidator = ipValidator;
+		this.mim = mim; 
 		this.localRanges = ap.getLocalRanges();
 	}
 	
@@ -55,16 +59,16 @@ public class SlaveLocalAutodiscoverer implements Autodiscovery {
 		if(isLocalScheduled) {
 			logger.info("[" + this.getClass().getSimpleName() + "] local scan start");
 
-			//no filtering, all candidates in local network are supposed to be valid 
-			//cloud-servant members
+			// sourceIp must have only one element as in local network only one source 
+			// member is allowed
 			sourceIps.addAll(ipScanner.scan(localRanges));
 			
-			StatusTransferContext stc = ipValidator.isValid(sourceIps.get(0));
-			
-			// TODO: get member type by member id here
 			// at most one SOURCE member is allowed in local autodiscovery scan 
 			if(sourceIps.size() == 1) {
-				md = new MemberDescriptor(stc.getMemberId(), MemberType.SOURCE, sourceIps.get(0));
+				IpValidatorResult result = ipValidator.isValid(sourceIps.get(0));
+				String memberId = result.isResult() ? result.getMemberId() : null;
+				MemberType memberType = mim.memberTypeByMemberId(memberId); 
+				md = new MemberDescriptor(memberId, memberType, sourceIps.get(0));
 			}
 			
 			sourceIps.stream().forEach(

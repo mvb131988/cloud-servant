@@ -46,6 +46,8 @@ public class SlaveGlobalAutodiscoverer implements Autodiscovery {
 			
 			cloudIps = ipScanner.scan(globalRanges);
 			
+			//TODO: ipValidator here
+			
 			cloudIps.stream().forEach(
 				ip -> logger.info("[" + this.getClass().getSimpleName() 
 						+ "] global scan finished with cloud ip = " + ip)
