@@ -1,0 +1,29 @@
+version: '2.2'
+services:
+  
+  member1:
+    image: member1
+    ports:
+      - 127.0.0.1:4001:4001
+    environment:
+      - DEBUG_PORT=4001
+    networks: 
+      - members-network
+
+  member2:
+    image: member2
+    ports:
+      - 127.0.0.1:4002:4002
+    environment:
+      - DEBUG_PORT=4002
+    networks: 
+      - members-network
+      
+networks:
+  members-network:
+    external: true
+
+### create network before the start    
+# docker network create --driver=bridge --subnet=192.168.0.0/24 --gateway=192.168.0.1 members-network
+
+# docker-compose -f docker-compose.yml up

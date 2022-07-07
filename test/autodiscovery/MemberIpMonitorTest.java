@@ -257,12 +257,12 @@ public class MemberIpMonitorTest {
 	}
 	
 	@Test
-	public void testExistEmptyIp1() throws InitializationException, 
-									 NoSuchFieldException, 
-									 SecurityException, 
-									 IllegalArgumentException, 
-									 IllegalAccessException, 
-									 NotUniqueSourceMemberException 
+	public void testAreActiveCloudMembers1() throws InitializationException, 
+													NoSuchFieldException, 
+													SecurityException, 
+													IllegalArgumentException, 
+													IllegalAccessException, 
+													NotUniqueSourceMemberException 
 	{
 		List<EnhancedMemberDescriptor> ds = new ArrayList<>();
 		ds.add(new EnhancedMemberDescriptor(
@@ -281,16 +281,16 @@ public class MemberIpMonitorTest {
 		f.set(mim, ds);
 		f.setAccessible(false);
 		
-		assertFalse(mim.existEmptyIp());
+		assertTrue(mim.areActiveCloudMembers());
 	}
 	
 	@Test
-	public void testExistEmptyIp2() throws InitializationException, 
-									 NoSuchFieldException, 
-									 SecurityException, 
-									 IllegalArgumentException, 
-									 IllegalAccessException, 
-									 NotUniqueSourceMemberException 
+	public void testAreActiveCloudMembers2() throws InitializationException, 
+												    NoSuchFieldException, 
+												    SecurityException, 
+												    IllegalArgumentException, 
+												    IllegalAccessException, 
+												    NotUniqueSourceMemberException 
 	{
 		List<EnhancedMemberDescriptor> ds = new ArrayList<>();
 		ds.add(new EnhancedMemberDescriptor(
@@ -309,7 +309,7 @@ public class MemberIpMonitorTest {
 		f.set(mim, ds);
 		f.setAccessible(false);
 		
-		assertTrue(mim.existEmptyIp());
+		assertFalse(mim.areActiveCloudMembers());
 	}
 	
 	@Test
@@ -402,6 +402,7 @@ public class MemberIpMonitorTest {
 		assertThrows(NotUniqueSourceMemberException.class, () -> mim.sourceFailureCounter());
 	}
 	
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testSetSourceIp1() throws InitializationException, 
 										  NoSuchFieldException, 
@@ -441,6 +442,11 @@ public class MemberIpMonitorTest {
 		f.set(mim, "member1");
 		f.setAccessible(false);
 		
+		f = mim.getClass().getDeclaredField("pathTxt");
+		f.setAccessible(true);
+		f.set(mim, Paths.get("/path/to/members.txt"));
+		f.setAccessible(false);
+		
 		ArgumentCaptor<Path> arg1= ArgumentCaptor.forClass(Path.class);
 		ArgumentCaptor<String> arg2= ArgumentCaptor.forClass(String.class);
 		ArgumentCaptor<List<MemberDescriptor>> arg3= ArgumentCaptor.forClass(List.class);
@@ -452,7 +458,7 @@ public class MemberIpMonitorTest {
 														arg3.capture());
 		List<MemberDescriptor> actualDs = arg3.getValue();
 		
-		assertEquals(Paths.get("members.txt"), arg1.getValue());
+		assertEquals(Paths.get("/path/to/members.txt"), arg1.getValue());
 		assertEquals("member1", arg2.getValue());
 		assertAll("ds",
 				  () -> assertEquals(ds.size(), actualDs.size()),
@@ -470,6 +476,7 @@ public class MemberIpMonitorTest {
 				  () -> assertEquals("192.168.0.13", actualDs.get(3).getIpAddress()));
 	}
 	
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testSetSourceIp2() throws InitializationException, 
 										  NoSuchFieldException, 
@@ -509,6 +516,11 @@ public class MemberIpMonitorTest {
 		f.set(mim, "member1");
 		f.setAccessible(false);
 		
+		f = mim.getClass().getDeclaredField("pathTxt");
+		f.setAccessible(true);
+		f.set(mim, Paths.get("/path/to/members.txt"));
+		f.setAccessible(false);
+		
 		ArgumentCaptor<Path> arg1= ArgumentCaptor.forClass(Path.class);
 		ArgumentCaptor<String> arg2= ArgumentCaptor.forClass(String.class);
 		ArgumentCaptor<List<MemberDescriptor>> arg3= ArgumentCaptor.forClass(List.class);
@@ -520,7 +532,7 @@ public class MemberIpMonitorTest {
 														arg3.capture());
 		List<MemberDescriptor> actualDs = arg3.getValue();
 		
-		assertEquals(Paths.get("members.txt"), arg1.getValue());
+		assertEquals(Paths.get("/path/to/members.txt"), arg1.getValue());
 		assertEquals("member1", arg2.getValue());
 		assertAll("ds",
 				  () -> assertEquals(ds.size(), actualDs.size()),
@@ -580,4 +592,113 @@ public class MemberIpMonitorTest {
 		assertThrows(WrongSourceMemberId.class, 
 					() -> mim.setSourceIp("member3", "192.168.0.13"));
 	}
+	
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testSetCloudIps1()  throws InitializationException, 
+										   NoSuchFieldException, 
+										   SecurityException, 
+										   IllegalArgumentException, 
+										   IllegalAccessException, 
+										   NotUniqueSourceMemberException, 
+										   WrongSourceMemberId, 
+										   IOException 
+	{
+		List<EnhancedMemberDescriptor> ds = new ArrayList<>();
+		ds.add(new EnhancedMemberDescriptor(
+				new MemberDescriptor("member2", MemberType.CLOUD, null), 0));
+		ds.add(new EnhancedMemberDescriptor(
+				new MemberDescriptor("member3", MemberType.CLOUD, null), 0));
+		ds.add(new EnhancedMemberDescriptor(
+				new MemberDescriptor("member4", MemberType.CLOUD, null), 0));
+		ds.add(new EnhancedMemberDescriptor(
+				new MemberDescriptor("member5", MemberType.SOURCE, null), 0));
+		
+		BaseRepositoryOperations bro = mock(BaseRepositoryOperations.class);
+		
+		MemberIpMonitor mim = new MemberIpMonitor();
+		
+		Field f = mim.getClass().getDeclaredField("ds");
+		f.setAccessible(true);
+		f.set(mim, ds);
+		f.setAccessible(false);
+		
+		f = mim.getClass().getDeclaredField("bro");
+		f.setAccessible(true);
+		f.set(mim, bro);
+		f.setAccessible(false);
+		
+		f = mim.getClass().getDeclaredField("memberId");
+		f.setAccessible(true);
+		f.set(mim, "member1");
+		f.setAccessible(false);
+		
+		f = mim.getClass().getDeclaredField("pathTxt");
+		f.setAccessible(true);
+		f.set(mim, Paths.get("/path/to/members.txt"));
+		f.setAccessible(false);
+		
+		ArgumentCaptor<Path> arg1= ArgumentCaptor.forClass(Path.class);
+		ArgumentCaptor<String> arg2= ArgumentCaptor.forClass(String.class);
+		ArgumentCaptor<List<MemberDescriptor>> arg3= ArgumentCaptor.forClass(List.class);
+		
+		List<MemberDescriptor> updateDs = new ArrayList<>();
+		updateDs.add(new MemberDescriptor("member2", MemberType.CLOUD, "192.168.0.11"));
+		updateDs.add(new MemberDescriptor("member4", MemberType.CLOUD, "192.168.0.12"));
+		mim.setCloudIps(updateDs);
+		
+		verify(bro, times(1)).persistMembersDescriptors(arg1.capture(),
+														arg2.capture(), 
+														arg3.capture());
+		List<MemberDescriptor> actualDs = arg3.getValue();
+		
+		assertEquals(Paths.get("/path/to/members.txt"), arg1.getValue());
+		assertEquals("member1", arg2.getValue());
+		assertAll("ds",
+				  () -> assertEquals(ds.size(), actualDs.size()),
+				  () -> assertEquals("member2", actualDs.get(0).getMemberId()),
+				  () -> assertEquals(MemberType.CLOUD, actualDs.get(0).getMemberType()),
+				  () -> assertEquals("192.168.0.11", actualDs.get(0).getIpAddress()),
+				  () -> assertEquals("member3", actualDs.get(1).getMemberId()),
+				  () -> assertEquals(MemberType.CLOUD, actualDs.get(1).getMemberType()),
+				  () -> assertEquals(null, actualDs.get(1).getIpAddress()),
+				  () -> assertEquals("member4", actualDs.get(2).getMemberId()),
+				  () -> assertEquals(MemberType.CLOUD, actualDs.get(2).getMemberType()),
+				  () -> assertEquals("192.168.0.12", actualDs.get(2).getIpAddress()),
+				  () -> assertEquals("member5", actualDs.get(3).getMemberId()),
+				  () -> assertEquals(MemberType.SOURCE, actualDs.get(3).getMemberType()),
+				  () -> assertEquals(null, actualDs.get(3).getIpAddress()));
+	}
+	
+	@Test
+	public void testCloudFailureCounter1() throws InitializationException, 
+											 	  NoSuchFieldException, 
+											 	  SecurityException, 
+											 	  IllegalArgumentException, 
+											 	  IllegalAccessException, 
+											 	  NotUniqueSourceMemberException 
+	{
+		List<EnhancedMemberDescriptor> ds = new ArrayList<>();
+		ds.add(new EnhancedMemberDescriptor(
+				new MemberDescriptor("member2", MemberType.CLOUD, "192.168.0.13"), 2));
+		ds.add(new EnhancedMemberDescriptor(
+				new MemberDescriptor("member3", MemberType.CLOUD, null), 0));
+		ds.add(new EnhancedMemberDescriptor(
+				new MemberDescriptor("member4", MemberType.CLOUD, null), 0));
+		ds.add(new EnhancedMemberDescriptor(
+				new MemberDescriptor("member5", MemberType.SOURCE, "192.168.0.14"), 1));
+		ds.add(new EnhancedMemberDescriptor(
+				new MemberDescriptor("member6", MemberType.SOURCE, null), 0));
+		
+		MemberIpMonitor mim = new MemberIpMonitor();
+		
+		Field f = mim.getClass().getDeclaredField("ds");
+		f.setAccessible(true);
+		f.set(mim, ds);
+		f.setAccessible(false);
+		
+		int counter = mim.cloudFailureCounter();
+		assertEquals(2, counter);
+	}
+	
 }

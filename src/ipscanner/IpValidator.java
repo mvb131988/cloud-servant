@@ -12,6 +12,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import transfer.HealthCheckOperation;
+import transfer.context.StatusTransferContext;
 
 /**
  * Checks list of candidate ips. Tries to connect to each candidate from the given list and initiate
@@ -34,15 +35,17 @@ public class IpValidator {
     this.soTimeout = soTimeout;
   }
 
-  public List<String> getValid(List<String> masterIpCandidates) {
-    List<String> masterIps = masterIpCandidates.stream()
-                                               .filter(this::isValid)
-                                               .collect(Collectors.toList());
-    return masterIps;
-  }
+//  public List<String> getValid(List<String> masterIpCandidates) {
+//    List<String> masterIps = masterIpCandidates.stream()
+//                                               .filter(this::isValid)
+//                                               .collect(Collectors.toList());
+//    return masterIps;
+//  }
   
-  public boolean isValid(String ip) {
-    boolean result = false;
+  public StatusTransferContext isValid(String ip) {
+	StatusTransferContext stc = null;
+	  
+	boolean result = false;
     
     Socket s = new Socket();
     InputStream is = null;
@@ -53,7 +56,7 @@ public class IpValidator {
       is = s.getInputStream();
       os = s.getOutputStream();
       
-      hco.executeAsSlave(os, is);
+      stc = hco.executeAsSlave(os, is);
       result = true;
     } catch (Exception e) {
       logger.info("Invalid candidate, ip " + ip + " is non cloud-servant node");
@@ -64,7 +67,7 @@ public class IpValidator {
       if(s != null) {try {s.close();} catch (IOException e) {}}
     }
     
-    return result;
+    return stc;
   }
   
 }

@@ -10,6 +10,7 @@ import main.AppProperties;
 /**
  * Designed to be used in a single thread only.
  */
+@Deprecated
 public class SlaveAutodiscoveryAdapter {
 
 	private Logger logger = LogManager.getRootLogger();

@@ -12,6 +12,8 @@ import java.lang.Thread.State;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -70,6 +72,62 @@ public class IpAutodiscovererTest {
 		
 		localT = (Thread) getPrivateFieldValue(discoverer, "localT");
 		localT.join();
+	}
+	
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@Test
+	public void testRunGlobally() throws IllegalArgumentException, 
+									  	 IllegalAccessException, 
+									  	 NoSuchFieldException, 
+									  	 SecurityException, 
+									  	 NoSuchMethodException, 
+									  	 InvocationTargetException,
+									  	 NotUniqueSourceMemberException, 
+									  	 InterruptedException, 
+									  	 WrongSourceMemberId, 
+									  	 IOException
+	{
+		// init
+		MemberIpMonitor mim = mock(MemberIpMonitor.class);
+		SlaveGlobalAutodiscoverer sga = mock(SlaveGlobalAutodiscoverer.class);
+		IpAutodiscoverer discoverer = new IpAutodiscoverer(mim, null, sga);
+		
+		List<MemberDescriptor> mds0 = new ArrayList<>();
+		mds0.add(new MemberDescriptor("member2", MemberType.CLOUD, "192.168.0.13"));
+		
+		when(mim.areActiveCloudMembers()).thenReturn(false);
+		when(mim.cloudFailureCounter()).thenReturn(3);
+		when(sga.getMds()).thenReturn(mds0);
+		
+		//
+		
+		// first invocation starts autodiscovery thread
+		ArgumentCaptor<Integer> arg1= ArgumentCaptor.forClass(Integer.class);
+		invokePrivateMethod(discoverer, "runGlobally");
+		
+		Thread globalT = (Thread) getPrivateFieldValue(discoverer, "globalT");
+		assertFalse(null == globalT);
+		globalT.join();
+		assertEquals(State.TERMINATED, globalT.getState());
+		
+		verify(sga, times(1)).discover(arg1.capture());
+		assertEquals(3, arg1.getValue());
+		//
+		
+		// second invocation starts autodiscovery thread
+		ArgumentCaptor<List> arg2= ArgumentCaptor.forClass(List.class);
+		invokePrivateMethod(discoverer, "runGlobally");
+		
+		verify(mim, times(1)).setCloudIps(arg2.capture());
+		List<MemberDescriptor> mds = arg2.getValue();
+		assertEquals(1, mds.size());
+		assertEquals("member2", mds.get(0).getMemberId());
+		assertEquals(MemberType.CLOUD, mds.get(0).getMemberType());
+		assertEquals("192.168.0.13", mds.get(0).getIpAddress());
+		//
+		
+		globalT = (Thread) getPrivateFieldValue(discoverer, "globalT");
+		globalT.join();
 	}
 	
 	private void invokePrivateMethod(Object o, String fName) 

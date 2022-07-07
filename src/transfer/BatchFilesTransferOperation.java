@@ -113,7 +113,7 @@ public class BatchFilesTransferOperation {
 				} else {
 					// send status check message
 					// must be READY at any time  
-					MasterStatus status = sto.executeAsSlave(os, is);
+					MasterStatus status = sto.executeAsSlave(os, is).getMasterStatus();
 					if(MasterStatus.READY != status) {
 						throw new MasterNotReadyDuringBatchTransfer();
 					}

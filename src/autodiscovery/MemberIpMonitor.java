@@ -30,6 +30,9 @@ public class MemberIpMonitor {
 	// counter) in the cluster  
 	private List<EnhancedMemberDescriptor> ds;
 	
+	//dynamic configuration with ip addresses
+	private Path pathTxt;
+	
 	public MemberIpMonitor() {}
 	
 	public MemberIpMonitor(BaseRepositoryOperations bro, AppProperties app) 
@@ -49,8 +52,7 @@ public class MemberIpMonitor {
 					+ "file read" , ex);
 		}
 		
-		//dynamic configuration with ip addresses
-		Path pathTxt = app.getPathSys().resolve(Paths.get("members.txt"));
+		pathTxt = app.getPathSys().resolve(Paths.get("members.txt"));
 		try {
 			bro.createMembersFileIfNotExist(pathTxt, memberId, ds0);
 		} catch (IOException ex) {
@@ -153,7 +155,7 @@ public class MemberIpMonitor {
 		dsSource.get(0).getMd().setIpAddress(sourceIp);
 		dsSource.get(0).setFailureCounter(0);
 		
-		bro.persistMembersDescriptors(Paths.get("members.txt"),
+		bro.persistMembersDescriptors(pathTxt,
 								  	  this.memberId,
 									  ds.stream()
 										.map(d -> d.getMd())
@@ -161,19 +163,69 @@ public class MemberIpMonitor {
 	}
 	
 	/**
-	 * Walk through the list of members and check if exist any CLOUD member with undefined ip.
+	 * Walk through the list of members and check if exist any CLOUD member with undefined ip
+	 * or any CLOUD member's failure counter exceeded the limit.
+	 * 
+	 * @return true if all CLOUD members are active (ip address not null and failure counter limit 
+	 * 		   not reached) and false otherwise
 	 */ 
-	public boolean existEmptyIp() {
+	public boolean areActiveCloudMembers() {
+		Predicate<EnhancedMemberDescriptor> isCloud =
+				d -> MemberType.CLOUD.equals(d.getMd().getMemberType());
+		Predicate<EnhancedMemberDescriptor> notNull = d -> d.getMd().getIpAddress() != null;
+		Predicate<EnhancedMemberDescriptor> isActive = d -> d.getFailureCounter() == 0;
+		
 		List<EnhancedMemberDescriptor> cloudDs = 
 				ds.stream()
-				  .filter(d -> MemberType.CLOUD.equals(d.getMd().getMemberType()) 
-						 	   && null == d.getMd().getIpAddress())
+				  .filter(isCloud.and(notNull).and(isActive))
 				  .collect(Collectors.toList());
-		return cloudDs.size() != 0;
+		
+		// CLOUD members counter
+		long counter = ds.stream().filter(isCloud).count();
+		
+		return cloudDs.size() == counter;
 	}
 	
-	public void updateIp(String ip) {
+	/**
+	 * Update members ip addresses with ip addresses that come from mds. 
+	 * Not all members might be present in mds (some member might be down during ip scan). 
+	 * 
+	 * @param mds - list of newly discovered members
+	 */
+	public void setCloudIps(List<MemberDescriptor> mds) throws IOException {
+		Map<String, MemberDescriptor> map = 
+				mds.stream().collect(Collectors.toMap(d -> d.getMemberId(), d -> d));
 		
+		for(int i=0; i<ds.size(); i++) {
+			MemberDescriptor d = map.get(ds.get(i).getMd().getMemberId());
+			if(d != null) {
+				ds.get(i).getMd().setIpAddress(d.getIpAddress());
+				ds.get(i).setFailureCounter(0);
+			}
+		}
+		
+		bro.persistMembersDescriptors(pathTxt,
+							  	  	  this.memberId,
+									  ds.stream()
+										.map(d -> d.getMd())
+										.collect(Collectors.toList()));
+	}
+	
+	/**
+	 * Find max failure counter among all CLOUD members.
+	 * 
+	 * @return max failure counter among all CLOUD members
+	 */
+	public int cloudFailureCounter() {
+		// max failure counter across all CLOUD nodes
+		int counter= 
+				ds.stream()
+				  .filter(d -> MemberType.CLOUD.equals(d.getMd().getMemberType()))
+		          .map(d -> d.getFailureCounter())
+		          .max(Integer::compare)
+		          .get();
+		
+		return counter;
 	}
 	
 	public List<String> getNotNullIps() {

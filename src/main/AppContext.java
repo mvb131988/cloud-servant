@@ -132,11 +132,11 @@ public class AppContext {
 	}
 	
 	public SlaveGlobalAutodiscoverer getGlobalDiscoverer() {
-		return new SlaveGlobalAutodiscoverer(getSlaveGlobalScheduler(), getGlobalIpFJPScanner(), getSysManager(), getIpValidator(), appProperties);
+		return new SlaveGlobalAutodiscoverer(getSlaveGlobalScheduler(), getGlobalIpFJPScanner(), appProperties);
 	}
 	
 	public SlaveLocalAutodiscoverer getLocalDiscoverer() {
-		return new SlaveLocalAutodiscoverer(getGlobalDiscoverer(), getSlaveLocalScheduler(), getLocalIpFJPScanner(), appProperties);
+		return new SlaveLocalAutodiscoverer(getSlaveLocalScheduler(), getLocalIpFJPScanner(), getIpValidator(), appProperties);
 	}
 	
 	public SlaveAutodiscoverer getDiscoverer() {
@@ -172,7 +172,8 @@ public class AppContext {
 		//Transfer operations
 		baseTransferOperations = new BaseTransferOperations(getIntegerTransformer(),
 															getLongTransformer(), 
-															getBaseRepositoryOperations());
+															getBaseRepositoryOperations(),
+															appProperties);
 		fileTransferOperation = new FileTransferOperation(getBaseTransferOperations(), 
 														  getBaseRepositoryOperations(),
 														  appProperties);
@@ -235,7 +236,8 @@ public class AppContext {
 		//Transfer operations
 		baseTransferOperations = new BaseTransferOperations(getIntegerTransformer(),
 															getLongTransformer(), 
-															getBaseRepositoryOperations());
+															getBaseRepositoryOperations(),
+															appProperties);
 		fileTransferOperation = new FileTransferOperation(getBaseTransferOperations(), 
 														  getBaseRepositoryOperations(),
 														  appProperties);

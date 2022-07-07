@@ -8,14 +8,17 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import main.AppProperties;
 import repository.BaseRepositoryOperations;
 import transfer.constant.MasterStatus;
 import transfer.constant.OperationType;
+import transfer.context.StatusTransferContext;
 import transformer.IntegerTransformer;
 import transformer.LongTransformer;
 
 /**
- *  Performs base/primitive transfer operations. All primitive operations are considering in the context of single file transfering. 
+ *  Performs base/primitive transfer operations. All primitive operations are considering in the
+ *  context of single file transferring. 
  */
 public class BaseTransferOperations {
 
@@ -24,12 +27,19 @@ public class BaseTransferOperations {
 	private LongTransformer lt;
 	
 	private BaseRepositoryOperations bro;
+	
+	private String memberId;
 
-	public BaseTransferOperations(IntegerTransformer it, LongTransformer lt, BaseRepositoryOperations bro) {
+	public BaseTransferOperations(IntegerTransformer it, 
+								  LongTransformer lt, 
+								  BaseRepositoryOperations bro, 
+								  AppProperties appProperties) 
+	{
 		super();
 		this.it = it;
 		this.lt = lt;
 		this.bro = bro;
+		this.memberId = appProperties.getMemberId();
 	}
 
 	public void sendOperationType(OutputStream os, OperationType ot) throws IOException {
@@ -43,11 +53,21 @@ public class BaseTransferOperations {
 	
 	public void sendMasterStatus(OutputStream os, MasterStatus ms) throws IOException {
 		os.write(ms.getValue());
+		os.write(memberId.getBytes().length);
+		os.write(memberId.getBytes());
 	}
 
-	public MasterStatus receiveMasterStatus(InputStream is) throws IOException {
+	public StatusTransferContext receiveMasterStatus(InputStream is) throws IOException {
 		int masterStatus = is.read();
-		return MasterStatus.to(masterStatus);
+		int memberIdLength = is.read();
+		byte[] bMemberId = new byte[memberIdLength];
+		is.read(bMemberId);
+		String memberId = new String(bMemberId);
+		
+		StatusTransferContext stc = 
+				new StatusTransferContext(MasterStatus.to(masterStatus), memberId);
+		
+		return stc;
 	}
 	
 	public OperationType checkOperationType(PushbackInputStream is) throws IOException {

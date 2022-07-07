@@ -110,6 +110,25 @@
 				<path.sys>C:\endava\workspace\cloud-servant\slave_repo\.sys</path.sys>
 			</properties>
 		</profile>
+		<profile>
+			<id>member1_test</id>
+			<properties>
+				<master>true</master>
+				<root>/tmp/master_repo</root>
+				<log>/tmp/master_repo/.log</log>
+				<memberId>member1</memberId>
+			</properties>
+		</profile>
+		<profile>
+			<id>member2_test</id>
+			<properties>
+				<master>false</master>
+				<root>/tmp/slave_repo</root>
+				<log>/tmp/slave_repo/.log</log>
+				<path.sys>/tmp/slave_repo/.sys</path.sys>
+				<memberId>member2</memberId>
+			</properties>
+		</profile>
 	</profiles>
 	<dependencies>
 		<dependency>

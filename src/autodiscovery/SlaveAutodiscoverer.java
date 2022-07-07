@@ -13,6 +13,7 @@ import main.AppProperties;
  *
  * Chain of responsibilities is used. SlaveAutodiscoverer -> SlaveLocalAutodiscoverer -> SlaveGlobalAutodiscoverer
  */
+@Deprecated
 public class SlaveAutodiscoverer implements Autodiscovery {
 
 	private Logger logger = LogManager.getRootLogger();

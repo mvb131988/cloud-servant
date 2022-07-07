@@ -80,14 +80,14 @@ public class SlaveTransferManager {
 	
 	private void transfer(OutputStream os, InputStream is) throws InterruptedException, IOException, MasterNotReadyDuringBatchTransfer, WrongOperationException, BatchFileTransferException {
 		//healthcheck returns MASTER status
-		MasterStatus status = hco.executeAsSlave(os, is);
+		MasterStatus status = hco.executeAsSlave(os, is).getMasterStatus();
 		if(status == MasterStatus.READY && scheduler.isScheduled()) {
 			
 			//MASTER status request grabs transfer operation on MASTER
 			//if READY is returned MASTER is waiting to start transfer request
 			//however it plausible that between healthcheck and status check operation
 			//MASTER changes its status from READY TO BUSY
-			status = sto.executeAsSlave(os, is);
+			status = sto.executeAsSlave(os, is).getMasterStatus();
 			if(status == MasterStatus.READY) {
 				ffto.executeAsSlave(os, is);
 				scheduler.scheduleNext();
@@ -98,7 +98,7 @@ public class SlaveTransferManager {
 	
 	private void transferBusy(OutputStream os, InputStream is) throws IOException, WrongOperationException {
 		//healthcheck returns MASTER status
-		MasterStatus status = hco.executeAsSlave(os, is);
+		MasterStatus status = hco.executeAsSlave(os, is).getMasterStatus();
 		logger.info("[" + this.getClass().getSimpleName() + "] master status: " + status);
 	}
 

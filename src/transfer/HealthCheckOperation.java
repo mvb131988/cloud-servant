@@ -10,12 +10,14 @@ import org.apache.logging.log4j.Logger;
 import exception.WrongOperationException;
 import transfer.constant.MasterStatus;
 import transfer.constant.OperationType;
+import transfer.context.StatusTransferContext;
 
 public class HealthCheckOperation {
 
 	private Logger logger = LogManager.getRootLogger();
 	
 	private BaseTransferOperations bto;
+	
 	
 	public HealthCheckOperation(BaseTransferOperations bto) {
 		super();
@@ -40,7 +42,7 @@ public class HealthCheckOperation {
 		bto.sendOperationType(os, OperationType.RESPONSE_HEALTHCHECK_END);
 	}
 	
-	public MasterStatus executeAsSlave(OutputStream os, InputStream is) throws IOException, WrongOperationException {
+	public StatusTransferContext executeAsSlave(OutputStream os, InputStream is) throws IOException, WrongOperationException {
 		bto.sendOperationType(os, OperationType.REQUEST_HEALTHCHECK_START);
 		logger.info("[" + this.getClass().getSimpleName() + "] request MASTER healthcheck");
 		
@@ -49,8 +51,8 @@ public class HealthCheckOperation {
 			throw new WrongOperationException("Expected: " + OperationType.REQUEST_HEALTHCHECK_END + " Actual: " + ot);
 		}
 		
-		MasterStatus ms = bto.receiveMasterStatus(is);
-		logger.info("[" + this.getClass().getSimpleName() + "] MASTER status is : " + ms);
+		StatusTransferContext stc = bto.receiveMasterStatus(is);
+		logger.info("[" + this.getClass().getSimpleName() + "] MASTER status is : " + stc.getMasterStatus());
 		
 		bto.sendOperationType(os, OperationType.RESPONSE_HEALTHCHECK_START);
 		ot = bto.receiveOperationType(is);
@@ -58,7 +60,7 @@ public class HealthCheckOperation {
 			throw new WrongOperationException("Expected: " + OperationType.RESPONSE_HEALTHCHECK_END + " Actual: " + ot);
 		}
 		
-		return ms;
+		return stc;
 	}
 	
 }
