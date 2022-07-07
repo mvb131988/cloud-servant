@@ -12,8 +12,8 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
-import ipscanner.IpFJPScanner;
-import ipscanner.IpValidator;
+import autodiscovery.ipscanner.IpFJPScanner;
+import autodiscovery.ipscanner.IpValidator;
 import main.AppProperties;
 import transfer.context.StatusTransferContext;
 

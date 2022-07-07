@@ -6,8 +6,8 @@ import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import ipscanner.IpFJPScanner;
-import ipscanner.IpValidator;
+import autodiscovery.ipscanner.IpFJPScanner;
+import autodiscovery.ipscanner.IpValidator;
 import main.AppProperties;
 import transfer.context.StatusTransferContext;
 

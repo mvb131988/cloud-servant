@@ -1,4 +1,4 @@
-package ipscanner;
+package autodiscovery.ipscanner;
 
 import autodiscovery.IpRangeIterator;
 

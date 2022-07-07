@@ -12,7 +12,7 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
-import ipscanner.IpFJPScanner;
+import autodiscovery.ipscanner.IpFJPScanner;
 import main.AppProperties;
 
 public class SlaveGlobalAutodiscovererTest {

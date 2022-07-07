@@ -1,4 +1,4 @@
-package ipscanner;
+package autodiscovery.ipscanner;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;

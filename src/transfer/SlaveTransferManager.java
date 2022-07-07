@@ -15,7 +15,6 @@ import autodiscovery.SlaveAutodiscoveryAdapter;
 import exception.BatchFileTransferException;
 import exception.MasterNotReadyDuringBatchTransfer;
 import exception.WrongOperationException;
-import ipscanner.IpValidator;
 import main.AppProperties;
 import scheduler.SlaveScheduler;
 import transfer.constant.MasterStatus;

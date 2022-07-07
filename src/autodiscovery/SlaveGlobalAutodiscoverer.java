@@ -7,7 +7,7 @@ import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import ipscanner.IpFJPScanner;
+import autodiscovery.ipscanner.IpFJPScanner;
 import main.AppProperties;
 
 public class SlaveGlobalAutodiscoverer implements Autodiscovery {
