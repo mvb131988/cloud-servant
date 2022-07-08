@@ -132,7 +132,11 @@ public class AppContext {
 	}
 	
 	public SlaveGlobalAutodiscoverer getGlobalDiscoverer() {
-		return new SlaveGlobalAutodiscoverer(getSlaveGlobalScheduler(), getGlobalIpFJPScanner(), appProperties);
+		return new SlaveGlobalAutodiscoverer(getSlaveGlobalScheduler(), 
+											 getGlobalIpFJPScanner(), 
+											 getIpValidator(),
+											 getMemberIpMonitor(),
+											 appProperties);
 	}
 	
 	public SlaveLocalAutodiscoverer getLocalDiscoverer() {

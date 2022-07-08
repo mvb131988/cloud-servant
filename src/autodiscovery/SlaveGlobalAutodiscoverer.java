@@ -8,6 +8,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import autodiscovery.ipscanner.IpFJPScanner;
+import autodiscovery.ipscanner.IpValidator;
+import autodiscovery.ipscanner.IpValidatorResult;
 import main.AppProperties;
 
 public class SlaveGlobalAutodiscoverer implements Autodiscovery {
@@ -18,16 +20,25 @@ public class SlaveGlobalAutodiscoverer implements Autodiscovery {
 	
 	private SlaveAutodiscoveryScheduler slaveScheduler;
 	
+	private IpValidator ipValidator;
+	
+	private MemberIpMonitor mim;
+
 	private String globalRanges;
 	
 	private List<MemberDescriptor> mds;
 	
 	public SlaveGlobalAutodiscoverer(SlaveAutodiscoveryScheduler slaveScheduler, 
 									 IpFJPScanner ipScanner,
+									 IpValidator ipValidator,
+									 MemberIpMonitor mim,
 									 AppProperties ap) {
 		this.slaveScheduler = slaveScheduler;
 		this.ipScanner = ipScanner;
+		this.ipValidator = ipValidator;
+		this.mim = mim;
 		this.globalRanges = ap.getGlobalRanges();
+		this.mds = new ArrayList<>();
 	}
 	
 	//TODO: no return type
@@ -46,7 +57,12 @@ public class SlaveGlobalAutodiscoverer implements Autodiscovery {
 			
 			cloudIps = ipScanner.scan(globalRanges);
 			
-			//TODO: ipValidator here
+			for(String cloudIp: cloudIps) {
+				IpValidatorResult result = ipValidator.isValid(cloudIp);
+				String memberId = result.isResult() ? result.getMemberId() : null;
+				MemberType memberType = mim.memberTypeByMemberId(memberId);
+				mds.add(new MemberDescriptor(memberId, memberType, cloudIp));
+			}
 			
 			cloudIps.stream().forEach(
 				ip -> logger.info("[" + this.getClass().getSimpleName() 
@@ -55,10 +71,6 @@ public class SlaveGlobalAutodiscoverer implements Autodiscovery {
 						
 			slaveScheduler.updateBaseTime();
 		} 
-		
-		mds = cloudIps.stream()
-					  .map(ip -> new MemberDescriptor(null, MemberType.CLOUD, ip))
-					  .collect(Collectors.toList());
 		
 		return null;
 	}

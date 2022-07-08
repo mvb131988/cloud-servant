@@ -1,0 +1,31 @@
+#docker build -t member3 -f Dockerfile .
+#docker run -d member3
+
+FROM ubuntu:21.10
+
+RUN  apt-get update \
+  && apt-get install -y wget \
+  && rm -rf /var/lib/apt/lists/*
+  
+RUN  apt-get update \
+  && apt-get install -y net-tools
+
+RUN  apt update \
+  && apt install nano
+
+RUN  apt update \
+  && apt install -y curl
+  
+RUN  apt update \
+  && apt install -y iputils-ping
+
+RUN mkdir /tmp/jdk-17.0.1
+COPY jdk-17_linux-x64_bin.tar.gz /tmp/
+RUN tar -xvf /tmp/jdk-17_linux-x64_bin.tar.gz -C /tmp/jdk-17.0.1
+ARG JAVA_HOME=/tmp/jdk-17.0.1/jdk-17.0.1
+ENV JAVA_HOME=${JAVA_HOME}
+ENV PATH="${JAVA_HOME}/bin:${PATH}"
+
+COPY cloud-servant.jar /tmp/cloud-servant.jar
+COPY app-entrypoint.sh /tmp/
+ENTRYPOINT ["/tmp/app-entrypoint.sh"]

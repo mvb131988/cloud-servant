@@ -18,6 +18,15 @@ services:
       - DEBUG_PORT=4002
     networks: 
       - members-network
+  
+  member3:
+    image: member3
+    ports:
+      - 127.0.0.1:4003:4003
+    environment:
+      - DEBUG_PORT=4003
+    networks: 
+      - members-network    
       
 networks:
   members-network:
