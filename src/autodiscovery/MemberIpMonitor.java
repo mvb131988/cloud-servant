@@ -3,6 +3,7 @@ package autodiscovery;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
@@ -245,7 +246,37 @@ public class MemberIpMonitor {
 		return res.get(0).getMd().getMemberType();
 	}
 	
-	public synchronized List<String> getNotNullIps() {
-		return null;
+	public synchronized MemberIpIterator iterator() {
+		return new MemberIpIteratorImpl();
 	}
+	
+	public class MemberIpIteratorImpl implements MemberIpIterator {
+		
+		private List<MemberDescriptor> ds;
+		private int pos = 0;
+		
+		public MemberIpIteratorImpl() {
+			ds = new ArrayList<>();
+			for(EnhancedMemberDescriptor emd: MemberIpMonitor.this.ds) {
+				ds.add(new MemberDescriptor(emd.getMd().getMemberId(), 
+											emd.getMd().getMemberType(), 
+											emd.getMd().getIpAddress()));
+			}
+		}
+
+		@Override
+		public MemberDescriptor next() {
+			return ds.get(pos++);
+		}
+
+		@Override
+		public boolean hasNext() {
+			while (pos < ds.size() && ds.get(pos).getIpAddress() == null ) {
+				pos++;
+			}
+			return pos < ds.size();
+		}
+		
+	}
+	
 }

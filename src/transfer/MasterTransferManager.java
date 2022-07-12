@@ -20,6 +20,7 @@ import transfer.constant.MasterStatus;
 import transfer.constant.MasterTransferThreadStatus;
 import transfer.constant.ProtocolStatusMapper;
 
+@Deprecated
 /**
  * Responsible for the full cycle file transfer(from master side). The cycle
  * consists of: (1) health check message (2) metadata message (3) data message

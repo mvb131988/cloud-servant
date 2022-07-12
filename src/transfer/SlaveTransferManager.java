@@ -20,6 +20,7 @@ import scheduler.SlaveScheduler;
 import transfer.constant.MasterStatus;
 import transfer.constant.SlaveMasterCommunicationStatus;
 
+@Deprecated
 public class SlaveTransferManager {
 	
 	private final int bigTimeout;
