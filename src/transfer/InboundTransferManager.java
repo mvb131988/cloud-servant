@@ -12,6 +12,7 @@ import org.apache.logging.log4j.Logger;
 import autodiscovery.MemberIpMonitor;
 import exception.WrongOperationException;
 import main.AppProperties;
+import transfer.TransferManagerStateMonitor.LockType;
 import transfer.constant.MasterStatus;
 
 /**
@@ -121,7 +122,7 @@ public class InboundTransferManager implements Runnable {
 		@Override
 		public void run() {
 			try {
-				if (tmsm.lock()) {
+				if (tmsm.lock(LockType.INBOUND)) {
 					transfer(in.getOutputStream(), 
 							 new PushbackInputStream(in.getInputStream()));
 				} else {
@@ -136,7 +137,7 @@ public class InboundTransferManager implements Runnable {
 				} catch (IOException ex) {
 					logger.error("Fatal error trying to close socket ", ex);
 				}
-				tmsm.unlock();
+				tmsm.unlock(LockType.INBOUND);
 			}
 		}
 

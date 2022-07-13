@@ -16,8 +16,17 @@ import exception.BatchFileTransferException;
 import exception.MasterNotReadyDuringBatchTransfer;
 import exception.WrongOperationException;
 import main.AppProperties;
+import transfer.TransferManagerStateMonitor.LockType;
 import transfer.constant.MasterStatus;
 
+/**
+ * Initiate connections to CLOUD or SOURCE members. It is run only on CLOUD members.
+ * Process one connection at a time (given member perform file transfer only from one
+ * member at a time). In order to connect to external member needs to acquire lock before
+ * (no other operations, process of inbound connections or repo scan are allowed in parallel).
+ * Once communication is finished (no matter external member is READY or BUSY) releases lock
+ * and closes connection.
+ */
 public class OutboundTransferManager implements Runnable {
 
 	private Logger logger = LogManager.getRootLogger();
@@ -59,15 +68,14 @@ public class OutboundTransferManager implements Runnable {
 		try {
 			MemberIpIterator iterator = mim.iterator();
 			while(iterator.hasNext()) {
-				if(tmsm.lock()) {
+				if (tmsm.lock(LockType.OUTBOUND)) {
 					MemberDescriptor md = iterator.next();
 					
 					Socket connection = connect(md.getIpAddress(), masterPort);
-					// if transfer manager state monitor allows connection
 					transfer(connection.getOutputStream(), connection.getInputStream());
 					connection.close();
 					
-					tmsm.unlock();
+					tmsm.unlock(LockType.OUTBOUND);
 				}
 				// TODO: random delay between 1 and 10 seconds
 				Thread.sleep(1000);
@@ -75,30 +83,46 @@ public class OutboundTransferManager implements Runnable {
 		} catch (Exception ex) {
 			logger.error(ex);
 
-			// TODO: on unlock need to check class that acquired the lock
-			// need to introduce locker types: outbound, inbound, repository
-			// requires to avoid unlock for different locker type(ex: inbound
-			// locker could be unlocked by outbound if inbound acquired lock
-			// just after outbound unlock in try block)
-			tmsm.unlock();
+			tmsm.unlock(LockType.OUTBOUND);
 		}
 	}
 	
-	private Socket connect(String masterIp, int masterPort) 
+	/**
+	 * Try to establish connection with external member
+	 * 
+	 * @param memberIp
+	 * @param transferPort
+	 * @return
+	 * @throws UnknownHostException
+	 * @throws IOException
+	 */
+	private Socket connect(String memberIp, int transferPort) 
 			throws UnknownHostException, IOException 
 	{
 		Socket member = null;
 		
-		logger.info("[" + this.getClass().getSimpleName() + "] opening socket to " 
-						+ masterIp + ":" + masterPort);
-		member = new Socket(masterIp, masterPort);
+		logger.info("Opening socket to " + memberIp + ":" + transferPort);
+		member = new Socket(memberIp, transferPort);
 		member.setSoTimeout(socketSoTimeout);
-		logger.info("[" + this.getClass().getSimpleName() + "]  socket to " 
-						+ masterIp + ":" + masterPort + " opened");
+		logger.info("Socket to " + memberIp + ":" + transferPort + " opened");
 		
 		return member;
 	}
 	
+	/**
+	 * Receives external member status. If external member is READY for files transmission
+	 * with the given(local) member it sends READY status. Then files transmission happens.
+	 * If external member is busy with the other task it sends BUSY status. In this case
+	 * connection is closed.
+	 * 
+	 * @param os
+	 * @param is
+	 * @throws InterruptedException
+	 * @throws IOException
+	 * @throws MasterNotReadyDuringBatchTransfer
+	 * @throws WrongOperationException
+	 * @throws BatchFileTransferException
+	 */
 	private void transfer(OutputStream os, InputStream is) 
 			throws InterruptedException, 
 				   IOException, 
@@ -106,15 +130,11 @@ public class OutboundTransferManager implements Runnable {
 				   WrongOperationException, 
 				   BatchFileTransferException 
 	{	
-		// status READY is received only when external member acquires lock for
-		// the given healthcheck request. This could only when transfermanagerstate monitor
-		// is free on the external member
-		// healthcheck returns MASTER status
+		// status READY is received only when external member(inbound communication) acquires
+		// lock for the given healthcheck request. This could only when transfermanagerstate
+		// monitor is free on the external member healthcheck returns MASTER status
 		MasterStatus status = hco.executeAsSlave(os, is).getMasterStatus();
-		if(status == MasterStatus.READY) {
-			
-			//TODO: still this is possible that between status check and transfer initiation
-			//external member could change its status (to BUSY)
+		if(status == MasterStatus.READY) {			
 			ffto.executeAsSlave(os, is);
 		}
 	}

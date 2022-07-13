@@ -25,6 +25,7 @@ import exception.BatchFileTransferException;
 import exception.MasterNotReadyDuringBatchTransfer;
 import exception.WrongOperationException;
 import main.AppProperties;
+import transfer.TransferManagerStateMonitor.LockType;
 import transfer.constant.MasterStatus;
 import transfer.context.StatusTransferContext;
 
@@ -70,8 +71,7 @@ public class OutboundTransferManagerTest {
 			
 		});
 		
-		when(tmsm.lock()).thenReturn(true);
-		when(tmsm.unlock()).thenReturn(false);
+		when(tmsm.lock(LockType.OUTBOUND)).thenReturn(true);
 		when(ap.getSocketSoTimeout()).thenReturn(1000);
 		when(ap.getMasterPort()).thenReturn(8888);
 		when(hco.executeAsSlave(any(OutputStream.class), any(InputStream.class)))
@@ -83,7 +83,7 @@ public class OutboundTransferManagerTest {
 		ss.close();
 		
 		verify(ffto, times(1)).executeAsSlave(any(OutputStream.class), any(InputStream.class));
-		verify(tmsm, times(1)).unlock();
+		verify(tmsm, times(1)).unlock(LockType.OUTBOUND);
 	}
 	
 	@Test
@@ -126,8 +126,7 @@ public class OutboundTransferManagerTest {
 			
 		});
 		
-		when(tmsm.lock()).thenReturn(true);
-		when(tmsm.unlock()).thenReturn(false);
+		when(tmsm.lock(LockType.OUTBOUND)).thenReturn(true);
 		when(ap.getSocketSoTimeout()).thenReturn(1000);
 		when(ap.getMasterPort()).thenReturn(8888);
 		when(hco.executeAsSlave(any(OutputStream.class), any(InputStream.class)))
@@ -135,7 +134,7 @@ public class OutboundTransferManagerTest {
 		
 		OutboundTransferManager otm = new OutboundTransferManager(mim, hco, ffto, tmsm, ap);
 		invokePrivateMethod(otm, "runInternally");
-		verify(tmsm, times(1)).unlock();
+		verify(tmsm, times(1)).unlock(LockType.OUTBOUND);
 	}
 	
 	private void invokePrivateMethod(Object o, String fName) 
