@@ -30,6 +30,7 @@ public class SlaveLocalAutodiscovererTest {
 		when(slaveScheduler.checkAndUpdateBaseTime(2)).thenReturn(true);
 		when(slaveScheduler.isScheduled(2)).thenReturn(true);
 		when(appProperties.getLocalRanges()).thenReturn("192.168.0.0/24");
+		when(appProperties.getMemberId()).thenReturn("member2");
 		when(ipScanner.scan("192.168.0.0/24")).thenReturn(List.of("192.168.0.13"));
 		when(ipValidator.isValid("192.168.0.13"))
 			.thenReturn(new IpValidatorResult(true, "member1"));
