@@ -5,6 +5,7 @@ import org.apache.logging.log4j.Logger;
 
 import autodiscovery.IpAutodiscoverer;
 import autodiscovery.MemberIpMonitor;
+import autodiscovery.MemberType;
 import autodiscovery.SlaveAutodiscoverer;
 import autodiscovery.SlaveAutodiscoveryAdapter;
 import autodiscovery.SlaveAutodiscoveryScheduler;
@@ -30,11 +31,14 @@ import transfer.BatchFilesTransferOperation;
 import transfer.FileTransferOperation;
 import transfer.FullFileTransferOperation;
 import transfer.HealthCheckOperation;
+import transfer.InboundTransferManager;
 import transfer.MasterSlaveCommunicationPool;
 import transfer.MasterTransferManager;
+import transfer.OutboundTransferManager;
 import transfer.SlaveTransferManager;
 import transfer.StatusAndHealthCheckOperation;
 import transfer.StatusTransferOperation;
+import transfer.TransferManagerStateMonitor;
 import transfer.constant.ProtocolStatusMapper;
 import transformer.FilesContextTransformer;
 import transformer.IntegerTransformer;
@@ -104,6 +108,12 @@ public class AppContext {
 	
 	private MemberIpMonitor memberIpMonitor;
 	
+	private InboundTransferManager inboundTransferManager;
+	
+	private OutboundTransferManager outboundTransferManager;
+	
+	private TransferManagerStateMonitor transferManagerStateMonitor;
+	
 	//============================================================
 	//	Prototypes. Classes with states go here 
 	//============================================================
@@ -162,19 +172,16 @@ public class AppContext {
 	}
 	//============================================================
 	
-	public void initAsMaster() {
+	public void initAsMaster() throws InitializationException {
 		//Separate thread intended for (master-side) application shutdown
 		masterShutdownThread = new MasterShutdownThread(appProperties);
 		masterShutdownThread.start();
 		
 		//Others
-		longTransformer = new LongTransformer();
 		integerTransformer = new IntegerTransformer();
 		protocolStatusMapper = new ProtocolStatusMapper();
-		filesContextTransformer = new FilesContextTransformer(getLongTransformer());
 		
 		//Repository operations
-		baseRepositoryOperations = new BaseRepositoryOperations(getLongTransformer(), getFilesContextTransformer(), appProperties);
 		repositoryVisitor = new RepositoryVisitor(getBaseRepositoryOperations(), appProperties);
 		
 		//Transfer operations
@@ -205,14 +212,14 @@ public class AppContext {
 		
 		//Layer 1
 		masterSlaveCommunicationPool = new MasterSlaveCommunicationPool();
-		masterTransferManager = new MasterTransferManager(appProperties);
-		masterTransferManager.init(getFullFileTransferOperation(), 
-								   getStatusTransferOperation(),
-								   getHealthCheckOperation(),
-								   getStatusAndHealthCheckOperation(),
-								   getMasterSlaveCommunicationPool(), 
-								   getProtocolStatusMapper(),
-								   appProperties);
+//		masterTransferManager = new MasterTransferManager(appProperties);
+//		masterTransferManager.init(getFullFileTransferOperation(), 
+//								   getStatusTransferOperation(),
+//								   getHealthCheckOperation(),
+//								   getStatusAndHealthCheckOperation(),
+//								   getMasterSlaveCommunicationPool(), 
+//								   getProtocolStatusMapper(),
+//								   appProperties);
 		masterRepositoryManager = new MasterRepositoryManager(getRepositoryVisitor(), getBaseRepositoryOperations(), appProperties);
 		masterRepositoryManager.init();
 		
@@ -223,18 +230,22 @@ public class AppContext {
 																	  getMasterTransferManager(), 
 																	  getMasterRepositoryScheduler(),
 																	  appProperties);
+		
+		transferManagerStateMonitor = new TransferManagerStateMonitor();
+		
+		inboundTransferManager = new InboundTransferManager(getHealthCheckOperation(), 
+															getFullFileTransferOperation(), 
+															getTransferManagerStateMonitor(), 
+															appProperties);
 	}
 	
 	public void initAsSlave() throws InitializationException {
 		//Others
-		longTransformer = new LongTransformer();
 		integerTransformer = new IntegerTransformer();
 		protocolStatusMapper = new ProtocolStatusMapper();
-		filesContextTransformer = new FilesContextTransformer(getLongTransformer());
 		
 		//Repository operations
 		repositoryStatusMapper = new RepositoryStatusMapper();
-		baseRepositoryOperations = new BaseRepositoryOperations(getLongTransformer(), getFilesContextTransformer(), appProperties);
 		repositoryVisitor = new RepositoryVisitor(getBaseRepositoryOperations(), appProperties);
 		slaveRepositoryManager = new SlaveRepositoryManager(getBaseRepositoryOperations(), 
 															getRepositoryStatusMapper());
@@ -282,29 +293,68 @@ public class AppContext {
 																	getSlaveRepositoryScheduler(),
 																	appProperties);
 		
-		//After all beans are created start initialization process
-		appInitializer = new AppInitializer(getBaseRepositoryOperations(), appProperties);
-		appInitializer.initSysDirectory();		
-		
 		/// autodiscovering ///
-		memberIpMonitor = new MemberIpMonitor(getBaseRepositoryOperations(), appProperties);
 		ipAutodiscoverer = new IpAutodiscoverer(getMemberIpMonitor(), 
 												getLocalDiscoverer(), 
 												getGlobalDiscoverer());
 		Thread ipAutodiscovererThread = new Thread(ipAutodiscoverer);
 		ipAutodiscovererThread.setName("IpAutodiscovererThread");
 		ipAutodiscovererThread.start();
+		
+		transferManagerStateMonitor = new TransferManagerStateMonitor();
+		
+		inboundTransferManager = new InboundTransferManager(getHealthCheckOperation(), 
+															getFullFileTransferOperation(), 
+															getTransferManagerStateMonitor(), 
+															appProperties);
+		
+		outboundTransferManager = new OutboundTransferManager(getMemberIpMonitor(), 
+															  getHealthCheckOperation(), 
+															  getFullFileTransferOperation(), 
+															  getTransferManagerStateMonitor(), 
+															  appProperties);
 	}
 	
 	public void start(AppProperties appProperties) throws InitializationException {
 		this.appProperties = appProperties;
-		if (this.appProperties.isMaster()) {
+		
+		//common
+		longTransformer = new LongTransformer();
+		filesContextTransformer = new FilesContextTransformer(getLongTransformer());
+		baseRepositoryOperations = new BaseRepositoryOperations(getLongTransformer(), 
+																getFilesContextTransformer(),
+																appProperties);
+		
+		appInitializer = new AppInitializer(getBaseRepositoryOperations(), appProperties);
+		appInitializer.initSysDirectory();	
+		
+		memberIpMonitor = new MemberIpMonitor(getBaseRepositoryOperations(), appProperties);
+		/////////////////////////////////////////////////////////////////////////////////////
+		
+		MemberType mt = getMemberIpMonitor().memberTypeByMemberId(appProperties.getMemberId());
+		if(MemberType.SOURCE == mt) {
 			initAsMaster();
-			getMasterCommunicationProvider().init();
-		} else {
-			initAsSlave();
-			//getSlaveCommunicationProvider().init();
+			
+			Thread inTh = new Thread(getInboundTransferManager());
+			inTh.start();
 		}
+		
+		if(MemberType.CLOUD == mt) {
+			initAsSlave();
+			
+			Thread inTh = new Thread(getInboundTransferManager());
+			Thread outTh = new Thread(getOutboundTransferManager());
+			inTh.start();
+			outTh.start();
+		}
+		
+//		if (this.appProperties.isMaster()) {
+//			initAsMaster();
+//			getMasterCommunicationProvider().init();
+//		} else {
+//			initAsSlave();
+//			//getSlaveCommunicationProvider().init();
+//		}
 	}
 
 	private IntegerTransformer getIntegerTransformer() {
@@ -413,6 +463,18 @@ public class AppContext {
 
 	public MemberIpMonitor getMemberIpMonitor() {
 		return memberIpMonitor;
+	}
+
+	public InboundTransferManager getInboundTransferManager() {
+		return inboundTransferManager;
+	}
+
+	public OutboundTransferManager getOutboundTransferManager() {
+		return outboundTransferManager;
+	}
+
+	public TransferManagerStateMonitor getTransferManagerStateMonitor() {
+		return transferManagerStateMonitor;
 	}
 	
 }

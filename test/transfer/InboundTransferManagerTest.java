@@ -20,7 +20,6 @@ import java.net.Socket;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
-import autodiscovery.MemberIpMonitor;
 import exception.WrongOperationException;
 import main.AppProperties;
 import transfer.TransferManagerStateMonitor.LockType;
@@ -157,7 +156,6 @@ public class InboundTransferManagerTest {
 										   			NoSuchFieldException, 
 										   			SecurityException 
 	{
-		MemberIpMonitor mim = mock(MemberIpMonitor.class);
 		HealthCheckOperation hco = mock(HealthCheckOperation.class);
 		FullFileTransferOperation ffto = mock(FullFileTransferOperation.class);
 		TransferManagerStateMonitor tmsm = mock(TransferManagerStateMonitor.class);
@@ -167,8 +165,7 @@ public class InboundTransferManagerTest {
 		when(ap.getSocketSoTimeout()).thenReturn(1000);
 		when(ap.getMasterPort()).thenReturn(8080);
 		
-		InboundTransferManager itm = new InboundTransferManager(mim, 
-																hco, 
+		InboundTransferManager itm = new InboundTransferManager(hco, 
 																ffto, 
 																tmsm, 
 																ap);

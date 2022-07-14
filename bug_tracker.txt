@@ -1,0 +1,2 @@
++ 3d member from docker-compose is not able to connect to the 2d
++ 188.237.1.27 is not able to download some files

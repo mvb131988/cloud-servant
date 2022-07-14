@@ -2,6 +2,8 @@ package autodiscovery;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -31,6 +33,8 @@ public class SlaveLocalAutodiscoverer implements Autodiscovery {
 	
 	private MemberIpMonitor mim;
 	
+	private String memberId;
+	
 	public SlaveLocalAutodiscoverer(SlaveAutodiscoveryScheduler slaveScheduler, 
 									IpFJPScanner ipScanner,
 									IpValidator ipValidator,
@@ -42,14 +46,18 @@ public class SlaveLocalAutodiscoverer implements Autodiscovery {
 		this.ipValidator = ipValidator;
 		this.mim = mim; 
 		this.localRanges = ap.getLocalRanges();
+		this.memberId = ap.getMemberId();
 	}
+	
+	//TODO: When CLOUD member is running it could connect to itself during autodiscovery process
+	//      ignore this result
 	
 	//TODO: no return type
 	//		change failureCounter to requestScan
 	//		when requestScan set check if scan timeout is reached and initiate new scan
 	@Override
 	public List<String> discover(int failureCounter) {
-		List<String> sourceIps = new ArrayList<String>();
+		List<String> ips = new ArrayList<String>();
 		md = null;
 		
 		// Local autodiscovery
@@ -61,19 +69,31 @@ public class SlaveLocalAutodiscoverer implements Autodiscovery {
 
 			// sourceIp must have only one element as in local network only one source 
 			// member is allowed
-			sourceIps.addAll(ipScanner.scan(localRanges));
+			ips.addAll(ipScanner.scan(localRanges));
 			
+			List<MemberDescriptor> mds0 = new ArrayList<MemberDescriptor>();
 			// at most one SOURCE member is allowed in local autodiscovery scan 
-			if(sourceIps.size() == 1) {
-				IpValidatorResult result = ipValidator.isValid(sourceIps.get(0));
+			for (String ip: ips) {
+				IpValidatorResult result = ipValidator.isValid(ip);
 				String memberId = result.isResult() ? result.getMemberId() : null;
 				MemberType memberType = mim.memberTypeByMemberId(memberId); 
-				md = new MemberDescriptor(memberId, memberType, sourceIps.get(0));
+				MemberDescriptor md0 = new MemberDescriptor(memberId, memberType, ip);
+				if (!this.memberId.equals(md0.getMemberId())) {
+					mds0.add(md0);
+				}
 			}
 			
-			sourceIps.stream().forEach(
-			    sourceIp -> logger.info("[" + this.getClass().getSimpleName() + "] "
-			                + "local scan finish with source ip = " + sourceIp)
+			if(mds0.size() > 1) {
+				//throw only one CLOUD member is allowed in local network (datacenter)
+			}
+			
+			if(mds0.size() == 1) {
+				md = mds0.get(0);
+			}
+			
+			mds0.stream().forEach(
+			    md -> logger.info("[" + this.getClass().getSimpleName() + "] "
+			                + "local scan finish with source ip = " + md.getIpAddress())
 			);
 			
 			slaveScheduler.updateBaseTime();

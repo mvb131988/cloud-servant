@@ -41,8 +41,7 @@ public class InboundTransferManager implements Runnable {
 	
 	private boolean inTesting;
 	
-	public InboundTransferManager(MemberIpMonitor mim, 
-								  HealthCheckOperation hco, 
+	public InboundTransferManager(HealthCheckOperation hco, 
 								  FullFileTransferOperation ffto,
 								  TransferManagerStateMonitor tmsm,
 								  AppProperties ap) 

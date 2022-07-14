@@ -8,7 +8,7 @@ services:
     environment:
       - DEBUG_PORT=4001
     networks: 
-      - members-network
+      - source-network
 
   member2:
     image: member2
@@ -16,8 +16,9 @@ services:
       - 127.0.0.1:4002:4002
     environment:
       - DEBUG_PORT=4002
-    networks: 
-      - members-network
+    networks:
+      - source-network
+      - cloud-network
   
   member3:
     image: member3
@@ -26,13 +27,16 @@ services:
     environment:
       - DEBUG_PORT=4003
     networks: 
-      - members-network    
+      - cloud-network    
       
 networks:
-  members-network:
+  source-network:
+    external: true
+  cloud-network:
     external: true
 
-### create network before the start    
-# docker network create --driver=bridge --subnet=192.168.0.0/24 --gateway=192.168.0.1 members-network
+### create networks before the start    
+# docker network create --driver=bridge -o "com.docker.network.bridge.enable_ip_masquerade"="false" --subnet=192.168.1.0/24 --gateway=192.168.1.1 source-network
+# docker network create --driver=bridge -o "com.docker.network.bridge.enable_ip_masquerade"="false" --subnet=192.168.2.0/24 --gateway=192.168.2.1 cloud-network
 
 # docker-compose -f docker-compose.yml up
