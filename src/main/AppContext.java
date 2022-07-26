@@ -344,6 +344,10 @@ public class AppContext {
 			
 			Thread inTh = new Thread(getInboundTransferManager());
 			Thread outTh = new Thread(getOutboundTransferManager());
+			
+			inTh.setName(getInboundTransferManager().getClass().getSimpleName());
+			outTh.setName(getOutboundTransferManager().getClass().getSimpleName());
+			
 			inTh.start();
 			outTh.start();
 		}
