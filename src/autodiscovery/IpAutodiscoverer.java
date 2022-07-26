@@ -77,6 +77,7 @@ public class IpAutodiscoverer implements Runnable {
 		if(localT == null && !mim.isActiveSourceMember()) {
 			int failureCounter = mim.sourceFailureCounter();
 			localT = new Thread(() -> sla.discover(failureCounter));
+			localT.setName(sla.getClass().getSimpleName());
 			localT.start();
 		}
 	}
@@ -95,6 +96,7 @@ public class IpAutodiscoverer implements Runnable {
 		if(globalT == null && !mim.areActiveCloudMembers()) {
 			int failureCounter = mim.cloudFailureCounter();
 			globalT = new Thread(() -> sga.discover(failureCounter));
+			globalT.setName(sga.getClass().getSimpleName());
 			globalT.start();
 		}
 	}

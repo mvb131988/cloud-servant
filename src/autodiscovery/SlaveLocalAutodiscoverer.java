@@ -2,8 +2,6 @@ package autodiscovery;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collector;
-import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -57,8 +55,8 @@ public class SlaveLocalAutodiscoverer implements Autodiscovery {
 	//		when requestScan set check if scan timeout is reached and initiate new scan
 	@Override
 	public List<String> discover(int failureCounter) {
+		this.md = null;
 		List<String> ips = new ArrayList<String>();
-		md = null;
 		
 		// Local autodiscovery
 		slaveScheduler.checkAndUpdateBaseTime(failureCounter);

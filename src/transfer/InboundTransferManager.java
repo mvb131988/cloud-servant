@@ -66,6 +66,7 @@ public class InboundTransferManager implements Runnable {
 			try {
 				Socket in = acceptInbound();
 				Thread th = new Thread(new Communication(in, tmsm, hco, ffto));
+				th.setName("Communication thread");
 				th.start();
 				
 				if(inTesting) {
@@ -129,7 +130,7 @@ public class InboundTransferManager implements Runnable {
 								 new PushbackInputStream(in.getInputStream()));
 				}
 			} catch (IOException | WrongOperationException ex) {
-				logger.error(ex);
+				logger.error("Communication exception ", ex);
 			} finally {
 				try {
 					in.close();

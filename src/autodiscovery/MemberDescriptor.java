@@ -40,4 +40,11 @@ public class MemberDescriptor {
 		this.ipAddress = ipAddress;
 	}
 	
+	@Override
+	public String toString() {
+		return "{" + "memberId:" + memberId + ", " +
+					 "memberType:" + memberType + ", " + 
+					 "ipAddress:" + ipAddress + "}";
+	}
+	
 }

@@ -2,7 +2,6 @@ package autodiscovery;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -46,6 +45,7 @@ public class SlaveGlobalAutodiscoverer implements Autodiscovery {
 	//		when requestScan set check if scan timeout is reached and initiate new scan
 	@Override
 	public List<String> discover(int failureCounter) {
+		this.mds = new ArrayList<>();
 		List<String> cloudIps = new ArrayList<String>();
 		
 		// Global autodiscovery
@@ -57,6 +57,8 @@ public class SlaveGlobalAutodiscoverer implements Autodiscovery {
 			
 			cloudIps = ipScanner.scan(globalRanges);
 			
+			logger.info("Number of found ips: " + cloudIps.size());
+			
 			for(String cloudIp: cloudIps) {
 				IpValidatorResult result = ipValidator.isValid(cloudIp);
 				String memberId = result.isResult() ? result.getMemberId() : null;
@@ -64,9 +66,8 @@ public class SlaveGlobalAutodiscoverer implements Autodiscovery {
 				mds.add(new MemberDescriptor(memberId, memberType, cloudIp));
 			}
 			
-			cloudIps.stream().forEach(
-				ip -> logger.info("[" + this.getClass().getSimpleName() 
-						+ "] global scan finished with cloud ip = " + ip)
+			mds.stream().forEach(
+				md -> logger.info("Global scan finished with member : " + md)
 			);
 						
 			slaveScheduler.updateBaseTime();

@@ -1,0 +1,1 @@
+docker cp %1:/tmp/slave_repo/.log/app.log ./logs/app-%1.log
