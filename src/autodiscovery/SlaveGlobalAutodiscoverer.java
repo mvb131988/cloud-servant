@@ -7,8 +7,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import autodiscovery.ipscanner.IpFJPScanner;
-import autodiscovery.ipscanner.IpValidator;
-import autodiscovery.ipscanner.IpValidatorResult;
+import autodiscovery.ipscanner.IpScannerResult;
 import main.AppProperties;
 
 public class SlaveGlobalAutodiscoverer implements Autodiscovery {
@@ -19,24 +18,23 @@ public class SlaveGlobalAutodiscoverer implements Autodiscovery {
 	
 	private SlaveAutodiscoveryScheduler slaveScheduler;
 	
-	private IpValidator ipValidator;
-	
 	private MemberIpMonitor mim;
 
 	private String globalRanges;
 	
 	private List<MemberDescriptor> mds;
 	
+	private String memberId;
+	
 	public SlaveGlobalAutodiscoverer(SlaveAutodiscoveryScheduler slaveScheduler, 
 									 IpFJPScanner ipScanner,
-									 IpValidator ipValidator,
 									 MemberIpMonitor mim,
 									 AppProperties ap) {
 		this.slaveScheduler = slaveScheduler;
 		this.ipScanner = ipScanner;
-		this.ipValidator = ipValidator;
 		this.mim = mim;
 		this.globalRanges = ap.getGlobalRanges();
+		this.memberId = ap.getMemberId();
 		this.mds = new ArrayList<>();
 	}
 	
@@ -46,7 +44,7 @@ public class SlaveGlobalAutodiscoverer implements Autodiscovery {
 	@Override
 	public List<String> discover(int failureCounter) {
 		this.mds = new ArrayList<>();
-		List<String> cloudIps = new ArrayList<String>();
+		List<IpScannerResult> cloudIps = new ArrayList<IpScannerResult>();
 		
 		// Global autodiscovery
 		slaveScheduler.checkAndUpdateBaseTime(failureCounter);
@@ -59,11 +57,14 @@ public class SlaveGlobalAutodiscoverer implements Autodiscovery {
 			
 			logger.info("Number of found ips: " + cloudIps.size());
 			
-			for(String cloudIp: cloudIps) {
-				IpValidatorResult result = ipValidator.isValid(cloudIp);
-				String memberId = result.isResult() ? result.getMemberId() : null;
+			for(IpScannerResult cloudIp: cloudIps) {
+				String memberId = cloudIp.getMemberId();
 				MemberType memberType = mim.memberTypeByMemberId(memberId);
-				mds.add(new MemberDescriptor(memberId, memberType, cloudIp));
+				
+				MemberDescriptor md0 = new MemberDescriptor(memberId, memberType, cloudIp.getIp());
+				if (!this.memberId.equals(md0.getMemberId())) {
+					mds.add(md0);
+				}
 			}
 			
 			mds.stream().forEach(

@@ -17,12 +17,12 @@ public class TransferManagerStateMonitor {
 	
 	private Lock releaseLock;
 	
-	private volatile LockType lockType;
+	//thread id that owns lock
+	private volatile long ownerId;
 	
 	public TransferManagerStateMonitor() {
 		this.lock = new ReentrantLock();
 		this.releaseLock = new ReentrantLock();
-		lockType = LockType.NONE;
 	}
 	
 	/**
@@ -32,9 +32,9 @@ public class TransferManagerStateMonitor {
 	 * @param type
 	 * @return
 	 */
-	public boolean lock(LockType type) {
-		if(lockType == LockType.NONE && lock.tryLock()) {
-			lockType = type;
+	public boolean lock() {
+		if(lock.tryLock()) {
+			ownerId = Thread.currentThread().getId();
 			return true;
 		}
 		return false;
@@ -44,7 +44,7 @@ public class TransferManagerStateMonitor {
 	 *  Try to release lock
 	 *  
 	 *  Only one gap that in theory is unreachable: different thread with the same type
-	 *  invokes unlock. Leads to lock.unlock() fail(must be invoked form thread thta acquired lock).
+	 *  invokes unlock. Leads to lock.unlock() fail(must be invoked form thread that acquired lock).
 	 *
 	 *  Possible issues:
 	 *  (1) double unlock invocation (second unlock might happen in catch block if unexpected
@@ -54,20 +54,16 @@ public class TransferManagerStateMonitor {
 	 *      lock one more time. This time it's already acquired by OutboundTransferManager thread
 	 *      that is currently in progress.
 	 */
-	public void unlock(LockType type) {
-		if (releaseLock.tryLock()) {
-			if(lockType == type) {
-				lock.unlock();
-				lockType = LockType.NONE;
-			}
+	public void unlock() {
+		releaseLock.lock();
+			
+		try {
+			if(ownerId != Thread.currentThread().getId()) return;
+		} finally {
 			releaseLock.unlock();
 		}
-	}
-	
-	public enum LockType {
-		INBOUND,
-		OUTBOUND,
-		NONE
+		
+		lock.unlock();
 	}
 	
 }

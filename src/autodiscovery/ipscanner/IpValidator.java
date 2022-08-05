@@ -58,5 +58,29 @@ public class IpValidator {
     
 	    return result;
 	}
+	
+	public IpValidatorResult isValid(Socket s, String ip) {
+		IpValidatorResult result = null;
+	    
+	    InputStream is = null;
+	    OutputStream os = null;
+	    try {
+	    	is = s.getInputStream();
+	    	os = s.getOutputStream();
+	      
+	    	String memberId = mif.memberId(os, is);
+	    	result = memberId != null ? new IpValidatorResult(true, memberId) 
+	    		  					  : new IpValidatorResult(false, null);
+	    } catch (Exception e) {
+	    	result = new IpValidatorResult(false, null);
+	    	logger.error("Invalid candidate, ip " + ip + " is non cloud-servant node");
+	    }
+	    finally {
+	    	if(is != null) {try {is.close();} catch (IOException e) {}}
+	    	if(os != null) {try {os.close();} catch (IOException e) {}}
+	    }
+  
+	    return result;
+	}
   
 }

@@ -21,6 +21,8 @@ public class IpFJPScanner {
 	
 	private BaseRepositoryOperations bro;
 	
+	private IpValidator ipValidator;
+	
 	// number of ips that a single worker has to try
 	private final int workPerThread;
 	
@@ -31,20 +33,25 @@ public class IpFJPScanner {
 	
 	private int masterPort;
 	
-	public IpFJPScanner(BaseRepositoryOperations bro, IpRangesAnalyzer ipRangesAnalyzer, int workPerThread, AppProperties appProperties) {
+	public IpFJPScanner(BaseRepositoryOperations bro, 
+						IpValidator ipValidator, 
+						IpRangesAnalyzer ipRangesAnalyzer, 
+						int workPerThread, 
+						AppProperties appProperties) {
 		super();
 		this.bro = bro;
+		this.ipValidator = ipValidator;
 		this.ipRangesAnalyzer = ipRangesAnalyzer;
 		this.masterPort = appProperties.getMasterPort();
 		this.workPerThread = workPerThread;
 		this.fjpSize = appProperties.getFjpSize();
 	}
 
-	public List<String> scan(String ipRanges) {
+	public List<IpScannerResult> scan(String ipRanges) {
 		ipRangesAnalyzer.reset(ipRanges);
 		
 		//Run scan process in fork/join pool
-		IpAction ipAction = new IpAction();
+		IpAction ipAction = new IpAction(ipValidator);
 		
 		ForkJoinPool fjp = new ForkJoinPool(fjpSize);
 		
@@ -59,7 +66,7 @@ public class IpFJPScanner {
 		//Get the result. More than 1 active ips possible for different reasons:
 		// - multiple cloud-servant nodes found
 		// - non cloud-servant nodes, run on the same as cloud-servant node port 
-		List<String> activeIps = ipAction.getActiveIps();
+		List<IpScannerResult> activeIps = ipAction.getActiveIps();
 		return activeIps;
 	}
 	
@@ -69,26 +76,31 @@ public class IpFJPScanner {
 		
 		private int ipsChunkId;
 		
+		private IpValidator ipValidator;
+		
 		//ips to be scan
 		private List<String> ips;
 		
 		//result list of ips where connection was established. 
 		//only one master is possible, hence no more that one element must be added.
-		private List<String> activeIps;
+		private List<IpScannerResult> activeIps;
+		
+		public IpAction(IpValidator ipValidator) {
+			super();
+			this.activeIps = new ArrayList<>();
+			this.ipsChunkId = 1;
+			this.ipValidator = ipValidator;
+		}
 		
 		public IpAction(int ipActionId,
 						List<String> ips, 
-						List<String> activeIps) {
+						List<IpScannerResult> activeIps,
+						IpValidator ipValidator) {
 			super();
 			this.ipsChunkId = ipActionId;
 			this.ips = ips;
 			this.activeIps = activeIps;
-		}
-
-		public IpAction() {
-			super();
-			this.activeIps = new ArrayList<>();
-			this.ipsChunkId = 1;
+			this.ipValidator = ipValidator;
 		}
 
 		@Override
@@ -113,8 +125,8 @@ public class IpFJPScanner {
 					//3. close chunk[index]
 					//writer.close();
 
-					invokeAll(new IpAction(++ipsChunkId, null, activeIps),
-							  new IpAction(ipsChunkId, ipsUnitOfWork, activeIps));
+					invokeAll(new IpAction(++ipsChunkId, null, activeIps, ipValidator),
+							  new IpAction(ipsChunkId, ipsUnitOfWork, activeIps, ipValidator));
 					
 				}
 			} else {
@@ -124,7 +136,10 @@ public class IpFJPScanner {
 						logger.trace("[" + this.getClass().getSimpleName() + "] checking " + ip);
 						
 						s.connect(new InetSocketAddress(ip, masterPort), 1000);
-						activeIps.add(ip);
+						IpValidatorResult result = ipValidator.isValid(s, ip);
+						if(result.isResult()) {
+							activeIps.add(new IpScannerResult(ip, result.getMemberId()));
+						}
 						
 						logger.trace("[" + this.getClass().getSimpleName() + "] connecting to " + ip);
 					} catch (UnknownHostException e) {
@@ -143,7 +158,7 @@ public class IpFJPScanner {
 			}
 		}
 
-		public List<String> getActiveIps() {
+		public List<IpScannerResult> getActiveIps() {
 			return activeIps;
 		}
 		

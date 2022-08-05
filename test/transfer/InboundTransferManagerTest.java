@@ -22,7 +22,6 @@ import org.mockito.ArgumentCaptor;
 
 import exception.WrongOperationException;
 import main.AppProperties;
-import transfer.TransferManagerStateMonitor.LockType;
 import transfer.constant.MasterStatus;
 
 public class InboundTransferManagerTest {
@@ -49,7 +48,7 @@ public class InboundTransferManagerTest {
         Object o = constructor.newInstance(socket, tmsm, hco, ffto);
         constructor.setAccessible(false);
         
-        when(tmsm.lock(LockType.INBOUND)).thenReturn(true);
+        when(tmsm.lock()).thenReturn(true);
 		when(socket.getOutputStream()).thenReturn(os);
 		when(socket.getInputStream()).thenReturn(is);
 		ArgumentCaptor<OutputStream> arg1 = ArgumentCaptor.forClass(OutputStream.class);
@@ -64,7 +63,7 @@ public class InboundTransferManagerTest {
         verify(ffto, times(1)).executeAsMaster(arg1.capture(), arg2.capture());
         assertEquals(os, arg1.getValue());
         
-        verify(tmsm, times(1)).unlock(LockType.INBOUND);
+        verify(tmsm, times(1)).unlock();
         verify(socket, times(1)).close();
 	}
 	
@@ -90,7 +89,7 @@ public class InboundTransferManagerTest {
         Object o = constructor.newInstance(socket, tmsm, hco, ffto);
         constructor.setAccessible(false);
         
-        when(tmsm.lock(LockType.INBOUND)).thenReturn(false);
+        when(tmsm.lock()).thenReturn(false);
 		when(socket.getOutputStream()).thenReturn(os);
 		when(socket.getInputStream()).thenReturn(is);
 		ArgumentCaptor<OutputStream> arg1 = ArgumentCaptor.forClass(OutputStream.class);
@@ -107,7 +106,7 @@ public class InboundTransferManagerTest {
         assertEquals(os, arg1.getValue());
         assertEquals(MasterStatus.BUSY, arg3.getValue());
         
-        verify(tmsm, times(1)).unlock(LockType.INBOUND);
+        verify(tmsm, times(1)).unlock();
         verify(socket, times(1)).close();
 	}
 	
@@ -131,7 +130,7 @@ public class InboundTransferManagerTest {
         Object o = constructor.newInstance(socket, tmsm, hco, ffto);
         constructor.setAccessible(false);
         
-        when(tmsm.lock(LockType.INBOUND)).thenReturn(false);
+        when(tmsm.lock()).thenReturn(false);
 		when(socket.getOutputStream()).thenThrow(new IOException());
 		
         Thread th = new Thread((Runnable) o);
@@ -141,7 +140,7 @@ public class InboundTransferManagerTest {
         verify(hco, never()).executeAsMaster(any(), any(), any());
 		verify(ffto, never()).executeAsMaster(any(), any());
         
-        verify(tmsm, times(1)).unlock(LockType.INBOUND);
+        verify(tmsm, times(1)).unlock();
         verify(socket, times(1)).close();
 	}
 	
@@ -161,7 +160,7 @@ public class InboundTransferManagerTest {
 		TransferManagerStateMonitor tmsm = mock(TransferManagerStateMonitor.class);
 		AppProperties ap = mock(AppProperties.class);
 		
-		when(tmsm.lock(LockType.INBOUND)).thenReturn(false);
+		when(tmsm.lock()).thenReturn(false);
 		when(ap.getSocketSoTimeout()).thenReturn(1000);
 		when(ap.getMasterPort()).thenReturn(8080);
 		
@@ -180,7 +179,7 @@ public class InboundTransferManagerTest {
 		
 		verify(ffto, never()).executeAsMaster(any(), any());
         verify(hco, times(1)).executeAsMaster(any(), any(), any());
-        verify(tmsm, times(1)).unlock(LockType.INBOUND);
+        verify(tmsm, times(1)).unlock();
 	}
 	
 	private void setPrivateFieldValue(Object o, String fName, Object v) 

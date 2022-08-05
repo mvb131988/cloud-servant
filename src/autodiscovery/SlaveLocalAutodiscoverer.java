@@ -7,6 +7,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import autodiscovery.ipscanner.IpFJPScanner;
+import autodiscovery.ipscanner.IpScannerResult;
 import autodiscovery.ipscanner.IpValidator;
 import autodiscovery.ipscanner.IpValidatorResult;
 import main.AppProperties;
@@ -27,21 +28,17 @@ public class SlaveLocalAutodiscoverer implements Autodiscovery {
 	
 	private MemberDescriptor md;
 	
-	private IpValidator ipValidator;
-	
 	private MemberIpMonitor mim;
 	
 	private String memberId;
 	
 	public SlaveLocalAutodiscoverer(SlaveAutodiscoveryScheduler slaveScheduler, 
 									IpFJPScanner ipScanner,
-									IpValidator ipValidator,
 									MemberIpMonitor mim,
 									AppProperties ap) 
 	{
 		this.slaveScheduler = slaveScheduler;
 		this.ipScanner = ipScanner;
-		this.ipValidator = ipValidator;
 		this.mim = mim; 
 		this.localRanges = ap.getLocalRanges();
 		this.memberId = ap.getMemberId();
@@ -56,7 +53,7 @@ public class SlaveLocalAutodiscoverer implements Autodiscovery {
 	@Override
 	public List<String> discover(int failureCounter) {
 		this.md = null;
-		List<String> ips = new ArrayList<String>();
+		List<IpScannerResult> ips = new ArrayList<IpScannerResult>();
 		
 		// Local autodiscovery
 		slaveScheduler.checkAndUpdateBaseTime(failureCounter);
@@ -71,11 +68,10 @@ public class SlaveLocalAutodiscoverer implements Autodiscovery {
 			
 			List<MemberDescriptor> mds0 = new ArrayList<MemberDescriptor>();
 			// at most one SOURCE member is allowed in local autodiscovery scan 
-			for (String ip: ips) {
-				IpValidatorResult result = ipValidator.isValid(ip);
-				String memberId = result.isResult() ? result.getMemberId() : null;
+			for (IpScannerResult ip: ips) {
+				String memberId = ip.getMemberId();
 				MemberType memberType = mim.memberTypeByMemberId(memberId); 
-				MemberDescriptor md0 = new MemberDescriptor(memberId, memberType, ip);
+				MemberDescriptor md0 = new MemberDescriptor(memberId, memberType, ip.getIp());
 				if (!this.memberId.equals(md0.getMemberId())) {
 					mds0.add(md0);
 				}

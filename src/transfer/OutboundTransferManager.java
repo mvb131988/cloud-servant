@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.Random;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -16,7 +17,6 @@ import exception.BatchFileTransferException;
 import exception.MasterNotReadyDuringBatchTransfer;
 import exception.WrongOperationException;
 import main.AppProperties;
-import transfer.TransferManagerStateMonitor.LockType;
 import transfer.constant.MasterStatus;
 
 /**
@@ -43,6 +43,8 @@ public class OutboundTransferManager implements Runnable {
 	
 	private TransferManagerStateMonitor tmsm;
 	
+	private Random random;
+	
 	public OutboundTransferManager(MemberIpMonitor mim, 
 								   HealthCheckOperation hco, 
 								   FullFileTransferOperation ffto,
@@ -55,6 +57,7 @@ public class OutboundTransferManager implements Runnable {
 		this.tmsm = tmsm;
 		this.socketSoTimeout = ap.getSocketSoTimeout();
 		this.masterPort = ap.getMasterPort();
+		this.random = new Random();
 	}
 
 	@Override
@@ -67,23 +70,32 @@ public class OutboundTransferManager implements Runnable {
 	private void runInternally() {
 		try {
 			MemberIpIterator iterator = mim.iterator();
+			
 			while(iterator.hasNext()) {
-				if (tmsm.lock(LockType.OUTBOUND)) {
+				if (tmsm.lock()) {
+				
 					MemberDescriptor md = iterator.next();
+					
+					logger.info("Lock: " + md.getMemberId());
 					
 					Socket connection = connect(md.getIpAddress(), masterPort);
 					transfer(connection.getOutputStream(), connection.getInputStream());
 					connection.close();
 					
-					tmsm.unlock(LockType.OUTBOUND);
+					tmsm.unlock();
+					
+					logger.info("Unlock: " + md.getMemberId());
 				}
+				
 				// TODO: random delay between 1 and 10 seconds
-				Thread.sleep(1000);
+				Thread.sleep(random.nextInt(10) * 100);
 			}
 		} catch (Exception ex) {
 			logger.error(ex);
 
-			tmsm.unlock(LockType.OUTBOUND);
+			tmsm.unlock();
+		} catch(Throwable th) {
+			logger.error("Throwable", th);
 		}
 	}
 	
@@ -134,6 +146,9 @@ public class OutboundTransferManager implements Runnable {
 		// lock for the given healthcheck request. This could only when transfermanagerstate
 		// monitor is free on the external member healthcheck returns MASTER status
 		MasterStatus status = hco.executeAsSlave(os, is).getMasterStatus();
+		
+		logger.info("Neighbour member status: " + status);
+		
 		if(status == MasterStatus.READY) {			
 			ffto.executeAsSlave(os, is);
 		}

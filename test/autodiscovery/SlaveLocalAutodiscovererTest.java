@@ -13,8 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import autodiscovery.ipscanner.IpFJPScanner;
-import autodiscovery.ipscanner.IpValidator;
-import autodiscovery.ipscanner.IpValidatorResult;
+import autodiscovery.ipscanner.IpScannerResult;
 import main.AppProperties;
 
 public class SlaveLocalAutodiscovererTest {
@@ -23,7 +22,6 @@ public class SlaveLocalAutodiscovererTest {
 	public void testDiscover() {
 		SlaveAutodiscoveryScheduler slaveScheduler = mock(SlaveAutodiscoveryScheduler.class);
 		IpFJPScanner ipScanner = mock(IpFJPScanner.class);
-		IpValidator ipValidator = mock(IpValidator.class);
 		MemberIpMonitor memberIpMonitor = mock(MemberIpMonitor.class);
 		AppProperties appProperties = mock(AppProperties.class); 
 		
@@ -31,16 +29,14 @@ public class SlaveLocalAutodiscovererTest {
 		when(slaveScheduler.isScheduled(2)).thenReturn(true);
 		when(appProperties.getLocalRanges()).thenReturn("192.168.0.0/24");
 		when(appProperties.getMemberId()).thenReturn("member2");
-		when(ipScanner.scan("192.168.0.0/24")).thenReturn(List.of("192.168.0.13"));
-		when(ipValidator.isValid("192.168.0.13"))
-			.thenReturn(new IpValidatorResult(true, "member1"));
+		when(ipScanner.scan("192.168.0.0/24")).thenReturn(
+				List.of(new IpScannerResult("192.168.0.13", "member1")));
 		when(memberIpMonitor.memberTypeByMemberId("member1")).thenReturn(MemberType.SOURCE);
 		
 		ArgumentCaptor<Integer> arg1 = ArgumentCaptor.forClass(Integer.class);
 		
 		SlaveLocalAutodiscoverer sla = new SlaveLocalAutodiscoverer(slaveScheduler, 
 																	ipScanner, 
-																	ipValidator,
 																	memberIpMonitor,
 																	appProperties);
 		sla.discover(2);

@@ -11,8 +11,6 @@ import java.util.concurrent.locks.Lock;
 
 import org.junit.jupiter.api.Test;
 
-import transfer.TransferManagerStateMonitor.LockType;
-
 public class TransferManagerStateMonitorTest {
 
 	@Test
@@ -26,15 +24,15 @@ public class TransferManagerStateMonitorTest {
 			Thread.sleep(10);
 		}
 		
-		boolean res = tmsm.lock(LockType.INBOUND);
+		boolean res = tmsm.lock();
 		assertFalse(res);
 		
 		w1.terminate();
 		th1.join();
 		
-		res = tmsm.lock(LockType.INBOUND);
+		res = tmsm.lock();
 		assertTrue(res);
-		tmsm.unlock(LockType.INBOUND);
+		tmsm.unlock();
 	}
 	
 	@Test
@@ -48,33 +46,12 @@ public class TransferManagerStateMonitorTest {
 			Thread.sleep(10);
 		}
 		
-		tmsm.unlock(LockType.OUTBOUND);
-		boolean res = tmsm.lock(LockType.OUTBOUND);
+		tmsm.unlock();
+		boolean res = tmsm.lock();
 		assertFalse(res);
 		
 		w1.terminate();
 		th1.join();
-	}
-	
-	@Test
-	public void test3() throws InterruptedException, 
-							   IllegalArgumentException, 
-							   IllegalAccessException, 
-							   NoSuchFieldException, 
-							   SecurityException 
-	{
-		TransferManagerStateMonitor tmsm = new TransferManagerStateMonitor();
-		boolean res = tmsm.lock(LockType.OUTBOUND);
-		assertTrue(res);
-		res = tmsm.lock(LockType.OUTBOUND);
-		assertFalse(res);
-		
-		tmsm.unlock(LockType.OUTBOUND);
-		
-		Lock mockLock = mock(Lock.class);
-		setPrivateFieldValue(tmsm, "lock", mockLock);
-		tmsm.unlock(LockType.OUTBOUND);
-		verify(mockLock, times(0)).unlock();
 	}
 	
 	private static class Work1 implements Runnable{
@@ -95,7 +72,7 @@ public class TransferManagerStateMonitorTest {
 		public void run() {
 			while (!this.terminate) {
 				if (!locked) {
-					tmsm.lock(LockType.INBOUND);
+					tmsm.lock();
 					locked = true;
 				}
 				try {
@@ -104,7 +81,7 @@ public class TransferManagerStateMonitorTest {
 					e.printStackTrace();
 				}
 			}
-			tmsm.unlock(LockType.INBOUND);
+			tmsm.unlock();
 		}
 		
 		public void terminate() {

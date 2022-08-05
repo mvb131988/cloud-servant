@@ -126,11 +126,19 @@ public class AppContext {
 	}
 	
 	public IpFJPScanner getLocalIpFJPScanner() {
-		return new IpFJPScanner(getBaseRepositoryOperations(), getIpRangesAnalyzer(), appProperties.getLocalWorkPerThread(), appProperties);
+		return new IpFJPScanner(getBaseRepositoryOperations(), 
+								getIpValidator(), 
+								getIpRangesAnalyzer(), 
+								appProperties.getLocalWorkPerThread(), 
+								appProperties);
 	}
 	
 	public IpFJPScanner getGlobalIpFJPScanner() {
-		return new IpFJPScanner(getBaseRepositoryOperations(), getIpRangesAnalyzer(), appProperties.getGlobalWorkPerThread(), appProperties);
+		return new IpFJPScanner(getBaseRepositoryOperations(), 
+								getIpValidator(), 
+								getIpRangesAnalyzer(), 
+								appProperties.getGlobalWorkPerThread(), 
+								appProperties);
 	}
 	
 	public SlaveAutodiscoveryScheduler getSlaveLocalScheduler() {
@@ -144,7 +152,6 @@ public class AppContext {
 	public SlaveGlobalAutodiscoverer getGlobalDiscoverer() {
 		return new SlaveGlobalAutodiscoverer(getSlaveGlobalScheduler(), 
 											 getGlobalIpFJPScanner(), 
-											 getIpValidator(),
 											 getMemberIpMonitor(),
 											 appProperties);
 	}
@@ -152,7 +159,6 @@ public class AppContext {
 	public SlaveLocalAutodiscoverer getLocalDiscoverer() {
 		return new SlaveLocalAutodiscoverer(getSlaveLocalScheduler(), 
 											getLocalIpFJPScanner(), 
-											getIpValidator(), 
 											getMemberIpMonitor(),
 											appProperties);
 	}
