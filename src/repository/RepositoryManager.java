@@ -15,11 +15,12 @@ import main.AppProperties;
 import transfer.TransferManagerStateMonitor;
 
 /**
- * Main class that scans the repository and creates data.repo
+ * Main class that scans the repository and creates memberId_data.repo
  * 
- * data.repo file - file with the list of all files saved in the repository. 
+ * memberId_data.repo file - file with the list of all files saved in the repository
+ * 							 of the given member.
  */
-public class MasterRepositoryManager {
+public class RepositoryManager {
 
 	private final int smallTimeout;
 	
@@ -37,7 +38,7 @@ public class MasterRepositoryManager {
 	
 	private String memberId;
 
-	public MasterRepositoryManager(RepositoryVisitor repositoryVisitor, 
+	public RepositoryManager(RepositoryVisitor repositoryVisitor, 
 								   BaseRepositoryOperations bro,
 								   TransferManagerStateMonitor tmsm,
 								   AppProperties appProperties) {

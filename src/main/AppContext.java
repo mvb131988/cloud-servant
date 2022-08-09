@@ -6,8 +6,6 @@ import org.apache.logging.log4j.Logger;
 import autodiscovery.IpAutodiscoverer;
 import autodiscovery.MemberIpMonitor;
 import autodiscovery.MemberType;
-import autodiscovery.SlaveAutodiscoverer;
-import autodiscovery.SlaveAutodiscoveryAdapter;
 import autodiscovery.SlaveAutodiscoveryScheduler;
 import autodiscovery.SlaveGlobalAutodiscoverer;
 import autodiscovery.SlaveLocalAutodiscoverer;
@@ -16,10 +14,8 @@ import autodiscovery.ipscanner.IpRangeAnalyzer;
 import autodiscovery.ipscanner.IpRangesAnalyzer;
 import autodiscovery.ipscanner.IpValidator;
 import exception.InitializationException;
-import provider.MasterCommunicationProvider;
-import provider.SlaveCommunicationProvider;
 import repository.BaseRepositoryOperations;
-import repository.MasterRepositoryManager;
+import repository.RepositoryManager;
 import repository.RepositoryVisitor;
 import repository.SlaveRepositoryManager;
 import repository.SysManager;
@@ -32,10 +28,7 @@ import transfer.FileTransferOperation;
 import transfer.FullFileTransferOperation;
 import transfer.HealthCheckOperation;
 import transfer.InboundTransferManager;
-import transfer.MasterSlaveCommunicationPool;
-import transfer.MasterTransferManager;
 import transfer.OutboundTransferManager;
-import transfer.SlaveTransferManager;
 import transfer.StatusAndHealthCheckOperation;
 import transfer.StatusTransferOperation;
 import transfer.TransferManagerStateMonitor;
@@ -49,12 +42,6 @@ public class AppContext {
 	private Logger logger = LogManager.getRootLogger();
 
 	private AppProperties appProperties;
-	
-	private MasterTransferManager masterTransferManager;
-	
-	private SlaveTransferManager slaveTransferManager;
-	
-	private MasterCommunicationProvider masterCommunicationProvider;
 	
 	private SlaveRepositoryManager slaveRepositoryManager;
 	
@@ -74,13 +61,11 @@ public class AppContext {
 	
 	private RepositoryVisitor repositoryVisitor;
 	
-	private MasterRepositoryManager masterRepositoryManager;
+	private RepositoryManager repositoryManager;
 	
 	private BaseRepositoryOperations baseRepositoryOperations;
 	
 	private BaseTransferOperations baseTransferOperations;
-	
-	private MasterSlaveCommunicationPool masterSlaveCommunicationPool;
 	
 	private ProtocolStatusMapper protocolStatusMapper;
 	
@@ -94,13 +79,9 @@ public class AppContext {
 	
 	private MasterShutdownThread masterShutdownThread;
 	
-	private SlaveAutodiscoveryAdapter slaveAutodiscoveryAdapter;
-	
 	private SysManager sysManager;
 	
 	private AppInitializer appInitializer;
-	
-	private SlaveCommunicationProvider slaveCommunicationProvider;
 	
 	private IpValidator ipValidator;
 	
@@ -163,10 +144,6 @@ public class AppContext {
 											appProperties);
 	}
 	
-	public SlaveAutodiscoverer getDiscoverer() {
-		return new SlaveAutodiscoverer(getLocalDiscoverer(), appProperties);
-	}
-	
 	//Slave transfer scheduler
 	public SlaveScheduler getSlaveTransferScheduler() {
 		return new SlaveScheduler(appProperties.getSlaveTransferScheduleInterval());
@@ -217,32 +194,15 @@ public class AppContext {
 																  getBatchFilesTransferOperation(),
 																  appProperties);
 		
-		//Layer 1
-		masterSlaveCommunicationPool = new MasterSlaveCommunicationPool();
-//		masterTransferManager = new MasterTransferManager(appProperties);
-//		masterTransferManager.init(getFullFileTransferOperation(), 
-//								   getStatusTransferOperation(),
-//								   getHealthCheckOperation(),
-//								   getStatusAndHealthCheckOperation(),
-//								   getMasterSlaveCommunicationPool(), 
-//								   getProtocolStatusMapper(),
-//								   appProperties);
-		
 		transferManagerStateMonitor = new TransferManagerStateMonitor();
 		
-		masterRepositoryManager = new MasterRepositoryManager(getRepositoryVisitor(), 
+		repositoryManager = new RepositoryManager(getRepositoryVisitor(), 
 															  getBaseRepositoryOperations(), 
 															  getTransferManagerStateMonitor(),
 															  appProperties);
-		masterRepositoryManager.init();
+		repositoryManager.init();
 		
 		masterRepositoryScheduler = new MasterRepositoryScheduler(appProperties);
-		
-		//Top layer: layer 0 
-		masterCommunicationProvider = new MasterCommunicationProvider(getMasterRepositoryManager(), 
-																	  getMasterTransferManager(), 
-																	  getMasterRepositoryScheduler(),
-																	  appProperties);
 		
 		inboundTransferManager = new InboundTransferManager(getHealthCheckOperation(), 
 															getFullFileTransferOperation(), 
@@ -289,21 +249,6 @@ public class AppContext {
 		
 		//autodiscovering
 		ipValidator = new IpValidator(healthCheckOperation, appProperties.getMasterPort(), appProperties.getSocketSoTimeout());
-		slaveAutodiscoveryAdapter = new SlaveAutodiscoveryAdapter(getDiscoverer(), appProperties);
-		
-		//Top layer: layer 0 
-		slaveTransferManager = new SlaveTransferManager(appProperties);
-		slaveTransferManager.init(getFullFileTransferOperation(),
-				 				  getStatusTransferOperation(),
-				 				  getHealthCheckOperation(),
-				 				  getSlaveTransferScheduler(),
-				 				  getSlaveAutodiscoveryAdapter(),
-				 				  appProperties);
-		
-		slaveCommunicationProvider = new SlaveCommunicationProvider(getSlaveTransferManager(), 
-																	getSlaveRepositoryManager(),
-																	getSlaveRepositoryScheduler(),
-																	appProperties);
 		
 		/// autodiscovering ///
 		ipAutodiscoverer = new IpAutodiscoverer(getMemberIpMonitor(), 
@@ -326,11 +271,11 @@ public class AppContext {
 															  getTransferManagerStateMonitor(), 
 															  appProperties);
 		
-		masterRepositoryManager = new MasterRepositoryManager(getRepositoryVisitor(), 
+		repositoryManager = new RepositoryManager(getRepositoryVisitor(), 
 															  getBaseRepositoryOperations(), 
 															  getTransferManagerStateMonitor(),
 															  appProperties);
-		masterRepositoryManager.init();
+		repositoryManager.init();
 	}
 	
 	public void start(AppProperties appProperties) throws InitializationException {
@@ -356,7 +301,7 @@ public class AppContext {
 			Thread inTh = new Thread(getInboundTransferManager());
 			inTh.start();
 			
-			Thread repoTh = new Thread(getMasterRepositoryManager().getScaner());
+			Thread repoTh = new Thread(getRepositoryManager().getScaner());
 			repoTh.start();
 		}
 		
@@ -372,17 +317,10 @@ public class AppContext {
 			inTh.start();
 			outTh.start();
 			
-			Thread repoTh = new Thread(getMasterRepositoryManager().getScaner());
+			Thread repoTh = new Thread(getRepositoryManager().getScaner());
 			repoTh.start();
 		}
 		
-//		if (this.appProperties.isMaster()) {
-//			initAsMaster();
-//			getMasterCommunicationProvider().init();
-//		} else {
-//			initAsSlave();
-//			//getSlaveCommunicationProvider().init();
-//		}
 	}
 
 	private IntegerTransformer getIntegerTransformer() {
@@ -403,10 +341,6 @@ public class AppContext {
 
 	public RepositoryVisitor getRepositoryVisitor() {
 		return repositoryVisitor;
-	}
-
-	public SlaveTransferManager getSlaveTransferManager() {
-		return slaveTransferManager;
 	}
 	
 	private BaseTransferOperations getBaseTransferOperations() {
@@ -429,24 +363,12 @@ public class AppContext {
 		return fullFileTransferOperation;
 	}
 	
-	private MasterSlaveCommunicationPool getMasterSlaveCommunicationPool() {
-		return masterSlaveCommunicationPool;
-	}
-	
 	private ProtocolStatusMapper getProtocolStatusMapper() {
 		return protocolStatusMapper;
 	}
 	
-	public MasterRepositoryManager getMasterRepositoryManager() {
-		return masterRepositoryManager;
-	}
-	
-	public MasterTransferManager getMasterTransferManager() {
-		return masterTransferManager;
-	}
-
-	public MasterCommunicationProvider getMasterCommunicationProvider() {
-		return masterCommunicationProvider;
+	public RepositoryManager getRepositoryManager() {
+		return repositoryManager;
 	}
 
 	public SlaveRepositoryManager getSlaveRepositoryManager() {
@@ -468,10 +390,6 @@ public class AppContext {
 	public StatusAndHealthCheckOperation getStatusAndHealthCheckOperation() {
 		return statusAndHealthCheckOperation;
 	}
-	
-	public SlaveAutodiscoveryAdapter getSlaveAutodiscoveryAdapter() {
-		return slaveAutodiscoveryAdapter;
-	}
 
 	public AppInitializer getAppInitializer() {
 		return appInitializer;
@@ -479,10 +397,6 @@ public class AppContext {
 
 	public SysManager getSysManager() {
 		return sysManager;
-	}
-
-	public SlaveCommunicationProvider getSlaveCommunicationProvider() {
-		return slaveCommunicationProvider;
 	}
 
 	public IpValidator getIpValidator() {

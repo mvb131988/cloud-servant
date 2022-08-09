@@ -59,7 +59,7 @@ public class InboundTransferManagerTest {
         th.start();
         th.join();
         
-		verify(hco, never()).executeAsMaster(any(), any(), any());
+		verify(hco, times(1)).executeAsMaster(any(), any(), any());
         verify(ffto, times(1)).executeAsMaster(arg1.capture(), arg2.capture());
         assertEquals(os, arg1.getValue());
         
