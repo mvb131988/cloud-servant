@@ -200,7 +200,6 @@ public class AppContext {
 															  getBaseRepositoryOperations(), 
 															  getTransferManagerStateMonitor(),
 															  appProperties);
-		repositoryManager.init();
 		
 		masterRepositoryScheduler = new MasterRepositoryScheduler(appProperties);
 		
@@ -275,7 +274,6 @@ public class AppContext {
 															  getBaseRepositoryOperations(), 
 															  getTransferManagerStateMonitor(),
 															  appProperties);
-		repositoryManager.init();
 	}
 	
 	public void start(AppProperties appProperties) throws InitializationException {

@@ -1,8 +1,9 @@
 package main;
 
 import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -18,12 +19,21 @@ public class AppInitializer {
 	
 	private BaseRepositoryOperations bro;
 
+	private Path pathRoot;
+	
 	private Path pathSys;
+	
+	private Path pathLog;
+	
+	private String memberId;
 	
 	public AppInitializer(BaseRepositoryOperations bro, AppProperties appProperties) {
 		super();
 		this.bro = bro;
 		this.pathSys = appProperties.getPathSys();
+		this.pathLog = appProperties.getPathLog();
+		this.pathRoot = appProperties.getRepositoryRoot();
+		this.memberId = appProperties.getMemberId();
 	}
 	
 	/**
@@ -37,13 +47,22 @@ public class AppInitializer {
 			bro.createDirectoryIfNotExist0(pathSys);
 			bro.hideDirectory(pathSys);
 			
-			//check nodes file existence
-			//TODO: Deprecated substitute nodes.txt with members.txt
-			Path nodes = pathSys.resolve(Paths.get("nodes.txt"));
-			bro.createFileIfNotExist(nodes);
-			////////////////////////////////////////////////////////
+			//check log directory existence
+			logger.info("Log path is: " + pathLog);
+			bro.createDirectoryIfNotExist0(pathLog);
+			bro.hideDirectory(pathLog);
+			
+			//existed file is replaced by an empty one
+			Path configPath = pathRoot.resolve(memberId + "_data.repo");
+			try (OutputStream os = Files.newOutputStream(configPath);) {
+
+			} catch (IOException e) {
+				logger.error("[" + this.getClass().getSimpleName() + "]"
+						   + " unable to create " + memberId + "_data.repo", e);
+			} 
 		} catch (IOException e) {
-			logger.error("[" + this.getClass().getSimpleName() + "] unable to create sys file", e);
+			logger.error("[" + this.getClass().getSimpleName() 
+				       + "] unable to create sys file", e);
 		} 
 	}
 	

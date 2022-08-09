@@ -6,8 +6,8 @@
 				charset="UTF-8" />
 		</Console>
 
-		<RollingFile name="RollingFile" fileName="${log}/app.log"
-			filePattern="${log}/app-%i.log.gz">
+		<RollingFile name="RollingFile" fileName="${path.log}/app.log"
+			filePattern="${path.log}/app-%i.log.gz">
 			<PatternLayout>
 				<Pattern>%d %p %c{1.} [%t] %m%n</Pattern>
 				<Charset>UTF-8</Charset>

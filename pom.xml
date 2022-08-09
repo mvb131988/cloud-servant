@@ -81,7 +81,7 @@
 			<properties>
 				<master>true</master>
 				<root>D:\photo_files</root>
-				<log>D:\photo_files\.log</log>
+				<path.log>D:\photo_files\.log</path.log>
 			</properties>
 		</profile>
 		<profile>
@@ -89,7 +89,7 @@
 			<properties>
 				<master>false</master>
 				<root>/media/pi/seagate/repo</root>
-				<log>/media/pi/seagate/repo/.log</log>
+				<path.log>/media/pi/seagate/repo/.log</path.log>
 			</properties>
 		</profile>
 		<!-- test profiles -->
@@ -98,7 +98,7 @@
 			<properties>
 				<master>true</master>
 				<root>C:\endava\workspace\cloud-servant\master_repo</root>
-				<log>C:\endava\workspace\cloud-servant\master_repo\.log</log>
+				<path.log>C:\endava\workspace\cloud-servant\master_repo\.log</path.log>
 			</properties>
 		</profile>
 		<profile>
@@ -106,7 +106,7 @@
 			<properties>
 				<master>false</master>
 				<root>C:\endava\workspace\cloud-servant\slave_repo</root>
-				<log>C:\endava\workspace\cloud-servant\slave_repo\.log</log>
+				<path.log>C:\endava\workspace\cloud-servant\slave_repo\.log</path.log>
 				<path.sys>C:\endava\workspace\cloud-servant\slave_repo\.sys</path.sys>
 			</properties>
 		</profile>
@@ -115,7 +115,8 @@
 			<properties>
 				<master>true</master>
 				<root>/tmp/master_repo</root>
-				<log>/tmp/master_repo/.log</log>
+				<path.log>/tmp/master_repo/.log</path.log>
+				<path.sys>/tmp/master_repo/.sys</path.sys>
 				<memberId>member1</memberId>
 			</properties>
 		</profile>
@@ -124,7 +125,7 @@
 			<properties>
 				<master>false</master>
 				<root>/tmp/slave_repo</root>
-				<log>/tmp/slave_repo/.log</log>
+				<path.log>/tmp/slave_repo/.log</path.log>
 				<path.sys>/tmp/slave_repo/.sys</path.sys>
 				<memberId>member2</memberId>
 			</properties>
@@ -134,7 +135,7 @@
 			<properties>
 				<master>false</master>
 				<root>/tmp/slave_repo</root>
-				<log>/tmp/slave_repo/.log</log>
+				<path.log>/tmp/slave_repo/.log</path.log>
 				<path.sys>/tmp/slave_repo/.sys</path.sys>
 				<memberId>member3</memberId>
 			</properties>

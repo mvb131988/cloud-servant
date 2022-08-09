@@ -12,6 +12,8 @@ public class AppProperties {
 	
 	private Path pathSys;
 	
+	private Path pathLog;
+	
 	private Integer masterPort;
 	
 	//Admin port is common both for master and slave side.
@@ -53,6 +55,7 @@ public class AppProperties {
 	public AppProperties() {
 		repositoryRoot = Paths.get(ResourceBundle.getBundle("app").getString("root"));
 		pathSys = Paths.get(ResourceBundle.getBundle("app").getString("path.sys"));
+		pathLog = Paths.get(ResourceBundle.getBundle("app").getString("path.log"));
 		memberId = ResourceBundle.getBundle("app").getString("memberId");
 		isMaster = Boolean.parseBoolean(ResourceBundle.getBundle("app").getString("master"));
 		masterPort = Integer.parseInt(ResourceBundle.getBundle("app").getString("master.port"));
@@ -147,6 +150,10 @@ public class AppProperties {
 
 	public Path getPathSys() {
 		return pathSys;
+	}
+	
+	public Path getPathLog() {
+		return pathLog;
 	}
 
 	public String getMemberId() {

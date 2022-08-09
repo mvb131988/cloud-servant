@@ -64,30 +64,6 @@ public class RepositoryManager {
 	}
 
 	/**
-	 * Initializes Recreates data.repo file. Existed file is replaced by an
-	 * empty one.
-	 * @throws IOException 
-	 */
-	public void init() {
-		try {
-			// Create log directory
-			//TODO: Move to initializer
-			Path log = Paths.get(".log");
-			bro.createDirectoryIfNotExist(log);
-			bro.hideDirectory(log);
-		} catch (IOException e) {
-			logger.error("[" + this.getClass().getSimpleName() + "] unable to create log file", e);
-		} 
-		
-		Path configPath = repositoryRoot.resolve(memberId + "_data.repo");
-		try (OutputStream os = Files.newOutputStream(configPath);) {
-
-		} catch (IOException e) {
-			logger.error("[" + this.getClass().getSimpleName() + "] unable to create data.repo", e);
-		} 
-	}
-
-	/**
 	 * Writes the list of files into data.repo
 	 * 
 	 * @param fileNames
@@ -95,14 +71,12 @@ public class RepositoryManager {
 	 * @throws FilePathMaxLengthException 
 	 * @throws IOException 
 	 */
-	private void writeAll(List<RepositoryRecord> fileNames) throws IOException, FilePathMaxLengthException {
+	private void writeAll(List<RepositoryRecord> fileNames) 
+			throws IOException, FilePathMaxLengthException 
+	{
 		bro.writeAll(fileNames, 0);
 	}
 
-	public Thread getScanerThread() {
-		return new Thread(getScaner());
-	}
-	
 	public RepositoryScaner getScaner() {
 		if(repositoryScaner == null) {
 			return new RepositoryScaner(tmsm);
@@ -142,7 +116,8 @@ public class RepositoryManager {
 					}
 					
 					//TODO: Check and remove
-					//RepositoryRecord rr = bro.read(BaseRepositoryOperations.HEADER_SIZE + 13*RecordConstants.FULL_SIZE);
+					//RepositoryRecord rr = bro.read(BaseRepositoryOperations.HEADER_SIZE + 
+					//								 13*RecordConstants.FULL_SIZE);
 					//rr.getId();
 					
 					//Thread idle timeout.
