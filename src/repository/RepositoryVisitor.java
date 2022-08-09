@@ -30,7 +30,10 @@ public class RepositoryVisitor implements FileVisitor<Path> {
 	
 	@Override
 	public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
-		if(dir.getFileName().toString().equals(".log")) {
+		if(dir.getFileName().toString().equals(".log") ||
+		   dir.getFileName().toString().equals(".sys") ||
+		   dir.getFileName().toString().equals(".temp")) 
+		{
 			//filter out all system folders
 			return FileVisitResult.SKIP_SUBTREE;
 		}
@@ -39,7 +42,7 @@ public class RepositoryVisitor implements FileVisitor<Path> {
 
 	@Override
 	public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-		if(file.getFileName().toString().equals("data.repo")) {
+		if(file.getFileName().toString().contains("data.repo")) {
 			//filter out data.repo
 		}
 		else {

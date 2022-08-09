@@ -141,6 +141,7 @@ public class InboundTransferManager implements Runnable {
 
 		private void transfer(OutputStream os, PushbackInputStream pushbackInputStream)
 				throws IOException, WrongOperationException {
+			hco.executeAsMaster(os, pushbackInputStream, MasterStatus.READY);
 			ffto.executeAsMaster(os, pushbackInputStream);
 		}
 

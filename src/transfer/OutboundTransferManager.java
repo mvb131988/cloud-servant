@@ -79,7 +79,9 @@ public class OutboundTransferManager implements Runnable {
 					logger.info("Lock: " + md.getMemberId());
 					
 					Socket connection = connect(md.getIpAddress(), masterPort);
-					transfer(connection.getOutputStream(), connection.getInputStream());
+					transfer(connection.getOutputStream(), 
+							 connection.getInputStream(), 
+							 md.getMemberId());
 					connection.close();
 					
 					tmsm.unlock();
@@ -135,7 +137,7 @@ public class OutboundTransferManager implements Runnable {
 	 * @throws WrongOperationException
 	 * @throws BatchFileTransferException
 	 */
-	private void transfer(OutputStream os, InputStream is) 
+	private void transfer(OutputStream os, InputStream is, String memberId) 
 			throws InterruptedException, 
 				   IOException, 
 				   MasterNotReadyDuringBatchTransfer, 
@@ -150,7 +152,7 @@ public class OutboundTransferManager implements Runnable {
 		logger.info("Neighbour member status: " + status);
 		
 		if(status == MasterStatus.READY) {			
-			ffto.executeAsSlave(os, is);
+			ffto.executeAsSlave(os, is, memberId);
 		}
 	}
 	

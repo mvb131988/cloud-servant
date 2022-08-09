@@ -12,6 +12,7 @@ import org.apache.logging.log4j.Logger;
 
 import exception.FilePathMaxLengthException;
 import main.AppProperties;
+import transfer.TransferManagerStateMonitor;
 
 /**
  * Main class that scans the repository and creates data.repo
@@ -30,14 +31,24 @@ public class MasterRepositoryManager {
 	
 	private RepositoryVisitor repositoryVisitor;
 	
+	private TransferManagerStateMonitor tmsm;
+	
 	private BaseRepositoryOperations bro;
+	
+	private String memberId;
 
-	public MasterRepositoryManager(RepositoryVisitor repositoryVisitor, BaseRepositoryOperations bro, AppProperties appProperties) {
+	public MasterRepositoryManager(RepositoryVisitor repositoryVisitor, 
+								   BaseRepositoryOperations bro,
+								   TransferManagerStateMonitor tmsm,
+								   AppProperties appProperties) {
 		repositoryRoot = appProperties.getRepositoryRoot();
 		
 		this.bro = bro;
+		this.tmsm = tmsm;
 		this.repositoryVisitor = repositoryVisitor;
 		this.smallTimeout = appProperties.getSmallPoolingTimeout();
+		
+		this.memberId = appProperties.getMemberId();
 	}
 	
 	/**
@@ -67,7 +78,7 @@ public class MasterRepositoryManager {
 			logger.error("[" + this.getClass().getSimpleName() + "] unable to create log file", e);
 		} 
 		
-		Path configPath = repositoryRoot.resolve("data.repo");
+		Path configPath = repositoryRoot.resolve(memberId + "_data.repo");
 		try (OutputStream os = Files.newOutputStream(configPath);) {
 
 		} catch (IOException e) {
@@ -93,7 +104,7 @@ public class MasterRepositoryManager {
 	
 	public RepositoryScaner getScaner() {
 		if(repositoryScaner == null) {
-			return new RepositoryScaner();
+			return new RepositoryScaner(tmsm);
 		}
 		return repositoryScaner;
 	}
@@ -102,23 +113,31 @@ public class MasterRepositoryManager {
 	//Instead implement (partial scan->flush) process
 	public class RepositoryScaner implements Runnable {
 
+		private TransferManagerStateMonitor tmsm;
+		
 		private RepositoryScannerStatus status;
 		
-		private RepositoryScaner() {
+		private RepositoryScaner(TransferManagerStateMonitor tmsm) {
 			status = RepositoryScannerStatus.READY;
+			
+			this.tmsm = tmsm;
 		}
 		
 		@Override
 		public void run() {
 			try {
 				for(;;) {
-					if(status == RepositoryScannerStatus.BUSY) {
-						logger.info("[" + this.getClass().getSimpleName() + "] scan started");
-					
-						writeAll(scan());
-					
-						status = RepositoryScannerStatus.READY;
-						logger.info("[" + this.getClass().getSimpleName() + "] scan ended");
+					try {
+						if(tmsm.lock()) {
+							logger.info("[" + this.getClass().getSimpleName() + "] scan started");
+						
+							writeAll(scan());
+						
+							status = RepositoryScannerStatus.READY;
+							logger.info("[" + this.getClass().getSimpleName() + "] scan ended");
+						}
+					} finally {
+						tmsm.unlock();
 					}
 					
 					//TODO: Check and remove

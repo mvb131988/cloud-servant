@@ -89,7 +89,7 @@ public class SlaveTransferManager {
 			//MASTER changes its status from READY TO BUSY
 			status = sto.executeAsSlave(os, is).getMasterStatus();
 			if(status == MasterStatus.READY) {
-				ffto.executeAsSlave(os, is);
+				ffto.executeAsSlave(os, is, null);
 				scheduler.scheduleNext();
 			}
 			

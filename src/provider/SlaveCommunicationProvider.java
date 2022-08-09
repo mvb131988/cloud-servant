@@ -9,6 +9,7 @@ import scheduler.SlaveScheduler;
 import transfer.SlaveTransferManager;
 import transfer.SlaveTransferManager.SlaveTransferThread;
 
+@Deprecated
 public class SlaveCommunicationProvider {
 
 	private final int bigTimeout;
@@ -57,7 +58,7 @@ public class SlaveCommunicationProvider {
 					// Repository status check (repository scan)
 					if(repositoryScheduler.isScheduled()) {
 						slaveTransferThread.pause();
-						slaveRepositoryManager.checkScan();
+						slaveRepositoryManager.checkScan(null);
 						repositoryScheduler.scheduleNext();
 					}
 					

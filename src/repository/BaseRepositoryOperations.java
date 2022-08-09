@@ -53,14 +53,20 @@ public class BaseRepositoryOperations {
 	private LongTransformer longTransformer;
 
 	private FilesContextTransformer fct;
+	
+	private String memberId;
 
-	public BaseRepositoryOperations(LongTransformer frameProcessor, FilesContextTransformer fct, AppProperties appProperties) {
+	public BaseRepositoryOperations(LongTransformer frameProcessor, 
+									FilesContextTransformer fct, 
+									AppProperties appProperties) {
 		super();
 		this.longTransformer = frameProcessor;
 		this.fct = fct;
 
 		this.repositoryRoot = appProperties.getRepositoryRoot();
 		this.smallTimeout = appProperties.getSmallPoolingTimeout();
+		
+		this.memberId = appProperties.getMemberId();
 	}
 
 	// --------------------------------------------------------------------------------------------------------------------------------
@@ -129,7 +135,7 @@ public class BaseRepositoryOperations {
 
 		int offset = baseAddr;
 
-		Path configPath = repositoryRoot.resolve("data.repo");
+		Path configPath = repositoryRoot.resolve(memberId + "_data.repo");
 		try (RandomAccessFile file = new RandomAccessFile(configPath.toString(), "r")) {
 			// file id
 			file.seek(offset);
@@ -296,7 +302,7 @@ public class BaseRepositoryOperations {
 
 		int id = startId;
 
-		Path configPath = repositoryRoot.resolve("data.repo");
+		Path configPath = repositoryRoot.resolve(memberId + "_data.repo");
 
 		try (OutputStream os = Files.newOutputStream(configPath);) {
 			
@@ -678,8 +684,8 @@ public class BaseRepositoryOperations {
 	 * with it.
 	 * @throws IOException 
 	 */
-	public InputStream openDataRepo() throws IOException {
-		Path configPath = repositoryRoot.resolve("data.repo");
+	public InputStream openDataRepo(String memberId) throws IOException {
+		Path configPath = repositoryRoot.resolve(memberId + "_data.repo");
 		InputStream is = null;
 		is = Files.newInputStream(configPath);
 		return is;
@@ -707,8 +713,10 @@ public class BaseRepositoryOperations {
 	 * @throws IOException 
 	 * @throws FileNotFoundException 
 	 */
-	public void updateDataRepoStatus(RepositoryFileStatus status) throws FileNotFoundException, IOException {
-		Path configPath = repositoryRoot.resolve("data.repo");
+	public void updateDataRepoStatus(RepositoryFileStatus status, String memberId) 
+			throws FileNotFoundException, IOException
+	{
+		Path configPath = repositoryRoot.resolve(memberId + "_data.repo");
 		long offset = RecordConstants.TIMESTAMP;
 		try (RandomAccessFile file = new RandomAccessFile(configPath.toString(), "rw")) {
 			file.seek(offset);
@@ -753,9 +761,13 @@ public class BaseRepositoryOperations {
 
 		private AsynchronySearcherStatus asynchronySearcherStatus;
 
-		private AsynchronySearcher() {
+		private String memberId;
+		
+		private AsynchronySearcher(String memberId) {
 			asynchronyBuffer = new ArrayBlockingQueue<>(asynchronyBufferMaxSize);
 			asynchronySearcherStatus = AsynchronySearcherStatus.READY;
+			
+			this.memberId = memberId;
 		}
 
 		@Override
@@ -765,7 +777,7 @@ public class BaseRepositoryOperations {
 	
 				byte[] buffer = new byte[RecordConstants.FULL_SIZE * BATCH_SIZE];
 	
-				InputStream is = openDataRepo();
+				InputStream is = openDataRepo(memberId);
 				readDataRepoHeader(is);
 				int readBytes = 0;
 				while ((readBytes = next(is, buffer)) != -1) {
@@ -836,8 +848,8 @@ public class BaseRepositoryOperations {
 
 	}
 
-	public AsynchronySearcher getAsynchronySearcher() {
-		return new AsynchronySearcher();
+	public AsynchronySearcher getAsynchronySearcher(String memberId) {
+		return new AsynchronySearcher(memberId);
 	}
 
 	/**********************************************************************************************
@@ -906,8 +918,8 @@ public class BaseRepositoryOperations {
 		
 		private byte[] buffer = new byte[RecordConstants.FULL_SIZE * BATCH_SIZE];
 		
-		public DataRepoIterator() throws IOException {
-			is = openDataRepo();
+		public DataRepoIterator(String memberId) throws IOException {
+			is = openDataRepo(memberId);
 			header = readDataRepoHeader(is);
 		}
 		
@@ -941,8 +953,8 @@ public class BaseRepositoryOperations {
 		
 	}
 	
-	public DataRepoIterator dataRepoIterator() throws IOException {
-		return new DataRepoIterator();
+	public DataRepoIterator dataRepoIterator(String memberId) throws IOException {
+		return new DataRepoIterator(memberId);
 	}
 	
 	/**********************************************************************************************
@@ -954,7 +966,7 @@ public class BaseRepositoryOperations {
 	 **********************************************************************************************/
 	public class RepositoryConsistencyChecker {
 		
-		public RepositoryStatusDescriptor check() {
+		public RepositoryStatusDescriptor check(String memberId) {
 			int recordsCounter = 0;
 			long totalSize = 0;
 			//TODO(FUTURE): In scan is done on empty repo and data.repo list is huge can lead 
@@ -964,7 +976,7 @@ public class BaseRepositoryOperations {
 			DataRepoIterator iterator = null;
 			
 			try {
-				iterator = dataRepoIterator();
+				iterator = dataRepoIterator(memberId);
 				RepositoryFileStatus repoFileStatus = getHeaderCreationStatus(iterator.getHeader());
 				repoDescriptor.setRepositoryFileStatus(repoFileStatus);
 				

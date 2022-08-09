@@ -7,6 +7,7 @@ import java.nio.file.Paths;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import main.AppProperties;
 import repository.BaseRepositoryOperations.AsynchronySearcher;
 import repository.BaseRepositoryOperations.RepositoryConsistencyChecker;
 import repository.status.RepositoryFileStatus;
@@ -25,11 +26,12 @@ public class SlaveRepositoryManager {
 	
 	private Thread repositoryScanerThread;
 	
-	public SlaveRepositoryManager(BaseRepositoryOperations bro, RepositoryStatusMapper sm) {
+	public SlaveRepositoryManager(BaseRepositoryOperations bro, 
+								  RepositoryStatusMapper sm) {
 		super();
 		this.bro = bro;
 		this.sm = sm;
-		asynchronySearcher = bro.getAsynchronySearcher();
+//		asynchronySearcher = bro.getAsynchronySearcher(appProperties.getMemberId());
 		repositoryScanerThread = new Thread(asynchronySearcher);
 		repositoryScanerThread.setName("AsynchronySearcher");
 	}
@@ -63,16 +65,16 @@ public class SlaveRepositoryManager {
 	/**
 	 * Invoked before starting the execution
 	 */
-	public void reset() {
-		if (getStatus() == SlaveRepositoryManagerStatus.READY) {
-			repositoryScanerThread.start();
-		}
-		if(getStatus() == SlaveRepositoryManagerStatus.TERMINATED) {
-			asynchronySearcher = bro.getAsynchronySearcher();
+	public void reset(String memberId) {
+//		if (getStatus() == SlaveRepositoryManagerStatus.READY) {
+//			repositoryScanerThread.start();
+//		}
+//		if(getStatus() == SlaveRepositoryManagerStatus.TERMINATED) {
+			asynchronySearcher = bro.getAsynchronySearcher(memberId);
 			repositoryScanerThread = new Thread(asynchronySearcher);
 			repositoryScanerThread.setName("AsynchronySearcher");
 			repositoryScanerThread.start();
-		}
+//		}
 	}
 	
 	/**
@@ -98,10 +100,10 @@ public class SlaveRepositoryManager {
 	 * 
 	 * @throws IOException
 	 */
-	public void checkScan() throws IOException {
+	public void checkScan(String memberId) throws IOException {
 		logger.info("[" + this.getClass().getSimpleName() + "] slave repo check started");
 		RepositoryConsistencyChecker checker = bro.repositoryConsistencyChecker();
-		RepositoryStatusDescriptor repoDescriptor = checker.check();
+		RepositoryStatusDescriptor repoDescriptor = checker.check(memberId);
 		logger.info("[" + this.getClass().getSimpleName() + "] slave repo check started terminated");
 		
 		RepositoryFileStatus status = repoDescriptor.getRepositoryFileStatus();

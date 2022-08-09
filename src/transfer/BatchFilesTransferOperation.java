@@ -91,7 +91,13 @@ public class BatchFilesTransferOperation {
 		logger.info("[" + this.getClass().getSimpleName() + "] sent batch transfer end operation accept");
 	}
 
-	public void executeAsSlave(OutputStream os, InputStream is) throws InterruptedException, IOException, MasterNotReadyDuringBatchTransfer, WrongOperationException, BatchFileTransferException {
+	public void executeAsSlave(OutputStream os, InputStream is, String memberId) 
+			throws InterruptedException, 
+				   IOException, 
+				   MasterNotReadyDuringBatchTransfer, 
+				   WrongOperationException, 
+				   BatchFileTransferException 
+	{
 		// 1. Send start batch flag
 		bto.sendOperationType(os, OperationType.REQUEST_BATCH_START);
 		logger.info("[" + this.getClass().getSimpleName() + "] sent batch transfer start operation request");
@@ -105,7 +111,7 @@ public class BatchFilesTransferOperation {
 		//2. Get next file path(for corresponding file) that is needed to be transfered and
 		// send file transfer request to master
 		try {
-			srm.reset();
+			srm.reset(memberId);
 			while(srm.getStatus() != SlaveRepositoryManagerStatus.TERMINATED) {
 				RepositoryRecord rr = srm.next();
 				if (rr != null) {

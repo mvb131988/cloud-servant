@@ -15,6 +15,7 @@ import org.apache.logging.log4j.Logger;
 import exception.BatchFileTransferException;
 import exception.MasterNotReadyDuringBatchTransfer;
 import exception.WrongOperationException;
+import main.AppProperties;
 import repository.BaseRepositoryOperations;
 import repository.status.RepositoryFileStatus;
 import transfer.constant.MasterStatus;
@@ -46,7 +47,8 @@ public class FullFileTransferOperation {
 									 FileTransferOperation fto, 
 									 StatusTransferOperation sto,
 									 HealthCheckOperation hco,
-									 BatchFilesTransferOperation bfto) 
+									 BatchFilesTransferOperation bfto,
+									 AppProperties appProperties) 
 	{
 		super();
 		this.bto = bto;
@@ -64,11 +66,11 @@ public class FullFileTransferOperation {
 		//no transfer process is started. Immediately after that(if master slave communication thread remains READY) status
 		//check request is coming. This request grabs master slave communication thread(in this moment it status can't be changed
 		//until full file transfer is completed) and initiates full file transfer operation.
-		if(ot == REQUEST_HEALTHCHECK_START) {
-			hco.executeAsMaster(os, pushbackInputStream, MasterStatus.READY);
-			logger.info("[" + this.getClass().getSimpleName() + "] slave requested healthcheck");
-			return;
-		}
+//		if(ot == REQUEST_HEALTHCHECK_START) {
+//			hco.executeAsMaster(os, pushbackInputStream, MasterStatus.READY);
+//			logger.info("[" + this.getClass().getSimpleName() + "] slave requested healthcheck");
+//			return;
+//		}
 		
 		while (REQUEST_TRANSFER_END != (ot = bto.checkOperationType(pushbackInputStream))) {
 			if (ot == null) {
@@ -109,7 +111,13 @@ public class FullFileTransferOperation {
 		logger.info("[" + this.getClass().getSimpleName() + "] sent transfer end operation accept");
 	}
 	
-	public void executeAsSlave(OutputStream os, InputStream is) throws InterruptedException, IOException, MasterNotReadyDuringBatchTransfer, WrongOperationException, BatchFileTransferException {
+	public void executeAsSlave(OutputStream os, InputStream is, String memberId) 
+			throws InterruptedException, 
+				   IOException, 
+				   MasterNotReadyDuringBatchTransfer, 
+				   WrongOperationException, 
+				   BatchFileTransferException 
+	{
 		bto.sendOperationType(os, OperationType.REQUEST_TRANSFER_START);
 		logger.info("[" + this.getClass().getSimpleName() + "] sent transfer start operation request");
 		
@@ -120,15 +128,15 @@ public class FullFileTransferOperation {
 		logger.info("[" + this.getClass().getSimpleName() + "] master responded transfer start");
 		
 		// Get data.repo
-		Path relativePath = Paths.get("data.repo");
+		Path relativePath = Paths.get(memberId + "_data.repo");
 		FileContext fc = (new FileContext.Builder())
 				.setRelativePath(relativePath)
 				.build(); 
 		fto.executeAsSlave(os, is, fc);
-		bro.updateDataRepoStatus(RepositoryFileStatus.RECEIVE_END);
+		bro.updateDataRepoStatus(RepositoryFileStatus.RECEIVE_END, memberId);
 		
 		// batch transfer
-		bfto.executeAsSlave(os, is);
+		bfto.executeAsSlave(os, is, memberId);
 		
 		bto.sendOperationType(os, OperationType.REQUEST_TRANSFER_END);
 		logger.info("[" + this.getClass().getSimpleName() + "] sent transfer end request");

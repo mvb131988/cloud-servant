@@ -214,7 +214,8 @@ public class AppContext {
 																  getFileTransferOperation(),
 																  getStatusTransferOperation(),
 																  getHealthCheckOperation(),
-																  getBatchFilesTransferOperation());
+																  getBatchFilesTransferOperation(),
+																  appProperties);
 		
 		//Layer 1
 		masterSlaveCommunicationPool = new MasterSlaveCommunicationPool();
@@ -226,7 +227,13 @@ public class AppContext {
 //								   getMasterSlaveCommunicationPool(), 
 //								   getProtocolStatusMapper(),
 //								   appProperties);
-		masterRepositoryManager = new MasterRepositoryManager(getRepositoryVisitor(), getBaseRepositoryOperations(), appProperties);
+		
+		transferManagerStateMonitor = new TransferManagerStateMonitor();
+		
+		masterRepositoryManager = new MasterRepositoryManager(getRepositoryVisitor(), 
+															  getBaseRepositoryOperations(), 
+															  getTransferManagerStateMonitor(),
+															  appProperties);
 		masterRepositoryManager.init();
 		
 		masterRepositoryScheduler = new MasterRepositoryScheduler(appProperties);
@@ -236,8 +243,6 @@ public class AppContext {
 																	  getMasterTransferManager(), 
 																	  getMasterRepositoryScheduler(),
 																	  appProperties);
-		
-		transferManagerStateMonitor = new TransferManagerStateMonitor();
 		
 		inboundTransferManager = new InboundTransferManager(getHealthCheckOperation(), 
 															getFullFileTransferOperation(), 
@@ -279,7 +284,8 @@ public class AppContext {
 																  getFileTransferOperation(),
 																  getStatusTransferOperation(),
 																  getHealthCheckOperation(),
-																  getBatchFilesTransferOperation());
+																  getBatchFilesTransferOperation(),
+																  appProperties);
 		
 		//autodiscovering
 		ipValidator = new IpValidator(healthCheckOperation, appProperties.getMasterPort(), appProperties.getSocketSoTimeout());
@@ -319,6 +325,12 @@ public class AppContext {
 															  getFullFileTransferOperation(), 
 															  getTransferManagerStateMonitor(), 
 															  appProperties);
+		
+		masterRepositoryManager = new MasterRepositoryManager(getRepositoryVisitor(), 
+															  getBaseRepositoryOperations(), 
+															  getTransferManagerStateMonitor(),
+															  appProperties);
+		masterRepositoryManager.init();
 	}
 	
 	public void start(AppProperties appProperties) throws InitializationException {
@@ -343,6 +355,9 @@ public class AppContext {
 			
 			Thread inTh = new Thread(getInboundTransferManager());
 			inTh.start();
+			
+			Thread repoTh = new Thread(getMasterRepositoryManager().getScaner());
+			repoTh.start();
 		}
 		
 		if(MemberType.CLOUD == mt) {
@@ -356,6 +371,9 @@ public class AppContext {
 			
 			inTh.start();
 			outTh.start();
+			
+			Thread repoTh = new Thread(getMasterRepositoryManager().getScaner());
+			repoTh.start();
 		}
 		
 //		if (this.appProperties.isMaster()) {

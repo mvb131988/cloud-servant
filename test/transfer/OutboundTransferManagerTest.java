@@ -1,6 +1,7 @@
 package transfer;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -81,7 +82,9 @@ public class OutboundTransferManagerTest {
 		invokePrivateMethod(otm, "runInternally");
 		ss.close();
 		
-		verify(ffto, times(1)).executeAsSlave(any(OutputStream.class), any(InputStream.class));
+		verify(ffto, times(1)).executeAsSlave(any(OutputStream.class), 
+											  any(InputStream.class),
+											  eq("member2"));
 		verify(tmsm, times(1)).unlock();
 	}
 	

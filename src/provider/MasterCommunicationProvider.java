@@ -16,6 +16,7 @@ import transfer.MasterTransferManager.MasterTransferThread;
  * When repository scanner is working, all communications holding by master transfer manager must be in BUSY state(
  * meaning no transfer could occur during the scan).  
  */
+@Deprecated
 public class MasterCommunicationProvider {
 
 	private final int bigTimeout;
