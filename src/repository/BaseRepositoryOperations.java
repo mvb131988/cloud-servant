@@ -257,6 +257,7 @@ public class BaseRepositoryOperations {
 		}
 	}
 	
+	@Deprecated
 	public void writeMasterIp(String ip) throws IOException {
 		Path sysPath = repositoryRoot.resolve(".sys").resolve("nodes.txt");
 		try (OutputStream os = Files.newOutputStream(sysPath)) {
@@ -266,6 +267,7 @@ public class BaseRepositoryOperations {
 		}
 	}
 	
+	@Deprecated
 	public String readMasterIp() throws IOException {
 		Path sysPath = repositoryRoot.resolve(".sys").resolve("nodes.txt");
 		

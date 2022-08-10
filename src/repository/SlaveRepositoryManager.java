@@ -1,13 +1,10 @@
 package repository;
 
 import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import main.AppProperties;
 import repository.BaseRepositoryOperations.AsynchronySearcher;
 import repository.BaseRepositoryOperations.RepositoryConsistencyChecker;
 import repository.status.RepositoryFileStatus;
@@ -31,32 +28,12 @@ public class SlaveRepositoryManager {
 		super();
 		this.bro = bro;
 		this.sm = sm;
-//		asynchronySearcher = bro.getAsynchronySearcher(appProperties.getMemberId());
 		repositoryScanerThread = new Thread(asynchronySearcher);
 		repositoryScanerThread.setName("AsynchronySearcher");
 	}
-
-	public void init() {
-		try {
-			//TODO: Move to initializer
-			
-			// Create log directory
-			Path log = Paths.get(".log");
-			bro.createDirectoryIfNotExist(log);
-			bro.hideDirectory(log);
-			
-			// Create temporary folder where incoming files firstly will be saved
-			Path temp = Paths.get(".temp");
-			bro.createDirectoryIfNotExist(temp);
-			bro.hideDirectory(temp);
-		} 
-		catch (Exception e) {
-			logger.error("[" + this.getClass().getSimpleName() + "] initialization fail", e);
-		}
-	}
 	
 	/**
-	 * ==========================================================================================
+	 * ========================================================================================
 	 */
 	public SlaveRepositoryManagerStatus getStatus() {
 		return sm.map(asynchronySearcher.getStatus());
@@ -66,15 +43,10 @@ public class SlaveRepositoryManager {
 	 * Invoked before starting the execution
 	 */
 	public void reset(String memberId) {
-//		if (getStatus() == SlaveRepositoryManagerStatus.READY) {
-//			repositoryScanerThread.start();
-//		}
-//		if(getStatus() == SlaveRepositoryManagerStatus.TERMINATED) {
-			asynchronySearcher = bro.getAsynchronySearcher(memberId);
-			repositoryScanerThread = new Thread(asynchronySearcher);
-			repositoryScanerThread.setName("AsynchronySearcher");
-			repositoryScanerThread.start();
-//		}
+		asynchronySearcher = bro.getAsynchronySearcher(memberId);
+		repositoryScanerThread = new Thread(asynchronySearcher);
+		repositoryScanerThread.setName("AsynchronySearcher");
+		repositoryScanerThread.start();
 	}
 	
 	/**
@@ -91,9 +63,10 @@ public class SlaveRepositoryManager {
 		return rr;
 	}
 	/**
-	 * ==========================================================================================
+	 * ========================================================================================
 	 */
 	
+	//TODO: add check scan at the end of batch file transfer
 	/**
 	 * Scans slave repository and looks for divergency between record in data.repo file and actual
 	 * file stored in file system. 
@@ -104,13 +77,16 @@ public class SlaveRepositoryManager {
 		logger.info("[" + this.getClass().getSimpleName() + "] slave repo check started");
 		RepositoryConsistencyChecker checker = bro.repositoryConsistencyChecker();
 		RepositoryStatusDescriptor repoDescriptor = checker.check(memberId);
-		logger.info("[" + this.getClass().getSimpleName() + "] slave repo check started terminated");
+		logger.info("[" + this.getClass().getSimpleName() 
+				  + "] slave repo check started terminated");
 		
 		RepositoryFileStatus status = repoDescriptor.getRepositoryFileStatus();
 		if(status == RepositoryFileStatus.RECEIVE_END) {
-			logger.info("[" + this.getClass().getSimpleName() + "] slave repo report generation started");
+			logger.info("[" + this.getClass().getSimpleName() 
+					  + "] slave repo report generation started");
 			bro.writeRepositoryStatusDescriptor(repoDescriptor);
-			logger.info("[" + this.getClass().getSimpleName() + "] slave repo report generation terminated");
+			logger.info("[" + this.getClass().getSimpleName() 
+					  + "] slave repo report generation terminated");
 			
 			//TODO: step 3
 			//remove corrupted files

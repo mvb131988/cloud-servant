@@ -25,14 +25,17 @@ public class AppInitializer {
 	
 	private Path pathLog;
 	
+	private Path pathTemp;
+	
 	private String memberId;
 	
 	public AppInitializer(BaseRepositoryOperations bro, AppProperties appProperties) {
 		super();
 		this.bro = bro;
+		this.pathRoot = appProperties.getRepositoryRoot();
 		this.pathSys = appProperties.getPathSys();
 		this.pathLog = appProperties.getPathLog();
-		this.pathRoot = appProperties.getRepositoryRoot();
+		this.pathTemp = appProperties.getPathTemp();
 		this.memberId = appProperties.getMemberId();
 	}
 	
@@ -47,10 +50,17 @@ public class AppInitializer {
 			bro.createDirectoryIfNotExist0(pathSys);
 			bro.hideDirectory(pathSys);
 			
-			//check log directory existence
 			logger.info("Log path is: " + pathLog);
+			
+			//check log directory existence
 			bro.createDirectoryIfNotExist0(pathLog);
 			bro.hideDirectory(pathLog);
+			
+			logger.info("Temp path is: " + pathTemp);
+			
+			//check log directory existence
+			bro.createDirectoryIfNotExist0(pathTemp);
+			bro.hideDirectory(pathTemp);
 			
 			//existed file is replaced by an empty one
 			Path configPath = pathRoot.resolve(memberId + "_data.repo");

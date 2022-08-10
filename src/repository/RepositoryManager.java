@@ -1,10 +1,8 @@
 package repository;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
@@ -39,9 +37,10 @@ public class RepositoryManager {
 	private String memberId;
 
 	public RepositoryManager(RepositoryVisitor repositoryVisitor, 
-								   BaseRepositoryOperations bro,
-								   TransferManagerStateMonitor tmsm,
-								   AppProperties appProperties) {
+							 BaseRepositoryOperations bro,
+							 TransferManagerStateMonitor tmsm,
+							 AppProperties appProperties) 
+	{
 		repositoryRoot = appProperties.getRepositoryRoot();
 		
 		this.bro = bro;

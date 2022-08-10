@@ -219,7 +219,7 @@ public class AppContext {
 		repositoryVisitor = new RepositoryVisitor(getBaseRepositoryOperations(), appProperties);
 		slaveRepositoryManager = new SlaveRepositoryManager(getBaseRepositoryOperations(), 
 															getRepositoryStatusMapper());
-		slaveRepositoryManager.init();
+//		slaveRepositoryManager.init();
 		sysManager = new SysManager(getBaseRepositoryOperations());
 		
 		//Transfer operations

@@ -8,6 +8,7 @@ import org.apache.logging.log4j.Logger;
 /**
  * Service layer to manage sys directory and containing files 
  */
+@Deprecated
 public class SysManager {
 
 	private Logger logger = LogManager.getRootLogger();

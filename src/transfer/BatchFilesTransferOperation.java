@@ -22,8 +22,7 @@ import transfer.constant.OperationType;
 import transformer.FilesContextTransformer;
 
 /**
- * Implements transfer protocol for a batch of files. Both master and slave
- * sides.
+ * Implements transfer protocol for a batch of files. Both master and slave sides.
  */
 public class BatchFilesTransferOperation {
 
@@ -57,7 +56,9 @@ public class BatchFilesTransferOperation {
 		this.smallTimeout = appProperties.getSmallPoolingTimeout();
 	}
 
-	public void executeAsMaster(OutputStream os, PushbackInputStream pushbackInputStream) throws IOException, WrongOperationException {
+	public void executeAsMaster(OutputStream os, PushbackInputStream pushbackInputStream)
+			throws IOException, WrongOperationException 
+	{
 		OperationType ot = null;
 		while (REQUEST_BATCH_END != (ot=bto.checkOperationType(pushbackInputStream))) {
 			if(ot == null) {
@@ -66,29 +67,33 @@ public class BatchFilesTransferOperation {
 			}
 			
 			switch (ot) {
-			case REQUEST_MASTER_STATUS_START: 
-				sto.executeAsMaster(os, pushbackInputStream, MasterStatus.READY);
-				break;
-			case REQUEST_BATCH_START:
-				bto.receiveOperationType(pushbackInputStream);
-				logger.info("[" + this.getClass().getSimpleName() + "] slave requested batch transfer start operation");
-
-				bto.sendOperationType(os, OperationType.RESPONSE_BATCH_START);
-				logger.info("[" + this.getClass().getSimpleName() + "] sent batch transfer start operation accept");
-				break;
-			case REQUEST_FILE_START:
-				fto.executeAsMaster(os, pushbackInputStream);
-				break;
-			default:
-				throw new WrongOperationException();
+				case REQUEST_MASTER_STATUS_START: 
+					sto.executeAsMaster(os, pushbackInputStream, MasterStatus.READY);
+					break;
+				case REQUEST_BATCH_START:
+					bto.receiveOperationType(pushbackInputStream);
+					logger.info("[" + this.getClass().getSimpleName() 
+							  + "] slave requested batch transfer start operation");
+	
+					bto.sendOperationType(os, OperationType.RESPONSE_BATCH_START);
+					logger.info("[" + this.getClass().getSimpleName() 
+							  + "] sent batch transfer start operation accept");
+					break;
+				case REQUEST_FILE_START:
+					fto.executeAsMaster(os, pushbackInputStream);
+					break;
+				default:
+					throw new WrongOperationException();
 			}
 		}
 		//read REQUEST_BATCH_END byte
 		bto.receiveOperationType(pushbackInputStream);
-		logger.info("[" + this.getClass().getSimpleName() + "] slave requested batch transfer end operation");
+		logger.info("[" + this.getClass().getSimpleName() 
+				  + "] slave requested batch transfer end operation");
 
 		bto.sendOperationType(os, OperationType.RESPONSE_BATCH_END);
-		logger.info("[" + this.getClass().getSimpleName() + "] sent batch transfer end operation accept");
+		logger.info("[" + this.getClass().getSimpleName() 
+				  + "] sent batch transfer end operation accept");
 	}
 
 	public void executeAsSlave(OutputStream os, InputStream is, String memberId) 
@@ -100,13 +105,16 @@ public class BatchFilesTransferOperation {
 	{
 		// 1. Send start batch flag
 		bto.sendOperationType(os, OperationType.REQUEST_BATCH_START);
-		logger.info("[" + this.getClass().getSimpleName() + "] sent batch transfer start operation request");
+		logger.info("[" + this.getClass().getSimpleName() 
+				  + "] sent batch transfer start operation request");
 
 		OperationType ot = bto.receiveOperationType(is);
 		if (ot != OperationType.RESPONSE_BATCH_START) {
-			throw new WrongOperationException("Expected: " + OperationType.RESPONSE_BATCH_START + " Actual: " + ot);
+			throw new WrongOperationException("Expected: " + OperationType.RESPONSE_BATCH_START 
+					                        + " Actual: " + ot);
 		}
-		logger.info("[" + this.getClass().getSimpleName() + "] master responded batch transfer start");
+		logger.info("[" + this.getClass().getSimpleName() 
+				  + "] master responded batch transfer start");
 
 		//2. Get next file path(for corresponding file) that is needed to be transfered and
 		// send file transfer request to master
@@ -124,15 +132,16 @@ public class BatchFilesTransferOperation {
 						throw new MasterNotReadyDuringBatchTransfer();
 					}
 					
-					//If all records from the buffer of AsynchronySearcher are consumed and buffer is empty,
-					//but AsynchronySearcher isn't terminated wait until it adds new records to the buffer.
-					//Wait 1 second to avoid resources overconsumption.
+					//If all records from the buffer of AsynchronySearcher are consumed and 
+					//buffer is empty, but AsynchronySearcher isn't terminated wait until it adds
+					//new records to the buffer. Wait 1 second to avoid resources overconsumption.
 					Thread.sleep(smallTimeout);
 				}
 			}
 		}
 		catch(Exception e) {
-			//Catch IOException, that happened during file transfer and terminate SlaveRepositoryManager(asynchrony thread)
+			//Catch IOException, that happened during file transfer and terminate 
+			//SlaveRepositoryManager (asynchrony thread)
 			while(srm.getStatus() != SlaveRepositoryManagerStatus.TERMINATED) {
 				//Read all. When no more records available asynchrony thread terminates
 				srm.next();
@@ -142,13 +151,16 @@ public class BatchFilesTransferOperation {
 		
 		// 3. Send end batch flag
 		bto.sendOperationType(os, OperationType.REQUEST_BATCH_END);
-		logger.info("[" + this.getClass().getSimpleName() + "] sent batch transfer end operation request");
+		logger.info("[" + this.getClass().getSimpleName() 
+				  + "] sent batch transfer end operation request");
 
 		ot = bto.receiveOperationType(is);
 		if (ot != OperationType.RESPONSE_BATCH_END) {
-			throw new WrongOperationException("Expected: " + OperationType.RESPONSE_BATCH_END + " Actual: " + ot);
+			throw new WrongOperationException("Expected: " + OperationType.RESPONSE_BATCH_END 
+					                        + " Actual: " + ot);
 		}
-		logger.info("[" + this.getClass().getSimpleName() + "] master responded batch transfer end");
+		logger.info("[" + this.getClass().getSimpleName() 
+				  + "] master responded batch transfer end");
 	}
 
 }

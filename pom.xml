@@ -82,6 +82,8 @@
 				<master>true</master>
 				<root>D:\photo_files</root>
 				<path.log>D:\photo_files\.log</path.log>
+				<path.sys>D:\photo_files\.sys</path.sys>
+				<path.temp>D:\photo_files\.temp</path.temp>
 			</properties>
 		</profile>
 		<profile>
@@ -90,6 +92,8 @@
 				<master>false</master>
 				<root>/media/pi/seagate/repo</root>
 				<path.log>/media/pi/seagate/repo/.log</path.log>
+				<path.sys>/media/pi/seagate/repo/.sys</path.sys>
+				<path.temp>/media/pi/seagate/repo/.temp</path.temp>
 			</properties>
 		</profile>
 		<!-- test profiles -->
@@ -99,6 +103,8 @@
 				<master>true</master>
 				<root>C:\endava\workspace\cloud-servant\master_repo</root>
 				<path.log>C:\endava\workspace\cloud-servant\master_repo\.log</path.log>
+				<path.sys>C:\endava\workspace\cloud-servant\master_repo\.sys</path.sys>
+				<path.temp>C:\endava\workspace\cloud-servant\master_repo\.temp</path.temp>
 			</properties>
 		</profile>
 		<profile>
@@ -108,6 +114,7 @@
 				<root>C:\endava\workspace\cloud-servant\slave_repo</root>
 				<path.log>C:\endava\workspace\cloud-servant\slave_repo\.log</path.log>
 				<path.sys>C:\endava\workspace\cloud-servant\slave_repo\.sys</path.sys>
+				<path.temp>C:\endava\workspace\cloud-servant\slave_repo\.temp</path.temp>
 			</properties>
 		</profile>
 		<profile>
@@ -117,6 +124,7 @@
 				<root>/tmp/master_repo</root>
 				<path.log>/tmp/master_repo/.log</path.log>
 				<path.sys>/tmp/master_repo/.sys</path.sys>
+				<path.temp>/tmp/master_repo/.temp</path.temp>
 				<memberId>member1</memberId>
 			</properties>
 		</profile>
@@ -127,6 +135,7 @@
 				<root>/tmp/slave_repo</root>
 				<path.log>/tmp/slave_repo/.log</path.log>
 				<path.sys>/tmp/slave_repo/.sys</path.sys>
+				<path.temp>/tmp/slave_repo/.temp</path.temp>
 				<memberId>member2</memberId>
 			</properties>
 		</profile>
@@ -137,6 +146,7 @@
 				<root>/tmp/slave_repo</root>
 				<path.log>/tmp/slave_repo/.log</path.log>
 				<path.sys>/tmp/slave_repo/.sys</path.sys>
+				<path.temp>/tmp/slave_repo/.temp</path.temp>
 				<memberId>member3</memberId>
 			</properties>
 		</profile>
