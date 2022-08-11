@@ -47,19 +47,19 @@ public class AppInitializer {
 			logger.info("System path is: " + pathSys);
 			
 			//check sys directory existence
-			bro.createDirectoryIfNotExist0(pathSys);
+			bro.createDirectoryIfNotExistA(pathSys);
 			bro.hideDirectory(pathSys);
 			
 			logger.info("Log path is: " + pathLog);
 			
 			//check log directory existence
-			bro.createDirectoryIfNotExist0(pathLog);
+			bro.createDirectoryIfNotExistA(pathLog);
 			bro.hideDirectory(pathLog);
 			
 			logger.info("Temp path is: " + pathTemp);
 			
 			//check log directory existence
-			bro.createDirectoryIfNotExist0(pathTemp);
+			bro.createDirectoryIfNotExistA(pathTemp);
 			bro.hideDirectory(pathTemp);
 			
 			//existed file is replaced by an empty one

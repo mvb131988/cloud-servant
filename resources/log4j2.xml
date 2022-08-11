@@ -17,6 +17,18 @@
 			</Policies>
 			<DefaultRolloverStrategy max="5" />
 		</RollingFile>
+
+		<RollingFile name="ExecutionOrderAppender" fileName="${path.log}/execution-order.log"
+			filePattern="${path.log}/execution-order-%i.log.gz">
+			<PatternLayout>
+				<Pattern>%d %p %c{1.} [%t] %m%n</Pattern>
+				<Charset>UTF-8</Charset>
+			</PatternLayout>
+			<Policies>
+				<SizeBasedTriggeringPolicy size="10 MB" />
+			</Policies>
+			<DefaultRolloverStrategy max="5" />
+		</RollingFile>
 	</Appenders>
 
 	<Loggers>
@@ -24,5 +36,9 @@
 			<AppenderRef ref="Console" />
 			<AppenderRef ref="RollingFile" />
 		</Root>
+
+		<logger name="execution-order-logger" additivity="false">
+    		<appender-ref ref="ExecutionOrderAppender" />
+		</logger>
 	</Loggers>
 </Configuration>

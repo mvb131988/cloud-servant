@@ -31,6 +31,8 @@ public class OutboundTransferManager implements Runnable {
 
 	private Logger logger = LogManager.getRootLogger();
 	
+	private Logger orderLogger = LogManager.getLogger("execution-order-logger");
+	
 	private final int socketSoTimeout;
 	
 	private final int masterPort;
@@ -76,7 +78,8 @@ public class OutboundTransferManager implements Runnable {
 				
 					MemberDescriptor md = iterator.next();
 					
-					logger.info("Lock: " + md.getMemberId());
+					orderLogger.info("OutboundTransferManager acquires lock for memberId="
+									+ md.getMemberId());
 					
 					Socket connection = connect(md.getIpAddress(), masterPort);
 					transfer(connection.getOutputStream(), 
@@ -85,8 +88,6 @@ public class OutboundTransferManager implements Runnable {
 					connection.close();
 					
 					tmsm.unlock();
-					
-					logger.info("Unlock: " + md.getMemberId());
 				}
 				
 				// TODO: random delay between 1 and 10 seconds

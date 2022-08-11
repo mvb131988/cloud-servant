@@ -98,6 +98,8 @@ public class InboundTransferManager implements Runnable {
 
 		private Logger logger = LogManager.getRootLogger();
 		
+		private Logger orderLogger = LogManager.getLogger("execution-order-logger");
+		
 		private Socket in;
 		
 		private TransferManagerStateMonitor tmsm;
@@ -121,6 +123,9 @@ public class InboundTransferManager implements Runnable {
 		public void run() {
 			try {
 				if (tmsm.lock()) {
+					
+					orderLogger.info("InboundTransferManager acquires lock");
+					
 					transfer(in.getOutputStream(), 
 							 new PushbackInputStream(in.getInputStream()));
 				} else {

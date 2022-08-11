@@ -16,9 +16,9 @@ import autodiscovery.ipscanner.IpValidator;
 import exception.InitializationException;
 import repository.BaseRepositoryOperations;
 import repository.RepositoryManager;
+import repository.RepositoryManager.RepositoryScaner;
 import repository.RepositoryVisitor;
 import repository.SlaveRepositoryManager;
-import repository.SysManager;
 import repository.status.RepositoryStatusMapper;
 import scheduler.MasterRepositoryScheduler;
 import scheduler.SlaveScheduler;
@@ -78,8 +78,6 @@ public class AppContext {
 	private MasterRepositoryScheduler masterRepositoryScheduler;
 	
 	private MasterShutdownThread masterShutdownThread;
-	
-	private SysManager sysManager;
 	
 	private AppInitializer appInitializer;
 	
@@ -220,7 +218,6 @@ public class AppContext {
 		slaveRepositoryManager = new SlaveRepositoryManager(getBaseRepositoryOperations(), 
 															getRepositoryStatusMapper());
 //		slaveRepositoryManager.init();
-		sysManager = new SysManager(getBaseRepositoryOperations());
 		
 		//Transfer operations
 		baseTransferOperations = new BaseTransferOperations(getIntegerTransformer(),
@@ -297,9 +294,11 @@ public class AppContext {
 			initAsMaster();
 			
 			Thread inTh = new Thread(getInboundTransferManager());
+			inTh.setName(getInboundTransferManager().getClass().getSimpleName());
 			inTh.start();
 			
 			Thread repoTh = new Thread(getRepositoryManager().getScaner());
+			repoTh.setName(RepositoryScaner.class.getSimpleName());
 			repoTh.start();
 		}
 		
@@ -316,6 +315,7 @@ public class AppContext {
 			outTh.start();
 			
 			Thread repoTh = new Thread(getRepositoryManager().getScaner());
+			repoTh.setName(RepositoryScaner.class.getSimpleName());
 			repoTh.start();
 		}
 		
@@ -391,10 +391,6 @@ public class AppContext {
 
 	public AppInitializer getAppInitializer() {
 		return appInitializer;
-	}
-
-	public SysManager getSysManager() {
-		return sysManager;
 	}
 
 	public IpValidator getIpValidator() {

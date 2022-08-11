@@ -188,23 +188,33 @@ public class BaseRepositoryOperations {
 	
 	/**
 	 * Persists repository status descriptor on disc (in /.sys).
+	 * Compares local state of the repo for the given member with repo state from received file
+	 * memberId_data.repo
 	 * Determines structure of file where repository status descriptor will be stored. 
 	 * @throws IOException 
 	 */
-	public void writeRepositoryStatusDescriptor(RepositoryStatusDescriptor descriptor) throws IOException {
-		Path sysPath = repositoryRoot.resolve(".sys").resolve("repo_descriptor.txt");
+	public void writeRepositoryStatusDescriptor(RepositoryStatusDescriptor descriptor, 
+												String memberId) throws IOException 
+	{
+		Path sysPath = repositoryRoot.resolve(".sys").resolve(memberId + "_repo_descriptor.txt");
 		try (BufferedWriter bw = Files.newBufferedWriter(sysPath)) {
-			bw.write("Data.repo file status: " + descriptor.getRepositoryFileStatus().toString());
+			bw.write(memberId + "_data.repo file status: " 
+					+ descriptor.getRepositoryFileStatus().toString());
 			bw.newLine();
-			bw.write("Slave repository check/scan date: " + descriptor.getCheckDateTime());
+			bw.write("Slave repository check/scan date: " 
+					+ descriptor.getCheckDateTime());
 			bw.newLine();
-			bw.write("Data.repo file creation date: " + descriptor.getDataRepoDateTime());
+			bw.write(memberId + "_data.repo file creation date: " 
+					+ descriptor.getDataRepoDateTime());
 			bw.newLine();
-			bw.write("Total number of files in slave repository: " + descriptor.getNumberOfFiles());
+			bw.write("Total number of files in slave repository: " 
+					+ descriptor.getNumberOfFiles());
 			bw.newLine();
-			bw.write("Total files size in slave repository: " + descriptor.getTotalSize() + " bytes");
+			bw.write("Total files size in slave repository: " 
+					+ descriptor.getTotalSize() + " bytes");
 			bw.newLine();
-			bw.write("Total number of corrupted files in slave repository: " + descriptor.getNumberOfCorruptedFiles());
+			bw.write("Total number of corrupted files in slave repository: " 
+					+ descriptor.getNumberOfCorruptedFiles());
 			bw.newLine();
 			
 			bw.write("====================================================");
@@ -224,7 +234,8 @@ public class BaseRepositoryOperations {
 					case SIZE_MISMATCH:
 						bw.write("file name: " + fd.getRepositoryRecord().getFileName());
 						bw.newLine();
-						bw.write("expected file size: " + fd.getRepositoryRecord().getSize()  + " bytes");
+						bw.write("expected file size: " 
+								+ fd.getRepositoryRecord().getSize()  + " bytes");
 						bw.newLine();
 						bw.write("  actual file size: " + fd.getActualSize() + " bytes");
 						bw.newLine();
@@ -255,27 +266,6 @@ public class BaseRepositoryOperations {
 				}
 			}
 		}
-	}
-	
-	@Deprecated
-	public void writeMasterIp(String ip) throws IOException {
-		Path sysPath = repositoryRoot.resolve(".sys").resolve("nodes.txt");
-		try (OutputStream os = Files.newOutputStream(sysPath)) {
-			byte[] ipBytes = ip.getBytes("UTF-8");
-			os.write(ipBytes, 0, ipBytes.length);
-			os.flush();
-		}
-	}
-	
-	@Deprecated
-	public String readMasterIp() throws IOException {
-		Path sysPath = repositoryRoot.resolve(".sys").resolve("nodes.txt");
-		
-		String s;
-		try (BufferedReader is = new BufferedReader(new InputStreamReader(Files.newInputStream(sysPath)))) {
-			s = is.readLine();
-		}
-		return s;
 	}
 	
 	/**
@@ -414,12 +404,11 @@ public class BaseRepositoryOperations {
 	}
 	
 	/**
-	 * Creates directory relative to the repository root
+	 * Creates directory relative to the repository root (relative path is passed)
 	 * 
 	 * @throws IOException
 	 */
-	@Deprecated
-	public void createDirectoryIfNotExist(Path relativePath) throws IOException {
+	public void createDirectoryIfNotExistR(Path relativePath) throws IOException {
 		if (relativePath != null) {
 			Path newPath = repositoryRoot.resolve(relativePath);
 			if (!Files.exists(newPath)) {
@@ -429,11 +418,11 @@ public class BaseRepositoryOperations {
 	}
 
 	/**
-	 * Creates directory given by the path
+	 * Creates directory given by the path (absolute path is passed)
 	 * 
 	 * @throws IOException
 	 */
-	public void createDirectoryIfNotExist0(Path path) throws IOException {
+	public void createDirectoryIfNotExistA(Path path) throws IOException {
 		if (path != null) {
 			if (!Files.exists(path)) {
 				logger.info("Path : " + path + " does not exist");
@@ -634,13 +623,16 @@ public class BaseRepositoryOperations {
 	
 	public long getSize(Path relativePath) throws IOException {
 		long size = 0;
-		size = Files.readAttributes(repositoryRoot.resolve(relativePath), BasicFileAttributes.class).size();
+		size = Files.readAttributes(repositoryRoot.resolve(relativePath),
+									BasicFileAttributes.class)
+					.size();
 		return size;
 	}
 
 	public long getCreationDateTime(Path relativePath) throws IOException {
 		long creationDateTime = 0;
-		creationDateTime = Files.readAttributes(repositoryRoot.resolve(relativePath), BasicFileAttributes.class)
+		creationDateTime = Files.readAttributes(repositoryRoot.resolve(relativePath),
+												BasicFileAttributes.class)
 								.creationTime().toMillis();
 		return creationDateTime;
 	}

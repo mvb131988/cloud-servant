@@ -138,6 +138,8 @@ public class BatchFilesTransferOperation {
 					Thread.sleep(smallTimeout);
 				}
 			}
+			//consistency check
+			srm.checkScan(memberId);
 		}
 		catch(Exception e) {
 			//Catch IOException, that happened during file transfer and terminate 

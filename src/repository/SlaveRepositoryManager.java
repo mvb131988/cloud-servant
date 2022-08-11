@@ -50,7 +50,7 @@ public class SlaveRepositoryManager {
 	}
 	
 	/**
-	 * Returns next repository record that doesn't have corresponding file in slave repository. 
+	 * Returns next repository record that doesn't have corresponding file in slave repository.
 	 * Non-blocking
 	 */
 	public RepositoryRecord next() {
@@ -84,7 +84,7 @@ public class SlaveRepositoryManager {
 		if(status == RepositoryFileStatus.RECEIVE_END) {
 			logger.info("[" + this.getClass().getSimpleName() 
 					  + "] slave repo report generation started");
-			bro.writeRepositoryStatusDescriptor(repoDescriptor);
+			bro.writeRepositoryStatusDescriptor(repoDescriptor, memberId);
 			logger.info("[" + this.getClass().getSimpleName() 
 					  + "] slave repo report generation terminated");
 			

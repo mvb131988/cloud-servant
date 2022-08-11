@@ -147,7 +147,12 @@ public class BaseTransferOperations {
 		}
 	}
 
-	public void receiveFile(InputStream is, long size, Path repositoryRoot, Path relativeFilePath, long creationDateTime) throws IOException {
+	public void receiveFile(InputStream is, 
+							long size, 
+							Path repositoryRoot, 
+							Path relativeFilePath, 
+							long creationDateTime) throws IOException 
+	{
 		byte[] buffer = new byte[1024];
 		int readBufferSize = -1;
 		long remainigSize = size;
@@ -161,7 +166,7 @@ public class BaseTransferOperations {
 				os.write(buffer, 0, readBufferSize);
 			}
 
-			bro.createDirectoryIfNotExist(relativeFilePath.getParent());
+			bro.createDirectoryIfNotExistR(relativeFilePath.getParent());
 			//Move file to actual location
 			bro.fromTempToRepository(relativeFilePath, creationDateTime);
 		} 
