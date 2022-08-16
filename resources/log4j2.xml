@@ -18,8 +18,20 @@
 			<DefaultRolloverStrategy max="5" />
 		</RollingFile>
 
-		<RollingFile name="ExecutionOrderAppender" fileName="${path.log}/execution-order.log"
-			filePattern="${path.log}/execution-order-%i.log.gz">
+		<RollingFile name="LockAcquiringAppender" fileName="${path.log}/lock-acquiring.log"
+			filePattern="${path.log}/lock-acquiring-%i.log.gz">
+			<PatternLayout>
+				<Pattern>%d %p %c{1.} [%t] %m%n</Pattern>
+				<Charset>UTF-8</Charset>
+			</PatternLayout>
+			<Policies>
+				<SizeBasedTriggeringPolicy size="10 MB" />
+			</Policies>
+			<DefaultRolloverStrategy max="5" />
+		</RollingFile>
+
+		<RollingFile name="AutodiscoveryAppender" fileName="${path.log}/autodiscovery.log"
+			filePattern="${path.log}/autodiscovery-%i.log.gz">
 			<PatternLayout>
 				<Pattern>%d %p %c{1.} [%t] %m%n</Pattern>
 				<Charset>UTF-8</Charset>
@@ -37,8 +49,12 @@
 			<AppenderRef ref="RollingFile" />
 		</Root>
 
-		<logger name="execution-order-logger" additivity="false">
-    		<appender-ref ref="ExecutionOrderAppender" />
+		<logger name="LockAcquiringLogger" additivity="false">
+    		<appender-ref ref="LockAcquiringAppender" />
+		</logger>
+
+		<logger name="AutodiscoveryLogger" additivity="false" level="trace">
+    		<appender-ref ref="AutodiscoveryAppender" />
 		</logger>
 	</Loggers>
 </Configuration>

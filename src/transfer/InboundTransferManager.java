@@ -25,6 +25,8 @@ import transfer.constant.MasterStatus;
  */
 public class InboundTransferManager implements Runnable {
 	
+	private final int smallTimeout;
+	
 	private Logger logger = LogManager.getRootLogger();
 	
 	private final int socketSoTimeout;
@@ -49,6 +51,8 @@ public class InboundTransferManager implements Runnable {
 		this.tmsm = tmsm;
 		this.socketSoTimeout = ap.getSocketSoTimeout();
 		this.inTesting = false;
+		
+		this.smallTimeout = ap.getSmallPoolingTimeout();
 		
 		try {
 			this.server = new ServerSocket(ap.getMasterPort());
@@ -98,7 +102,7 @@ public class InboundTransferManager implements Runnable {
 
 		private Logger logger = LogManager.getRootLogger();
 		
-		private Logger orderLogger = LogManager.getLogger("execution-order-logger");
+		private Logger lockLogger = LogManager.getLogger("LockAcquiringLogger");
 		
 		private Socket in;
 		
@@ -123,9 +127,6 @@ public class InboundTransferManager implements Runnable {
 		public void run() {
 			try {
 				if (tmsm.lock()) {
-					
-					orderLogger.info("InboundTransferManager acquires lock");
-					
 					transfer(in.getOutputStream(), 
 							 new PushbackInputStream(in.getInputStream()));
 				} else {

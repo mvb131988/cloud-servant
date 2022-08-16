@@ -29,9 +29,11 @@ import transfer.constant.MasterStatus;
  */
 public class OutboundTransferManager implements Runnable {
 
+	private final int smallTimeout;
+	
 	private Logger logger = LogManager.getRootLogger();
 	
-	private Logger orderLogger = LogManager.getLogger("execution-order-logger");
+	private Logger lockLogger = LogManager.getLogger("LockAcquiringLogger");
 	
 	private final int socketSoTimeout;
 	
@@ -60,12 +62,19 @@ public class OutboundTransferManager implements Runnable {
 		this.socketSoTimeout = ap.getSocketSoTimeout();
 		this.masterPort = ap.getMasterPort();
 		this.random = new Random();
+		this.smallTimeout = ap.getSmallPoolingTimeout();
 	}
 
 	@Override
 	public void run() {
 		for (;;) {
 			runInternally();
+			
+			try {
+				Thread.sleep(smallTimeout);
+			} catch(Exception ex) {
+				//do nothing
+			}
 		}
 	}
 	
@@ -78,8 +87,7 @@ public class OutboundTransferManager implements Runnable {
 				
 					MemberDescriptor md = iterator.next();
 					
-					orderLogger.info("OutboundTransferManager acquires lock for memberId="
-									+ md.getMemberId());
+					lockLogger.info("Lock acquired for memberId=" + md.getMemberId());
 					
 					Socket connection = connect(md.getIpAddress(), masterPort);
 					transfer(connection.getOutputStream(), 
@@ -87,15 +95,18 @@ public class OutboundTransferManager implements Runnable {
 							 md.getMemberId());
 					connection.close();
 					
+					lockLogger.info("Lock releasing for memberId=" + md.getMemberId());
 					tmsm.unlock();
 				}
 				
-				// TODO: random delay between 1 and 10 seconds
-				Thread.sleep(random.nextInt(10) * 100);
+				//random delay between 1 and smallTimeout in millis
+				Thread.sleep(random.nextInt(10) * smallTimeout);
 			}
 		} catch (Exception ex) {
 			logger.error(ex);
 
+			lockLogger.info("Lock releasing due to exception happened");
+			
 			tmsm.unlock();
 		} catch(Throwable th) {
 			logger.error("Throwable", th);

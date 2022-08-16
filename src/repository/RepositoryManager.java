@@ -24,8 +24,6 @@ public class RepositoryManager {
 	
 	private Logger logger = LogManager.getRootLogger();
 	
-	private Logger orderLogger = LogManager.getLogger("execution-order-logger");
-	
 	private Path repositoryRoot;
 
 	private RepositoryScaner repositoryScaner;
@@ -105,7 +103,6 @@ public class RepositoryManager {
 				for(;;) {
 					try {
 						if(tmsm.lock()) {
-							orderLogger.info("RepositoryManager acquires lock");
 							
 							logger.info("[" + this.getClass().getSimpleName() + "] scan started");
 						

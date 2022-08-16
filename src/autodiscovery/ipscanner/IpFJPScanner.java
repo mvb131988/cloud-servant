@@ -19,6 +19,8 @@ public class IpFJPScanner {
 	
 	private static Logger logger = LogManager.getRootLogger();
 	
+	private static Logger autodiscoveryLogger = LogManager.getLogger("AutodiscoveryLogger");
+	
 	private BaseRepositoryOperations bro;
 	
 	private IpValidator ipValidator;
@@ -55,11 +57,11 @@ public class IpFJPScanner {
 		
 		ForkJoinPool fjp = new ForkJoinPool(fjpSize);
 		
-		logger.trace("[" + this.getClass().getSimpleName() + "] start scan for " + ipRanges);
+		autodiscoveryLogger.trace("[" + this.getClass().getSimpleName() + "] start scan for " + ipRanges);
 		long start = System.currentTimeMillis();
 		fjp.invoke(ipAction);
 		long end = System.currentTimeMillis();
-		logger.trace("[" + this.getClass().getSimpleName() + "] scan done in " + (end-start)/1000 + " seconds");
+		autodiscoveryLogger.trace("[" + this.getClass().getSimpleName() + "] scan done in " + (end-start)/1000 + " seconds");
 		
 		fjp.shutdownNow();
 		
@@ -133,7 +135,7 @@ public class IpFJPScanner {
 				for(String ip: ips) {
 					Socket s = new Socket();
 					try {
-						logger.trace("[" + this.getClass().getSimpleName() + "] checking " + ip);
+						autodiscoveryLogger.trace("[" + this.getClass().getSimpleName() + "] checking " + ip);
 						
 						s.connect(new InetSocketAddress(ip, masterPort), 1000);
 						IpValidatorResult result = ipValidator.isValid(s, ip);
@@ -141,7 +143,7 @@ public class IpFJPScanner {
 							activeIps.add(new IpScannerResult(ip, result.getMemberId()));
 						}
 						
-						logger.trace("[" + this.getClass().getSimpleName() + "] connecting to " + ip);
+						autodiscoveryLogger.trace("[" + this.getClass().getSimpleName() + "] connecting to " + ip);
 					} catch (UnknownHostException e) {
 						//Don't log, prevent too many expected exceptions to be logged  
 					} catch (IOException e) {

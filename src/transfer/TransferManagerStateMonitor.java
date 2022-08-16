@@ -3,6 +3,9 @@ package transfer;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 // TODO: Rename to Member state monitor 
 
 /**
@@ -13,6 +16,8 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public class TransferManagerStateMonitor {
 
+	private Logger lockLogger = LogManager.getLogger("LockAcquiringLogger");
+	
 	private Lock lock;
 	
 	private Lock releaseLock;
@@ -34,6 +39,9 @@ public class TransferManagerStateMonitor {
 	 */
 	public boolean lock() {
 		if(lock.tryLock()) {
+			
+			lockLogger.info("Lock acquired");
+			
 			ownerId = Thread.currentThread().getId();
 			return true;
 		}
@@ -64,6 +72,7 @@ public class TransferManagerStateMonitor {
 		}
 		
 		lock.unlock();
+		lockLogger.info("Lock released");
 	}
 	
 }
