@@ -16,20 +16,20 @@ public class IpAutodiscoverer implements Runnable {
 	
 	private MemberIpMonitor mim;
 	
-	private SlaveLocalAutodiscoverer sla;
+	private SourceMemberAutodiscoverer sma;
 	
-	private SlaveGlobalAutodiscoverer sga;
+	private CloudMemberAutodiscoverer cma;
 	
 	private Thread localT;
 	
 	private Thread globalT;
 	
 	public IpAutodiscoverer(MemberIpMonitor mim, 
-							SlaveLocalAutodiscoverer sla,
-							SlaveGlobalAutodiscoverer sga) {
+							SourceMemberAutodiscoverer sma,
+							CloudMemberAutodiscoverer cma) {
 		this.mim = mim;
-		this.sla = sla;
-		this.sga = sga;
+		this.sma = sma;
+		this.cma = cma;
 	}
 	
 	@Override
@@ -67,7 +67,7 @@ public class IpAutodiscoverer implements Runnable {
 		// previously started local autodiscovery thread finished
 		if(localT != null && State.TERMINATED.equals(localT.getState())) {
 			localT = null;
-			MemberDescriptor mdSource = sla.getMemberDescriptor();
+			MemberDescriptor mdSource = sma.getMemberDescriptor();
 			
 			if(!mim.isActiveSourceMember() && mdSource != null) {
 				mim.setSourceIp(mdSource.getMemberId(), mdSource.getIpAddress());
@@ -76,8 +76,8 @@ public class IpAutodiscoverer implements Runnable {
 		
 		if(localT == null && !mim.isActiveSourceMember()) {
 			int failureCounter = mim.sourceFailureCounter();
-			localT = new Thread(() -> sla.discover(failureCounter));
-			localT.setName(sla.getClass().getSimpleName());
+			localT = new Thread(() -> sma.discover(failureCounter));
+			localT.setName(sma.getClass().getSimpleName());
 			localT.start();
 		}
 	}
@@ -86,7 +86,7 @@ public class IpAutodiscoverer implements Runnable {
 		// previously started global autodiscovery thread finished
 		if(globalT != null && State.TERMINATED.equals(globalT.getState())) {
 			globalT = null;
-			List<MemberDescriptor> mds = sga.getMds();
+			List<MemberDescriptor> mds = cma.getMds();
 			
 			if(!mim.areActiveCloudMembers() && mds != null && mds.size() > 0) {
 				mim.setCloudIps(mds);
@@ -95,8 +95,8 @@ public class IpAutodiscoverer implements Runnable {
 		
 		if(globalT == null && !mim.areActiveCloudMembers()) {
 			int failureCounter = mim.cloudFailureCounter();
-			globalT = new Thread(() -> sga.discover(failureCounter));
-			globalT.setName(sga.getClass().getSimpleName());
+			globalT = new Thread(() -> cma.discover(failureCounter));
+			globalT.setName(cma.getClass().getSimpleName());
 			globalT.start();
 		}
 	}

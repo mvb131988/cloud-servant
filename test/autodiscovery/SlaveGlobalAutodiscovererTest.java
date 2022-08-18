@@ -20,13 +20,13 @@ public class SlaveGlobalAutodiscovererTest {
 
 	@Test
 	public void testDiscover() {
-		SlaveAutodiscoveryScheduler slaveScheduler = mock(SlaveAutodiscoveryScheduler.class);
+		MemberAutodiscoveryScheduler scheduler = mock(MemberAutodiscoveryScheduler.class);
 		IpFJPScanner ipScanner = mock(IpFJPScanner.class);
 		MemberIpMonitor memberIpMonitor = mock(MemberIpMonitor.class);
 		AppProperties appProperties = mock(AppProperties.class); 
 		
-		when(slaveScheduler.checkAndUpdateBaseTime(2)).thenReturn(true);
-		when(slaveScheduler.isScheduled(2)).thenReturn(true);
+		when(scheduler.checkAndUpdateBaseTime(2)).thenReturn(true);
+		when(scheduler.isScheduled(2)).thenReturn(true);
 		when(appProperties.getGlobalRanges()).thenReturn("109.185.0.0/16");
 		when(appProperties.getMemberId()).thenReturn("member3");
 		when(ipScanner.scan("109.185.0.0/16")).thenReturn(
@@ -38,20 +38,20 @@ public class SlaveGlobalAutodiscovererTest {
 		
 		ArgumentCaptor<Integer> arg1 = ArgumentCaptor.forClass(Integer.class);
 		
-		SlaveGlobalAutodiscoverer sla = new SlaveGlobalAutodiscoverer(slaveScheduler, 
+		CloudMemberAutodiscoverer cma = new CloudMemberAutodiscoverer(scheduler, 
 																	  ipScanner, 
 																	  memberIpMonitor,
 																	  appProperties);
-		sla.discover(2);
+		cma.discover(2);
 		
-		verify(slaveScheduler).checkAndUpdateBaseTime(arg1.capture());
-		verify(slaveScheduler, times(1)).updateBaseTime();
+		verify(scheduler).checkAndUpdateBaseTime(arg1.capture());
+		verify(scheduler, times(1)).updateBaseTime();
 		
 		Integer v = arg1.getValue();
 		
 		assertEquals(2, v);
 		
-		List<MemberDescriptor> mds = sla.getMds();
+		List<MemberDescriptor> mds = cma.getMds();
 		
 		assertAll("mds",
 				  () -> assertEquals(2, mds.size()),

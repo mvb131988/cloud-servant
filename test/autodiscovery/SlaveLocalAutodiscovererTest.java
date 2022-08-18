@@ -20,13 +20,13 @@ public class SlaveLocalAutodiscovererTest {
 
 	@Test
 	public void testDiscover() {
-		SlaveAutodiscoveryScheduler slaveScheduler = mock(SlaveAutodiscoveryScheduler.class);
+		MemberAutodiscoveryScheduler scheduler = mock(MemberAutodiscoveryScheduler.class);
 		IpFJPScanner ipScanner = mock(IpFJPScanner.class);
 		MemberIpMonitor memberIpMonitor = mock(MemberIpMonitor.class);
 		AppProperties appProperties = mock(AppProperties.class); 
 		
-		when(slaveScheduler.checkAndUpdateBaseTime(2)).thenReturn(true);
-		when(slaveScheduler.isScheduled(2)).thenReturn(true);
+		when(scheduler.checkAndUpdateBaseTime(2)).thenReturn(true);
+		when(scheduler.isScheduled(2)).thenReturn(true);
 		when(appProperties.getLocalRanges()).thenReturn("192.168.0.0/24");
 		when(appProperties.getMemberId()).thenReturn("member2");
 		when(ipScanner.scan("192.168.0.0/24")).thenReturn(
@@ -35,20 +35,20 @@ public class SlaveLocalAutodiscovererTest {
 		
 		ArgumentCaptor<Integer> arg1 = ArgumentCaptor.forClass(Integer.class);
 		
-		SlaveLocalAutodiscoverer sla = new SlaveLocalAutodiscoverer(slaveScheduler, 
-																	ipScanner, 
-																	memberIpMonitor,
-																	appProperties);
-		sla.discover(2);
+		SourceMemberAutodiscoverer sma = new SourceMemberAutodiscoverer(scheduler, 
+																		ipScanner, 
+																		memberIpMonitor,
+																		appProperties);
+		sma.discover(2);
 		
-		verify(slaveScheduler).checkAndUpdateBaseTime(arg1.capture());
-		verify(slaveScheduler, times(1)).updateBaseTime();
+		verify(scheduler).checkAndUpdateBaseTime(arg1.capture());
+		verify(scheduler, times(1)).updateBaseTime();
 		
 		Integer v = arg1.getValue();
 		
 		assertEquals(2, v);
 		
-		MemberDescriptor md = sla.getMemberDescriptor();
+		MemberDescriptor md = sma.getMemberDescriptor();
 		
 		assertAll("md",
 				  () -> assertEquals("member1", md.getMemberId()),

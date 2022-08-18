@@ -10,13 +10,17 @@ import autodiscovery.ipscanner.IpFJPScanner;
 import autodiscovery.ipscanner.IpScannerResult;
 import main.AppProperties;
 
-public class SlaveGlobalAutodiscoverer implements Autodiscovery {
+/**
+ * Intended for CLOUD member autodiscovering when all CLOUD members are assigned global ip
+ * address. All CLOUD members are going to be discovered by all CLOUD members. 
+ */
+public class CloudMemberAutodiscoverer implements Autodiscovery {
 
 	private static Logger logger = LogManager.getRootLogger();
 	
 	private IpFJPScanner ipScanner; 
 	
-	private SlaveAutodiscoveryScheduler slaveScheduler;
+	private MemberAutodiscoveryScheduler scheduler;
 	
 	private MemberIpMonitor mim;
 
@@ -26,11 +30,11 @@ public class SlaveGlobalAutodiscoverer implements Autodiscovery {
 	
 	private String memberId;
 	
-	public SlaveGlobalAutodiscoverer(SlaveAutodiscoveryScheduler slaveScheduler, 
+	public CloudMemberAutodiscoverer(MemberAutodiscoveryScheduler scheduler, 
 									 IpFJPScanner ipScanner,
 									 MemberIpMonitor mim,
 									 AppProperties ap) {
-		this.slaveScheduler = slaveScheduler;
+		this.scheduler = scheduler;
 		this.ipScanner = ipScanner;
 		this.mim = mim;
 		this.globalRanges = ap.getGlobalRanges();
@@ -47,8 +51,8 @@ public class SlaveGlobalAutodiscoverer implements Autodiscovery {
 		List<IpScannerResult> cloudIps = new ArrayList<IpScannerResult>();
 		
 		// Global autodiscovery
-		slaveScheduler.checkAndUpdateBaseTime(failureCounter);
-		boolean isScheduled = slaveScheduler.isScheduled(failureCounter);
+		scheduler.checkAndUpdateBaseTime(failureCounter);
+		boolean isScheduled = scheduler.isScheduled(failureCounter);
 		
 		if(isScheduled) {
 			logger.info("[" + this.getClass().getSimpleName() + "] global scan start");
@@ -71,7 +75,7 @@ public class SlaveGlobalAutodiscoverer implements Autodiscovery {
 				md -> logger.info("Global scan finished with member : " + md)
 			);
 						
-			slaveScheduler.updateBaseTime();
+			scheduler.updateBaseTime();
 		} 
 		
 		return null;

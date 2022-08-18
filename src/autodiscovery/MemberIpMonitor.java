@@ -128,7 +128,6 @@ public class MemberIpMonitor {
 		return null != dsSource ? dsSource.get(0).getFailureCounter() : 0;
 	}
 	
-	//TODO: synchronized is required
 	/**
 	 * Set source ip address for the given member id. If there is already one overrides it.
 	 * Reset failure counter (to 0). 

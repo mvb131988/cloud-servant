@@ -8,21 +8,19 @@ import org.apache.logging.log4j.Logger;
 
 import autodiscovery.ipscanner.IpFJPScanner;
 import autodiscovery.ipscanner.IpScannerResult;
-import autodiscovery.ipscanner.IpValidator;
-import autodiscovery.ipscanner.IpValidatorResult;
 import main.AppProperties;
 
 /**
  * Intended for SOURCE member autodiscovering when SOURCE member and CLOUD member run in the
  * same local network. SOURCE member is going to be discovered by CLOUD member 
  */
-public class SlaveLocalAutodiscoverer implements Autodiscovery {
+public class SourceMemberAutodiscoverer implements Autodiscovery {
 
 	private static Logger logger = LogManager.getRootLogger();
 	
 	private IpFJPScanner ipScanner; 
 	
-	private SlaveAutodiscoveryScheduler slaveScheduler;
+	private MemberAutodiscoveryScheduler scheduler;
 	
 	private String localRanges;
 	
@@ -32,12 +30,12 @@ public class SlaveLocalAutodiscoverer implements Autodiscovery {
 	
 	private String memberId;
 	
-	public SlaveLocalAutodiscoverer(SlaveAutodiscoveryScheduler slaveScheduler, 
-									IpFJPScanner ipScanner,
-									MemberIpMonitor mim,
-									AppProperties ap) 
+	public SourceMemberAutodiscoverer(MemberAutodiscoveryScheduler scheduler, 
+									  IpFJPScanner ipScanner,
+									  MemberIpMonitor mim,
+									  AppProperties ap) 
 	{
-		this.slaveScheduler = slaveScheduler;
+		this.scheduler = scheduler;
 		this.ipScanner = ipScanner;
 		this.mim = mim; 
 		this.localRanges = ap.getLocalRanges();
@@ -56,8 +54,8 @@ public class SlaveLocalAutodiscoverer implements Autodiscovery {
 		List<IpScannerResult> ips = new ArrayList<IpScannerResult>();
 		
 		// Local autodiscovery
-		slaveScheduler.checkAndUpdateBaseTime(failureCounter);
-		boolean isLocalScheduled = slaveScheduler.isScheduled(failureCounter);
+		scheduler.checkAndUpdateBaseTime(failureCounter);
+		boolean isLocalScheduled = scheduler.isScheduled(failureCounter);
 		
 		if(isLocalScheduled) {
 			logger.info("[" + this.getClass().getSimpleName() + "] local scan start");
@@ -90,7 +88,7 @@ public class SlaveLocalAutodiscoverer implements Autodiscovery {
 			                + "local scan finish with source ip = " + md.getIpAddress())
 			);
 			
-			slaveScheduler.updateBaseTime();
+			scheduler.updateBaseTime();
 		} 
 		
 		return null;

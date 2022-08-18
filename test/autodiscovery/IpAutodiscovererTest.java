@@ -37,12 +37,12 @@ public class IpAutodiscovererTest {
 	{
 		// init
 		MemberIpMonitor mim = mock(MemberIpMonitor.class);
-		SlaveLocalAutodiscoverer sla = mock(SlaveLocalAutodiscoverer.class);
-		IpAutodiscoverer discoverer = new IpAutodiscoverer(mim, sla, null);
+		SourceMemberAutodiscoverer sma = mock(SourceMemberAutodiscoverer.class);
+		IpAutodiscoverer discoverer = new IpAutodiscoverer(mim, sma, null);
 		
 		when(mim.isActiveSourceMember()).thenReturn(false);
 		when(mim.sourceFailureCounter()).thenReturn(3);
-		when(sla.getMemberDescriptor()).thenReturn(
+		when(sma.getMemberDescriptor()).thenReturn(
 				new MemberDescriptor("member2", MemberType.SOURCE, "192.168.0.13"));
 		
 		//
@@ -56,7 +56,7 @@ public class IpAutodiscovererTest {
 		localT.join();
 		assertEquals(State.TERMINATED, localT.getState());
 		
-		verify(sla, times(1)).discover(arg1.capture());
+		verify(sma, times(1)).discover(arg1.capture());
 		assertEquals(3, arg1.getValue());
 		//
 		
@@ -89,15 +89,15 @@ public class IpAutodiscovererTest {
 	{
 		// init
 		MemberIpMonitor mim = mock(MemberIpMonitor.class);
-		SlaveGlobalAutodiscoverer sga = mock(SlaveGlobalAutodiscoverer.class);
-		IpAutodiscoverer discoverer = new IpAutodiscoverer(mim, null, sga);
+		CloudMemberAutodiscoverer cma = mock(CloudMemberAutodiscoverer.class);
+		IpAutodiscoverer discoverer = new IpAutodiscoverer(mim, null, cma);
 		
 		List<MemberDescriptor> mds0 = new ArrayList<>();
 		mds0.add(new MemberDescriptor("member2", MemberType.CLOUD, "192.168.0.13"));
 		
 		when(mim.areActiveCloudMembers()).thenReturn(false);
 		when(mim.cloudFailureCounter()).thenReturn(3);
-		when(sga.getMds()).thenReturn(mds0);
+		when(cma.getMds()).thenReturn(mds0);
 		
 		//
 		
@@ -110,7 +110,7 @@ public class IpAutodiscovererTest {
 		globalT.join();
 		assertEquals(State.TERMINATED, globalT.getState());
 		
-		verify(sga, times(1)).discover(arg1.capture());
+		verify(cma, times(1)).discover(arg1.capture());
 		assertEquals(3, arg1.getValue());
 		//
 		

@@ -6,9 +6,9 @@ import org.apache.logging.log4j.Logger;
 import autodiscovery.IpAutodiscoverer;
 import autodiscovery.MemberIpMonitor;
 import autodiscovery.MemberType;
-import autodiscovery.SlaveAutodiscoveryScheduler;
-import autodiscovery.SlaveGlobalAutodiscoverer;
-import autodiscovery.SlaveLocalAutodiscoverer;
+import autodiscovery.MemberAutodiscoveryScheduler;
+import autodiscovery.CloudMemberAutodiscoverer;
+import autodiscovery.SourceMemberAutodiscoverer;
 import autodiscovery.ipscanner.IpFJPScanner;
 import autodiscovery.ipscanner.IpRangeAnalyzer;
 import autodiscovery.ipscanner.IpRangesAnalyzer;
@@ -120,23 +120,23 @@ public class AppContext {
 								appProperties);
 	}
 	
-	public SlaveAutodiscoveryScheduler getSlaveLocalScheduler() {
-		return new SlaveAutodiscoveryScheduler(appProperties.getLocalAutodetectionPeriod());
+	public MemberAutodiscoveryScheduler getSlaveLocalScheduler() {
+		return new MemberAutodiscoveryScheduler(appProperties.getLocalAutodetectionPeriod());
 	}
 	
-	public SlaveAutodiscoveryScheduler getSlaveGlobalScheduler() {
-		return new SlaveAutodiscoveryScheduler(appProperties.getGlobalAutodetectionPeriod());
+	public MemberAutodiscoveryScheduler getSlaveGlobalScheduler() {
+		return new MemberAutodiscoveryScheduler(appProperties.getGlobalAutodetectionPeriod());
 	}
 	
-	public SlaveGlobalAutodiscoverer getGlobalDiscoverer() {
-		return new SlaveGlobalAutodiscoverer(getSlaveGlobalScheduler(), 
+	public CloudMemberAutodiscoverer getGlobalDiscoverer() {
+		return new CloudMemberAutodiscoverer(getSlaveGlobalScheduler(), 
 											 getGlobalIpFJPScanner(), 
 											 getMemberIpMonitor(),
 											 appProperties);
 	}
 	
-	public SlaveLocalAutodiscoverer getLocalDiscoverer() {
-		return new SlaveLocalAutodiscoverer(getSlaveLocalScheduler(), 
+	public SourceMemberAutodiscoverer getLocalDiscoverer() {
+		return new SourceMemberAutodiscoverer(getSlaveLocalScheduler(), 
 											getLocalIpFJPScanner(), 
 											getMemberIpMonitor(),
 											appProperties);
