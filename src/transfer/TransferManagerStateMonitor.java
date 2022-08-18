@@ -52,7 +52,8 @@ public class TransferManagerStateMonitor {
 	 *  Try to release lock
 	 *  
 	 *  Only one gap that in theory is unreachable: different thread with the same type
-	 *  invokes unlock. Leads to lock.unlock() fail(must be invoked form thread that acquired lock).
+	 *  invokes unlock. Leads to lock.unlock() fail(must be invoked form thread that acquired 
+	 *  lock).
 	 *
 	 *  Possible issues:
 	 *  (1) double unlock invocation (second unlock might happen in catch block if unexpected
@@ -70,6 +71,12 @@ public class TransferManagerStateMonitor {
 		} finally {
 			releaseLock.unlock();
 		}
+		
+		// prevent lock.unlock() double invocation, lock.unlock() could be invoked two times:
+		// first is legal, second happens when another thread is inside lock method, but before
+		// ownerId rewriting(old id still here). Second unlock leads to 
+		// IllegalMonitorStateException
+		ownerId = -1;
 		
 		lock.unlock();
 		lockLogger.info("Lock released");
