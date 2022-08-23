@@ -2,6 +2,7 @@ package autodiscovery;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -48,7 +49,7 @@ public class IpAutodiscovererTest {
 		//
 		
 		// first invocation starts autodiscovery thread
-		ArgumentCaptor<Integer> arg1= ArgumentCaptor.forClass(Integer.class);
+		ArgumentCaptor<IpContext> arg1= ArgumentCaptor.forClass(IpContext.class);
 		invokePrivateMethod(discoverer, "runLocally");
 		
 		Thread localT = (Thread) getPrivateFieldValue(discoverer, "localT");
@@ -57,7 +58,8 @@ public class IpAutodiscovererTest {
 		assertEquals(State.TERMINATED, localT.getState());
 		
 		verify(sma, times(1)).discover(arg1.capture());
-		assertEquals(3, arg1.getValue());
+		assertTrue(arg1.getValue().areAllIpsFound());
+		assertEquals(3, arg1.getValue().getFailureCounter());
 		//
 		
 		// second invocation starts autodiscovery thread
@@ -96,13 +98,14 @@ public class IpAutodiscovererTest {
 		mds0.add(new MemberDescriptor("member2", MemberType.CLOUD, "192.168.0.13"));
 		
 		when(mim.areActiveCloudMembers()).thenReturn(false);
+		when(mim.areAllCloudMembersInitialized()).thenReturn(true);
 		when(mim.cloudFailureCounter()).thenReturn(3);
 		when(cma.getMds()).thenReturn(mds0);
 		
 		//
 		
 		// first invocation starts autodiscovery thread
-		ArgumentCaptor<Integer> arg1= ArgumentCaptor.forClass(Integer.class);
+		ArgumentCaptor<IpContext> arg1= ArgumentCaptor.forClass(IpContext.class);
 		invokePrivateMethod(discoverer, "runGlobally");
 		
 		Thread globalT = (Thread) getPrivateFieldValue(discoverer, "globalT");
@@ -111,7 +114,8 @@ public class IpAutodiscovererTest {
 		assertEquals(State.TERMINATED, globalT.getState());
 		
 		verify(cma, times(1)).discover(arg1.capture());
-		assertEquals(3, arg1.getValue());
+		assertTrue(arg1.getValue().areAllIpsFound());
+		assertEquals(3, arg1.getValue().getFailureCounter());
 		//
 		
 		// second invocation starts autodiscovery thread

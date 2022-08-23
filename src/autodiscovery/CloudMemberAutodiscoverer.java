@@ -42,17 +42,13 @@ public class CloudMemberAutodiscoverer implements Autodiscovery {
 		this.mds = new ArrayList<>();
 	}
 	
-	//TODO: no return type
-	//		change failureCounter to requestScan
-	//		when requestScan set check if scan timeout is reached and initiate new scan
 	@Override
-	public List<String> discover(int failureCounter) {
+	public void discover(IpContext ic) {
 		this.mds = new ArrayList<>();
 		List<IpScannerResult> cloudIps = new ArrayList<IpScannerResult>();
 		
 		// Global autodiscovery
-		scheduler.checkAndUpdateBaseTime(failureCounter);
-		boolean isScheduled = scheduler.isScheduled(failureCounter);
+		boolean isScheduled = scheduler.isScheduled(ic);
 		
 		if(isScheduled) {
 			logger.info("[" + this.getClass().getSimpleName() + "] global scan start");
@@ -77,8 +73,6 @@ public class CloudMemberAutodiscoverer implements Autodiscovery {
 						
 			scheduler.updateBaseTime();
 		} 
-		
-		return null;
 	}
 
 	public List<MemberDescriptor> getMds() {

@@ -1,22 +1,18 @@
 package autodiscovery;
 
-import java.util.List;
-
 /**
- *	Autodiscovery process scans range of ip addresses in order to find a machine where
- *  master communication process runs. Is supposed to be used on slave communicayion process
- *  side. 
+ *	Autodiscovery process scans range of ip addresses in order to find all machines where
+ *  CLOUD and SOURCE member processes are running. It is supposed to be used on any CLOUD member 
+ *  in order to find all other CLOUD and SOURCE members that exist in the system. 
  */
 public interface Autodiscovery {
 	
 	/**
-	 * Initiates autodiscovery process and returns found all candidates for master ip address.
+	 * Initiates autodiscovery process.
 	 * 
-	 * @param failureCounter - external(relative to autodiscovery package) parameter. Shows how many times
-	 * 						             slave has failed to establish connection with master
-	 * 
-	 * @return all candidates for master ip address or empty list if not found
+	 * @param ipContext - context with parameters that are required to schedule autodiscovery 
+	 * 					  process
 	 */
-	public List<String> discover(int failureCounter);
+	public void discover(IpContext ipContext);
 	
 }

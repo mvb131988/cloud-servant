@@ -369,7 +369,7 @@ public class MemberIpMonitorTest {
 		f.setAccessible(false);
 		
 		int counter = mim.sourceFailureCounter();
-		assertEquals(0, counter);
+		assertEquals(-1, counter);
 	}
 	
 	@Test

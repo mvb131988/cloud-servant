@@ -42,20 +42,14 @@ public class SourceMemberAutodiscoverer implements Autodiscovery {
 		this.memberId = ap.getMemberId();
 	}
 	
-	//TODO: When CLOUD member is running it could connect to itself during autodiscovery process
+	//When CLOUD member is running it could connect to itself during autodiscovery process
 	//      ignore this result
-	
-	//TODO: no return type
-	//		change failureCounter to requestScan
-	//		when requestScan set check if scan timeout is reached and initiate new scan
 	@Override
-	public List<String> discover(int failureCounter) {
+	public void discover(IpContext sic) {
 		this.md = null;
 		List<IpScannerResult> ips = new ArrayList<IpScannerResult>();
 		
-		// Local autodiscovery
-		scheduler.checkAndUpdateBaseTime(failureCounter);
-		boolean isLocalScheduled = scheduler.isScheduled(failureCounter);
+		boolean isLocalScheduled = scheduler.isScheduled(sic);
 		
 		if(isLocalScheduled) {
 			logger.info("[" + this.getClass().getSimpleName() + "] local scan start");
@@ -90,8 +84,6 @@ public class SourceMemberAutodiscoverer implements Autodiscovery {
 			
 			scheduler.updateBaseTime();
 		} 
-		
-		return null;
 	}
 
 	public MemberDescriptor getMemberDescriptor() {

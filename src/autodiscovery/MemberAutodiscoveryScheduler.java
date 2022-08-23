@@ -7,7 +7,6 @@ import java.time.ZonedDateTime;
  * schedule autodiscovery process.
  * 
  */
-//TODO: get rid of failureCounter, use schedule flag instead
 public class MemberAutodiscoveryScheduler {
 
 	private ZonedDateTime baseTime;
@@ -19,36 +18,20 @@ public class MemberAutodiscoveryScheduler {
 		this.autodetectionPeriod = autodetectionPeriod;
 	}
 	
-	public boolean isScheduled(int failureCounter) {
-		boolean isScheduled = false;
+	public boolean isScheduled(IpContext sic) {
 		
-		// First scan scheduling on startup only
-		if(failureCounter == 0) {
-			isScheduled = true;
+		// when no ip is found immediately schedule a scan
+		if(!sic.areAllIpsFound()) {
+			return true;
 		}
 		
 		// baseTime must not be null
-		if(failureCounter > 1 && 
+		if(sic.getFailureCounter() > 1 && 
 				ZonedDateTime.now().toInstant().isAfter(
 						baseTime.plusSeconds(autodetectionPeriod).toInstant())) {
-			isScheduled = true;
-		}
-		
-		return isScheduled;
-	}
-	
-	/**
-	 * Base time shift to a later date on first master - slave communication failure.
-	 * On first master - slave communication failure postpone autodetection process.
-	 * This is because we've just had a valid ip, hence we can use it to reconnect to the master
-	 * (during some interval).
-	 */
-	@Deprecated
-	public boolean checkAndUpdateBaseTime(int failureCounter) {
-		if(failureCounter == 1) {
-			baseTime = ZonedDateTime.now().plusSeconds(autodetectionPeriod);
 			return true;
 		}
+		
 		return false;
 	}
 

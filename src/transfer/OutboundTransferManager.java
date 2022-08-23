@@ -29,11 +29,11 @@ import transfer.constant.MasterStatus;
  */
 public class OutboundTransferManager implements Runnable {
 
-	private final int smallTimeout;
-	
 	private Logger logger = LogManager.getRootLogger();
-	
+
 	private Logger lockLogger = LogManager.getLogger("LockAcquiringLogger");
+
+	private final int smallTimeout;
 	
 	private final int socketSoTimeout;
 	
@@ -79,37 +79,43 @@ public class OutboundTransferManager implements Runnable {
 	}
 	
 	private void runInternally() {
-		try {
-			MemberIpIterator iterator = mim.iterator();
-			
-			while(iterator.hasNext()) {
+		MemberIpIterator iterator = mim.iterator();
+
+		while (iterator.hasNext()) {
+			MemberDescriptor md = iterator.next();
+
+			try {
 				if (tmsm.lock()) {
-				
-					MemberDescriptor md = iterator.next();
-					
+
 					lockLogger.info("Lock acquired for memberId=" + md.getMemberId());
-					
+
 					Socket connection = connect(md.getIpAddress(), masterPort);
+
+					mim.resetFailureCounter(md);
+					
 					transfer(connection.getOutputStream(), 
 							 connection.getInputStream(), 
 							 md.getMemberId());
 					connection.close();
-					
-					lockLogger.info("Lock releasing for memberId=" + md.getMemberId());
-					tmsm.unlock();
-				}
-				
-				//random delay between 1 and smallTimeout in millis
-				Thread.sleep(random.nextInt(10) * smallTimeout);
-			}
-		} catch (Exception ex) {
-			logger.error(ex);
 
-			lockLogger.info("Lock releasing due to exception happened");
-			
-			tmsm.unlock();
-		} catch(Throwable th) {
-			logger.error("Throwable", th);
+					lockLogger.info("Lock releasing for memberId=" + md.getMemberId());
+					
+					tmsm.unlock();
+
+					// random delay between 1 and smallTimeout in millis
+					Thread.sleep(random.nextInt(10) * smallTimeout);
+				}
+			} catch (Exception ex) {
+				logger.error(ex);
+
+				lockLogger.info("Lock releasing due to exception happened");
+
+				mim.incrementFailureCounter(md);
+
+				tmsm.unlock();
+			} catch (Throwable th) {
+				logger.error("Throwable", th);
+			}
 		}
 	}
 	

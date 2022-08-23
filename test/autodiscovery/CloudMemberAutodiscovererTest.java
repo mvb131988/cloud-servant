@@ -10,13 +10,12 @@ import static org.mockito.Mockito.when;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
 
 import autodiscovery.ipscanner.IpFJPScanner;
 import autodiscovery.ipscanner.IpScannerResult;
 import main.AppProperties;
 
-public class SlaveGlobalAutodiscovererTest {
+public class CloudMemberAutodiscovererTest {
 
 	@Test
 	public void testDiscover() {
@@ -24,9 +23,9 @@ public class SlaveGlobalAutodiscovererTest {
 		IpFJPScanner ipScanner = mock(IpFJPScanner.class);
 		MemberIpMonitor memberIpMonitor = mock(MemberIpMonitor.class);
 		AppProperties appProperties = mock(AppProperties.class); 
+		IpContext ipContext = mock(IpContext.class);
 		
-		when(scheduler.checkAndUpdateBaseTime(2)).thenReturn(true);
-		when(scheduler.isScheduled(2)).thenReturn(true);
+		when(scheduler.isScheduled(ipContext)).thenReturn(true);
 		when(appProperties.getGlobalRanges()).thenReturn("109.185.0.0/16");
 		when(appProperties.getMemberId()).thenReturn("member3");
 		when(ipScanner.scan("109.185.0.0/16")).thenReturn(
@@ -36,20 +35,13 @@ public class SlaveGlobalAutodiscovererTest {
 		when(memberIpMonitor.memberTypeByMemberId("member1")).thenReturn(MemberType.CLOUD);
 		when(memberIpMonitor.memberTypeByMemberId("member2")).thenReturn(MemberType.CLOUD);
 		
-		ArgumentCaptor<Integer> arg1 = ArgumentCaptor.forClass(Integer.class);
-		
 		CloudMemberAutodiscoverer cma = new CloudMemberAutodiscoverer(scheduler, 
 																	  ipScanner, 
 																	  memberIpMonitor,
 																	  appProperties);
-		cma.discover(2);
+		cma.discover(ipContext);
 		
-		verify(scheduler).checkAndUpdateBaseTime(arg1.capture());
 		verify(scheduler, times(1)).updateBaseTime();
-		
-		Integer v = arg1.getValue();
-		
-		assertEquals(2, v);
 		
 		List<MemberDescriptor> mds = cma.getMds();
 		

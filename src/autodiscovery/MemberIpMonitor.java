@@ -79,7 +79,7 @@ public class MemberIpMonitor {
 	 * Walk through the list of members and check if exist member of type SOURCE with an ip
 	 * already set and failure counter not reached the allowed limit. Note here could be more 
 	 * than one member of type SOURCE, however it is a requirement that only one member of type 
-	 * SOURCE with defined ip could exist.   
+	 * SOURCE with defined ip should exist.   
 	 * 
 	 * @return true if exists only one SOURCE member with defined ip
 	 * @throws NotUniqueSourceMemberException 
@@ -108,7 +108,7 @@ public class MemberIpMonitor {
 	
 	/**
 	 * Find failure counter for the given SOURCE member. Only one SOURCE member could exist at a
-	 * time. If no SOURCE member exist, return 0; 
+	 * time. If no SOURCE member exist, return -1; 
 	 * 
 	 * @return failure counter value or 0 if members exist
 	 * @throws NotUniqueSourceMemberException
@@ -125,7 +125,23 @@ public class MemberIpMonitor {
 			throw new NotUniqueSourceMemberException();
 		}
 		
-		return null != dsSource ? dsSource.get(0).getFailureCounter() : 0;
+		return null != dsSource ? dsSource.get(0).getFailureCounter() : -1;
+	}
+	
+	/**
+	 * @return true if for each memberId there is ip match (ip is discovered) 
+	 */
+	public synchronized boolean areAllCloudMembersInitialized() {
+		Predicate<EnhancedMemberDescriptor> isNull = d -> d.getMd().getIpAddress() == null;
+		Predicate<EnhancedMemberDescriptor> isCloud = 
+				d -> MemberType.CLOUD == d.getMd().getMemberType();
+		
+		long counter= 
+				ds.stream()
+				  .filter(isNull.and(isCloud))
+				  .count();
+		
+		return counter == 0;
 	}
 	
 	/**
@@ -243,6 +259,32 @@ public class MemberIpMonitor {
 				  .collect(Collectors.toList());
 		
 		return res.get(0).getMd().getMemberType();
+	}
+	
+	/**
+	 * Reset failure counter for the member identified by the input
+	 * @param md
+	 */
+	public synchronized void resetFailureCounter(MemberDescriptor md) {
+		EnhancedMemberDescriptor emd = 
+				ds.stream()
+				  .filter(d -> d.getMd().getMemberId().equals(md.getMemberId()))
+				  .findAny()
+				  .get();
+		emd.setFailureCounter(0);
+	}
+	
+	/**
+	 * Increment failure counter for the member identified by the input
+	 * @param md
+	 */
+	public synchronized void incrementFailureCounter(MemberDescriptor md) {
+		EnhancedMemberDescriptor emd = 
+				ds.stream()
+				  .filter(d -> d.getMd().getMemberId().equals(md.getMemberId()))
+				  .findAny()
+				  .get();
+		emd.setFailureCounter(emd.getFailureCounter() + 1);
 	}
 	
 	public synchronized MemberIpIterator iterator() {
