@@ -15,7 +15,7 @@ import transfer.constant.OperationType;
 import transfer.context.FileContext;
 
 /**
- *	Implements transfer protocol for a single file. Both master and slave sides. 
+ *	Implements transfer protocol for a single file. Both master and slave sides.
  */
 public class FileTransferOperation {
 	
@@ -36,18 +36,24 @@ public class FileTransferOperation {
 		this.repositoryRoot = appProperties.getRepositoryRoot();
 	}
 
-	public void executeAsMaster(OutputStream os, InputStream is) throws IOException, WrongOperationException{
+	public void inbound(OutputStream os, InputStream is) 
+			throws IOException, WrongOperationException
+	{
 		//Receive request for a file
 		OperationType ot = bto.receiveOperationType(is);
 		if(ot != OperationType.REQUEST_FILE_START) {
-			throw new WrongOperationException("Expected: " + OperationType.REQUEST_FILE_START + " Actual: " + ot);
+			throw new WrongOperationException(
+					"Expected: " + OperationType.REQUEST_FILE_START + " Actual: " + ot);
 		}
-		logger.trace("[" + this.getClass().getSimpleName() + "] slave requested file start operation");
+		logger.trace("[" + this.getClass().getSimpleName() + "] inbound member requested file "
+				   + "start operation");
 		
 		Path relativePath = bto.receiveRelativePath(is);
+		
 		ot = bto.receiveOperationType(is);
 		if(ot != OperationType.REQUEST_FILE_END) {
-			throw new WrongOperationException("Expected: " + OperationType.REQUEST_FILE_END + " Actual: " + ot);
+			throw new WrongOperationException(
+					"Expected: " + OperationType.REQUEST_FILE_END + " Actual: " + ot);
 		}
 		
 		//Send the requested file back
@@ -59,29 +65,38 @@ public class FileTransferOperation {
 		bto.sendFile(os, repositoryRoot.resolve(relativePath).normalize());
 		bto.sendOperationType(os, OperationType.RESPONSE_FILE_END);
 
-		logger.trace("[" + this.getClass().getSimpleName() + "] file[" + relativePath + "] size[" + size + "bytes] was sent");
+		logger.trace("[" + this.getClass().getSimpleName() + "] file[" + relativePath + "] "
+				   + "size[" + size + "bytes] was sent");
 	}
 
-	public void executeAsSlave(OutputStream os, InputStream is, FileContext fc) throws IOException, WrongOperationException{
+	public void outbound(OutputStream os, InputStream is, FileContext fc) 
+			throws IOException, WrongOperationException
+	{
 		bto.sendOperationType(os, OperationType.REQUEST_FILE_START);	
 		bto.sendRelativePath(os, fc.getRelativePath());
 		bto.sendOperationType(os, OperationType.REQUEST_FILE_END);
-		logger.trace("[" + this.getClass().getSimpleName() + "] sent request for file [" + fc.getRelativePath() + "]" );
+		logger.trace("[" + this.getClass().getSimpleName() + "] sent request for file [" 
+				   + fc.getRelativePath() + "]" );
 		
 		OperationType ot = bto.receiveOperationType(is);
 		if(ot != OperationType.RESPONSE_FILE_START) {
-			throw new WrongOperationException("Expected: " + OperationType.RESPONSE_FILE_START + " Actual: " + ot);
+			throw new WrongOperationException(
+					"Expected: " + OperationType.RESPONSE_FILE_START + " Actual: " + ot);
 		}
+		
 		long size = bto.receiveSize(is);
 		Path relativePath = bto.receiveRelativePath(is);
 		long creationDateTime = bto.receiveCreationDateTime(is);
 		bto.receiveFile(is, size, repositoryRoot, relativePath, creationDateTime);
+		
 		ot = bto.receiveOperationType(is);
 		if(ot != OperationType.RESPONSE_FILE_END) {
-			throw new WrongOperationException("Expected: " + OperationType.RESPONSE_FILE_END + " Actual: " + ot);
+			throw new WrongOperationException(
+					"Expected: " + OperationType.RESPONSE_FILE_END + " Actual: " + ot);
 		}
 		
-		logger.trace("[" + this.getClass().getSimpleName() + "] file[" + relativePath + "] size[" + size + "bytes] received");
+		logger.trace("[" + this.getClass().getSimpleName() + "] file[" + relativePath 
+				   + "] size[" + size + "bytes] received");
 	}
 	
 }

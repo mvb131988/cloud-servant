@@ -22,7 +22,7 @@ import org.mockito.ArgumentCaptor;
 
 import exception.WrongOperationException;
 import main.AppProperties;
-import transfer.constant.MasterStatus;
+import transfer.constant.MemberStatus;
 
 public class InboundTransferManagerTest {
 
@@ -59,8 +59,8 @@ public class InboundTransferManagerTest {
         th.start();
         th.join();
         
-		verify(hco, times(1)).executeAsMaster(any(), any(), any());
-        verify(ffto, times(1)).executeAsMaster(arg1.capture(), arg2.capture());
+		verify(hco, times(1)).inbound(any(), any(), any());
+        verify(ffto, times(1)).inbound(arg1.capture(), arg2.capture());
         assertEquals(os, arg1.getValue());
         
         verify(tmsm, times(1)).unlock();
@@ -95,16 +95,16 @@ public class InboundTransferManagerTest {
 		ArgumentCaptor<OutputStream> arg1 = ArgumentCaptor.forClass(OutputStream.class);
 		ArgumentCaptor<PushbackInputStream> arg2 = 
 				ArgumentCaptor.forClass(PushbackInputStream.class);
-		ArgumentCaptor<MasterStatus> arg3 = ArgumentCaptor.forClass(MasterStatus.class);
+		ArgumentCaptor<MemberStatus> arg3 = ArgumentCaptor.forClass(MemberStatus.class);
 		
         Thread th = new Thread((Runnable) o);
         th.start();
         th.join();
         
-		verify(ffto, never()).executeAsMaster(any(), any());
-        verify(hco, times(1)).executeAsMaster(arg1.capture(), arg2.capture(), arg3.capture());
+		verify(ffto, never()).inbound(any(), any());
+        verify(hco, times(1)).inbound(arg1.capture(), arg2.capture(), arg3.capture());
         assertEquals(os, arg1.getValue());
-        assertEquals(MasterStatus.BUSY, arg3.getValue());
+        assertEquals(MemberStatus.BUSY, arg3.getValue());
         
         verify(tmsm, times(1)).unlock();
         verify(socket, times(1)).close();
@@ -137,8 +137,8 @@ public class InboundTransferManagerTest {
         th.start();
         th.join();
         
-        verify(hco, never()).executeAsMaster(any(), any(), any());
-		verify(ffto, never()).executeAsMaster(any(), any());
+        verify(hco, never()).inbound(any(), any(), any());
+		verify(ffto, never()).inbound(any(), any());
         
         verify(tmsm, times(1)).unlock();
         verify(socket, times(1)).close();
@@ -177,8 +177,8 @@ public class InboundTransferManagerTest {
 		th.join();
 		s.close();
 		
-		verify(ffto, never()).executeAsMaster(any(), any());
-        verify(hco, times(1)).executeAsMaster(any(), any(), any());
+		verify(ffto, never()).inbound(any(), any());
+        verify(hco, times(1)).inbound(any(), any(), any());
         verify(tmsm, times(1)).unlock();
 	}
 	

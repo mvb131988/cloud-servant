@@ -17,7 +17,7 @@ import main.AppProperties;
 import repository.RepositoryRecord;
 import repository.SlaveRepositoryManager;
 import repository.status.SlaveRepositoryManagerStatus;
-import transfer.constant.MasterStatus;
+import transfer.constant.MemberStatus;
 import transfer.constant.OperationType;
 import transformer.FilesContextTransformer;
 
@@ -56,7 +56,7 @@ public class BatchFilesTransferOperation {
 		this.smallTimeout = appProperties.getSmallPoolingTimeout();
 	}
 
-	public void executeAsMaster(OutputStream os, PushbackInputStream pushbackInputStream)
+	public void inbound(OutputStream os, PushbackInputStream pushbackInputStream)
 			throws IOException, WrongOperationException 
 	{
 		OperationType ot = null;
@@ -68,7 +68,7 @@ public class BatchFilesTransferOperation {
 			
 			switch (ot) {
 				case REQUEST_MASTER_STATUS_START: 
-					sto.executeAsMaster(os, pushbackInputStream, MasterStatus.READY);
+					sto.executeAsMaster(os, pushbackInputStream, MemberStatus.READY);
 					break;
 				case REQUEST_BATCH_START:
 					bto.receiveOperationType(pushbackInputStream);
@@ -80,7 +80,7 @@ public class BatchFilesTransferOperation {
 							  + "] sent batch transfer start operation accept");
 					break;
 				case REQUEST_FILE_START:
-					fto.executeAsMaster(os, pushbackInputStream);
+					fto.inbound(os, pushbackInputStream);
 					break;
 				default:
 					throw new WrongOperationException();
@@ -89,14 +89,14 @@ public class BatchFilesTransferOperation {
 		//read REQUEST_BATCH_END byte
 		bto.receiveOperationType(pushbackInputStream);
 		logger.info("[" + this.getClass().getSimpleName() 
-				  + "] slave requested batch transfer end operation");
+				  + "] inbound member requested batch transfer end operation");
 
 		bto.sendOperationType(os, OperationType.RESPONSE_BATCH_END);
 		logger.info("[" + this.getClass().getSimpleName() 
 				  + "] sent batch transfer end operation accept");
 	}
 
-	public void executeAsSlave(OutputStream os, InputStream is, String memberId) 
+	public void outbound(OutputStream os, InputStream is, String memberId) 
 			throws InterruptedException, 
 				   IOException, 
 				   MasterNotReadyDuringBatchTransfer, 
@@ -110,29 +110,32 @@ public class BatchFilesTransferOperation {
 
 		OperationType ot = bto.receiveOperationType(is);
 		if (ot != OperationType.RESPONSE_BATCH_START) {
-			throw new WrongOperationException("Expected: " + OperationType.RESPONSE_BATCH_START 
+			throw new WrongOperationException("Expected: " + OperationType.RESPONSE_BATCH_START
 					                        + " Actual: " + ot);
 		}
 		logger.info("[" + this.getClass().getSimpleName() 
-				  + "] master responded batch transfer start");
+				  + "] outbound member responded batch transfer start");
 
-		//2. Get next file path(for corresponding file) that is needed to be transfered and
+		// 2. Get next file path (for corresponding file) that is needed to be transferred and
 		// send file transfer request to master
 		try {
 			srm.reset(memberId);
 			while(srm.getStatus() != SlaveRepositoryManagerStatus.TERMINATED) {
 				RepositoryRecord rr = srm.next();
 				if (rr != null) {
-					fto.executeAsSlave(os, is, fct.transform(rr));
+					fto.outbound(os, is, fct.transform(rr));
 				} else {
+					// TODO: send healthcheck here instead, necessary to avoid connection timeout
+					// when scan takes too long
+					
 					// send status check message
 					// must be READY at any time  
-					MasterStatus status = sto.executeAsSlave(os, is).getMasterStatus();
-					if(MasterStatus.READY != status) {
+					MemberStatus status = sto.executeAsSlave(os, is).getOutboundMemberStatus();
+					if(MemberStatus.READY != status) {
 						throw new MasterNotReadyDuringBatchTransfer();
 					}
 					
-					//If all records from the buffer of AsynchronySearcher are consumed and 
+					//If all records from the buffer of AsynchronySearcher are consumed and
 					//buffer is empty, but AsynchronySearcher isn't terminated wait until it adds
 					//new records to the buffer. Wait 1 second to avoid resources overconsumption.
 					Thread.sleep(smallTimeout);
@@ -162,7 +165,7 @@ public class BatchFilesTransferOperation {
 					                        + " Actual: " + ot);
 		}
 		logger.info("[" + this.getClass().getSimpleName() 
-				  + "] master responded batch transfer end");
+				  + "] outbound member responded batch transfer end");
 	}
 
 }

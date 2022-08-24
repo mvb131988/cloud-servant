@@ -17,7 +17,7 @@ import exception.BatchFileTransferException;
 import exception.MasterNotReadyDuringBatchTransfer;
 import exception.WrongOperationException;
 import main.AppProperties;
-import transfer.constant.MasterStatus;
+import transfer.constant.MemberStatus;
 
 /**
  * Initiate connections to CLOUD or SOURCE members. It is run only on CLOUD members.
@@ -165,12 +165,12 @@ public class OutboundTransferManager implements Runnable {
 		// status READY is received only when external member(inbound communication) acquires
 		// lock for the given healthcheck request. This could only when transfermanagerstate
 		// monitor is free on the external member healthcheck returns MASTER status
-		MasterStatus status = hco.executeAsSlave(os, is).getMasterStatus();
+		MemberStatus status = hco.outbound(os, is).getOutboundMemberStatus();
 		
 		logger.info("Neighbour member status: " + status);
 		
-		if(status == MasterStatus.READY) {			
-			ffto.executeAsSlave(os, is, memberId);
+		if(status == MemberStatus.READY) {			
+			ffto.outbound(os, is, memberId);
 		}
 	}
 	

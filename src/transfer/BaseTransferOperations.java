@@ -10,7 +10,7 @@ import java.nio.file.Paths;
 
 import main.AppProperties;
 import repository.BaseRepositoryOperations;
-import transfer.constant.MasterStatus;
+import transfer.constant.MemberStatus;
 import transfer.constant.OperationType;
 import transfer.context.StatusTransferContext;
 import transformer.IntegerTransformer;
@@ -51,21 +51,21 @@ public class BaseTransferOperations {
 		return OperationType.to(actionType);
 	}
 	
-	public void sendMasterStatus(OutputStream os, MasterStatus ms) throws IOException {
+	public void sendMemberStatus(OutputStream os, MemberStatus ms) throws IOException {
 		os.write(ms.getValue());
 		os.write(memberId.getBytes().length);
 		os.write(memberId.getBytes());
 	}
 
-	public StatusTransferContext receiveMasterStatus(InputStream is) throws IOException {
-		int masterStatus = is.read();
+	public StatusTransferContext receiveOutboundMemberStatus(InputStream is) throws IOException {
+		int outboundMemberStatus = is.read();
 		int memberIdLength = is.read();
 		byte[] bMemberId = new byte[memberIdLength];
 		is.read(bMemberId);
 		String memberId = new String(bMemberId);
 		
 		StatusTransferContext stc = 
-				new StatusTransferContext(MasterStatus.to(masterStatus), memberId);
+				new StatusTransferContext(MemberStatus.to(outboundMemberStatus), memberId);
 		
 		return stc;
 	}

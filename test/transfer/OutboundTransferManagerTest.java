@@ -26,7 +26,7 @@ import exception.BatchFileTransferException;
 import exception.MasterNotReadyDuringBatchTransfer;
 import exception.WrongOperationException;
 import main.AppProperties;
-import transfer.constant.MasterStatus;
+import transfer.constant.MemberStatus;
 import transfer.context.StatusTransferContext;
 
 public class OutboundTransferManagerTest {
@@ -74,15 +74,15 @@ public class OutboundTransferManagerTest {
 		when(tmsm.lock()).thenReturn(true);
 		when(ap.getSocketSoTimeout()).thenReturn(1000);
 		when(ap.getMasterPort()).thenReturn(8888);
-		when(hco.executeAsSlave(any(OutputStream.class), any(InputStream.class)))
-			.thenReturn(new StatusTransferContext(MasterStatus.READY, null));
+		when(hco.outbound(any(OutputStream.class), any(InputStream.class)))
+			.thenReturn(new StatusTransferContext(MemberStatus.READY, null));
 		
 		ServerSocket ss = new ServerSocket(8888);
 		OutboundTransferManager otm = new OutboundTransferManager(mim, hco, ffto, tmsm, ap);
 		invokePrivateMethod(otm, "runInternally");
 		ss.close();
 		
-		verify(ffto, times(1)).executeAsSlave(any(OutputStream.class), 
+		verify(ffto, times(1)).outbound(any(OutputStream.class), 
 											  any(InputStream.class),
 											  eq("member2"));
 		verify(tmsm, times(1)).unlock();
@@ -131,8 +131,8 @@ public class OutboundTransferManagerTest {
 		when(tmsm.lock()).thenReturn(true);
 		when(ap.getSocketSoTimeout()).thenReturn(1000);
 		when(ap.getMasterPort()).thenReturn(8888);
-		when(hco.executeAsSlave(any(OutputStream.class), any(InputStream.class)))
-			.thenReturn(new StatusTransferContext(MasterStatus.READY, null));
+		when(hco.outbound(any(OutputStream.class), any(InputStream.class)))
+			.thenReturn(new StatusTransferContext(MemberStatus.READY, null));
 		
 		OutboundTransferManager otm = new OutboundTransferManager(mim, hco, ffto, tmsm, ap);
 		invokePrivateMethod(otm, "runInternally");

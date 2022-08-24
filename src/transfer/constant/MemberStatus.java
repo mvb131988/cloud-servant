@@ -1,13 +1,13 @@
 package transfer.constant;
 
-public enum MasterStatus {
+public enum MemberStatus {
 
 	BUSY(1), 
 	READY(2);
 
 	private int value;
 
-	private MasterStatus(int value) {
+	private MemberStatus(int value) {
 		this.value = value;
 	}
 	
@@ -15,8 +15,8 @@ public enum MasterStatus {
 		return value;
 	}
 	
-	public static MasterStatus to(int i) {
-		for (MasterStatus ms : MasterStatus.values()) {
+	public static MemberStatus to(int i) {
+		for (MemberStatus ms : MemberStatus.values()) {
 			if (ms.value == i) {
 				return ms;
 			}

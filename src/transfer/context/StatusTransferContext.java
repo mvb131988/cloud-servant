@@ -1,20 +1,20 @@
 package transfer.context;
 
-import transfer.constant.MasterStatus;
+import transfer.constant.MemberStatus;
 
 public class StatusTransferContext {
 
-	private MasterStatus masterStatus;
+	private MemberStatus outboundMemberStatus;
 	
 	private String memberId;
 
-	public StatusTransferContext(MasterStatus masterStatus, String memberId) {
-		this.masterStatus = masterStatus;
+	public StatusTransferContext(MemberStatus masterStatus, String memberId) {
+		this.outboundMemberStatus = masterStatus;
 		this.memberId = memberId;
 	}
 	
-	public MasterStatus getMasterStatus() {
-		return masterStatus;
+	public MemberStatus getOutboundMemberStatus() {
+		return outboundMemberStatus;
 	}
 
 	public String getMemberId() {

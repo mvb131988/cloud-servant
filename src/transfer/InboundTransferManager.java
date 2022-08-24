@@ -11,7 +11,7 @@ import org.apache.logging.log4j.Logger;
 
 import exception.WrongOperationException;
 import main.AppProperties;
-import transfer.constant.MasterStatus;
+import transfer.constant.MemberStatus;
 
 /**
  * Accept connections from CLOUD members. It is run on both SOURCE and CLOUD members.
@@ -147,13 +147,13 @@ public class InboundTransferManager implements Runnable {
 
 		private void transfer(OutputStream os, PushbackInputStream pushbackInputStream)
 				throws IOException, WrongOperationException {
-			hco.executeAsMaster(os, pushbackInputStream, MasterStatus.READY);
-			ffto.executeAsMaster(os, pushbackInputStream);
+			hco.inbound(os, pushbackInputStream, MemberStatus.READY);
+			ffto.inbound(os, pushbackInputStream);
 		}
 
 		private void transferBusy(OutputStream os, PushbackInputStream pushbackInputStream)
 				throws IOException, WrongOperationException {
-			hco.executeAsMaster(os, pushbackInputStream, MasterStatus.BUSY);
+			hco.inbound(os, pushbackInputStream, MemberStatus.BUSY);
 		}
 	}
 		

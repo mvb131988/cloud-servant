@@ -3,11 +3,11 @@ package main;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import autodiscovery.CloudMemberAutodiscoverer;
 import autodiscovery.IpAutodiscoverer;
+import autodiscovery.MemberAutodiscoveryScheduler;
 import autodiscovery.MemberIpMonitor;
 import autodiscovery.MemberType;
-import autodiscovery.MemberAutodiscoveryScheduler;
-import autodiscovery.CloudMemberAutodiscoverer;
 import autodiscovery.SourceMemberAutodiscoverer;
 import autodiscovery.ipscanner.IpFJPScanner;
 import autodiscovery.ipscanner.IpRangeAnalyzer;
@@ -29,10 +29,8 @@ import transfer.FullFileTransferOperation;
 import transfer.HealthCheckOperation;
 import transfer.InboundTransferManager;
 import transfer.OutboundTransferManager;
-import transfer.StatusAndHealthCheckOperation;
 import transfer.StatusTransferOperation;
 import transfer.TransferManagerStateMonitor;
-import transfer.constant.ProtocolStatusMapper;
 import transformer.FilesContextTransformer;
 import transformer.IntegerTransformer;
 import transformer.LongTransformer;
@@ -51,8 +49,6 @@ public class AppContext {
 	
 	private HealthCheckOperation healthCheckOperation;
 	
-	private StatusAndHealthCheckOperation statusAndHealthCheckOperation; 
-	
 	private BatchFilesTransferOperation batchTransferOperation;
 	
 	private FullFileTransferOperation fullFileTransferOperation;
@@ -66,8 +62,6 @@ public class AppContext {
 	private BaseRepositoryOperations baseRepositoryOperations;
 	
 	private BaseTransferOperations baseTransferOperations;
-	
-	private ProtocolStatusMapper protocolStatusMapper;
 	
 	private FilesContextTransformer filesContextTransformer;
 	
@@ -160,7 +154,6 @@ public class AppContext {
 		
 		//Others
 		integerTransformer = new IntegerTransformer();
-		protocolStatusMapper = new ProtocolStatusMapper();
 		
 		//Repository operations
 		repositoryVisitor = new RepositoryVisitor(getBaseRepositoryOperations(), appProperties);
@@ -175,9 +168,6 @@ public class AppContext {
 														  appProperties);
 		statusTransferOperation = new StatusTransferOperation(getBaseTransferOperations());
 		healthCheckOperation = new HealthCheckOperation(getBaseTransferOperations());
-		statusAndHealthCheckOperation = new StatusAndHealthCheckOperation(getBaseTransferOperations(),
-																		  getHealthCheckOperation(), 
-																		  getStatusTransferOperation());
 		batchTransferOperation = new BatchFilesTransferOperation(getBaseTransferOperations(),
 																 getFileTransferOperation(),
 																 getStatusTransferOperation(),
@@ -210,7 +200,6 @@ public class AppContext {
 	public void initAsSlave() throws InitializationException {
 		//Others
 		integerTransformer = new IntegerTransformer();
-		protocolStatusMapper = new ProtocolStatusMapper();
 		
 		//Repository operations
 		repositoryStatusMapper = new RepositoryStatusMapper();
@@ -361,10 +350,6 @@ public class AppContext {
 		return fullFileTransferOperation;
 	}
 	
-	private ProtocolStatusMapper getProtocolStatusMapper() {
-		return protocolStatusMapper;
-	}
-	
 	public RepositoryManager getRepositoryManager() {
 		return repositoryManager;
 	}
@@ -383,10 +368,6 @@ public class AppContext {
 
 	public HealthCheckOperation getHealthCheckOperation() {
 		return healthCheckOperation;
-	}
-
-	public StatusAndHealthCheckOperation getStatusAndHealthCheckOperation() {
-		return statusAndHealthCheckOperation;
 	}
 
 	public AppInitializer getAppInitializer() {

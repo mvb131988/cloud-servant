@@ -30,34 +30,6 @@ public class IpValidator {
 		this.masterPort = masterPort;
 		this.soTimeout = soTimeout;
 	}
-
-	public IpValidatorResult isValid(String ip) {
-		IpValidatorResult result = null;
-	    
-	    Socket s = new Socket();
-	    InputStream is = null;
-	    OutputStream os = null;
-	    try {
-	      s.setSoTimeout(soTimeout);
-	      s.connect(new InetSocketAddress(ip, masterPort), 1000);
-	      is = s.getInputStream();
-	      os = s.getOutputStream();
-	      
-	      String memberId = mif.memberId(os, is);
-	      result = memberId != null ? new IpValidatorResult(true, memberId) 
-	    		  					: new IpValidatorResult(false, null);
-	    } catch (Exception e) {
-	      result = new IpValidatorResult(false, null);
-	      logger.error("Invalid candidate, ip " + ip + " is non cloud-servant node");
-	    }
-	    finally {
-	      if(is != null) {try {is.close();} catch (IOException e) {}}
-	      if(os != null) {try {os.close();} catch (IOException e) {}}
-	      if(s != null) {try {s.close();} catch (IOException e) {}}
-	    }
-    
-	    return result;
-	}
 	
 	public IpValidatorResult isValid(Socket s, String ip) {
 		IpValidatorResult result = null;

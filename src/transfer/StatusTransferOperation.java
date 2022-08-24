@@ -8,10 +8,13 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import exception.WrongOperationException;
-import transfer.constant.MasterStatus;
+import transfer.constant.MemberStatus;
 import transfer.constant.OperationType;
 import transfer.context.StatusTransferContext;
 
+// There is no need to check outbound member status during file transfer because it is 
+// always READY until file transfer is not finished or exception occured
+@Deprecated
 public class StatusTransferOperation {
 
 	private Logger logger = LogManager.getRootLogger();
@@ -23,7 +26,7 @@ public class StatusTransferOperation {
 		this.bto = bto;
 	}
 
-	public void executeAsMaster(OutputStream os, InputStream is, MasterStatus ms) throws IOException, WrongOperationException{
+	public void executeAsMaster(OutputStream os, InputStream is, MemberStatus ms) throws IOException, WrongOperationException{
 		OperationType ot = bto.receiveOperationType(is);
 		if (ot != OperationType.REQUEST_MASTER_STATUS_START) {
 			throw new WrongOperationException("Expected: " + OperationType.REQUEST_MASTER_STATUS_START + " Actual: " + ot);
@@ -32,7 +35,7 @@ public class StatusTransferOperation {
 		logger.info("[" + this.getClass().getSimpleName() + "] slave requested status");
 		bto.sendOperationType(os, OperationType.RESPONSE_MASTER_STATUS_START);
 		
-		bto.sendMasterStatus(os, ms);
+		bto.sendMemberStatus(os, ms);
 		
 		ot = bto.receiveOperationType(is);
 		if (ot != OperationType.REQUEST_MASTER_STATUS_END) {
@@ -50,8 +53,8 @@ public class StatusTransferOperation {
 			throw new WrongOperationException("Expected: " + OperationType.RESPONSE_MASTER_STATUS_START + " Actual: " + ot);
 		}
 		
-		StatusTransferContext stc = bto.receiveMasterStatus(is);
-		logger.info("[" + this.getClass().getSimpleName() + "] MASTER status is : " + stc.getMasterStatus());
+		StatusTransferContext stc = bto.receiveOutboundMemberStatus(is);
+		logger.info("[" + this.getClass().getSimpleName() + "] MASTER status is : " + stc.getOutboundMemberStatus());
 		
 		bto.sendOperationType(os, OperationType.REQUEST_MASTER_STATUS_END);
 		ot = bto.receiveOperationType(is);
