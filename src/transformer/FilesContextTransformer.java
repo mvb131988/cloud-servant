@@ -72,7 +72,7 @@ public class FilesContextTransformer {
 			
 			RepositoryRecord rr = new RepositoryRecord();
 			rr.setId(id);
-			rr.setFileameSize(length);
+			rr.setFileNameSize(length);
 			rr.setFileName(fileName);
 			rr.setStatus(status);
 			rr.setSize(fileSize);

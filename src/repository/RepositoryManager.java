@@ -89,11 +89,7 @@ public class RepositoryManager {
 
 		private TransferManagerStateMonitor tmsm;
 		
-		private RepositoryScannerStatus status;
-		
 		private RepositoryScaner(TransferManagerStateMonitor tmsm) {
-			status = RepositoryScannerStatus.READY;
-			
 			this.tmsm = tmsm;
 		}
 		
@@ -108,7 +104,6 @@ public class RepositoryManager {
 						
 							writeAll(scan());
 						
-							status = RepositoryScannerStatus.READY;
 							logger.info("[" + this.getClass().getSimpleName() + "] scan ended");
 						}
 					} finally {
@@ -128,14 +123,6 @@ public class RepositoryManager {
 			catch (Exception e) {
 				logger.error("[" + this.getClass().getSimpleName() + "] thread fail", e);
 			}
-		}
-
-		public RepositoryScannerStatus getStatus() {
-			return status;
-		}
-		
-		public void reset() {
-			status = RepositoryScannerStatus.BUSY;
 		}
 		
 	}

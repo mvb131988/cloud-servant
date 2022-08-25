@@ -14,14 +14,13 @@ import autodiscovery.ipscanner.IpRangeAnalyzer;
 import autodiscovery.ipscanner.IpRangesAnalyzer;
 import autodiscovery.ipscanner.IpValidator;
 import exception.InitializationException;
+import repository.AsynchronySearcherManager;
 import repository.BaseRepositoryOperations;
+import repository.RepositoryConsistencyChecker;
 import repository.RepositoryManager;
 import repository.RepositoryManager.RepositoryScaner;
 import repository.RepositoryVisitor;
-import repository.SlaveRepositoryManager;
 import repository.status.RepositoryStatusMapper;
-import scheduler.MasterRepositoryScheduler;
-import scheduler.SlaveScheduler;
 import transfer.BaseTransferOperations;
 import transfer.BatchFilesTransferOperation;
 import transfer.FileTransferOperation;
@@ -41,7 +40,7 @@ public class AppContext {
 
 	private AppProperties appProperties;
 	
-	private SlaveRepositoryManager slaveRepositoryManager;
+	private AsynchronySearcherManager asynchronySearcherManager;
 	
 	private RepositoryStatusMapper repositoryStatusMapper;
 	
@@ -69,8 +68,6 @@ public class AppContext {
 	
 	private LongTransformer longTransformer;
 	
-	private MasterRepositoryScheduler masterRepositoryScheduler;
-	
 	private MasterShutdownThread masterShutdownThread;
 	
 	private AppInitializer appInitializer;
@@ -86,6 +83,8 @@ public class AppContext {
 	private OutboundTransferManager outboundTransferManager;
 	
 	private TransferManagerStateMonitor transferManagerStateMonitor;
+	
+	private RepositoryConsistencyChecker repositoryConsistencyChecker;
 	
 	//============================================================
 	//	Prototypes. Classes with states go here 
@@ -135,16 +134,7 @@ public class AppContext {
 											getMemberIpMonitor(),
 											appProperties);
 	}
-	
-	//Slave transfer scheduler
-	public SlaveScheduler getSlaveTransferScheduler() {
-		return new SlaveScheduler(appProperties.getSlaveTransferScheduleInterval());
-	}
-	
-	//Slave repository scheduler
-	public SlaveScheduler getSlaveRepositoryScheduler() {
-		return new SlaveScheduler(appProperties.getSlaveRepositoryScheduleInterval());
-	}
+
 	//============================================================
 	
 	public void initAsMaster() throws InitializationException {
@@ -171,8 +161,9 @@ public class AppContext {
 		batchTransferOperation = new BatchFilesTransferOperation(getBaseTransferOperations(),
 																 getFileTransferOperation(),
 																 getStatusTransferOperation(),
-																 null,
 																 getFilesContextTransformer(),
+																 null,
+																 null,
 																 appProperties);
 		fullFileTransferOperation = new FullFileTransferOperation(getBaseTransferOperations(),
 																  getBaseRepositoryOperations(),
@@ -189,8 +180,6 @@ public class AppContext {
 															  getTransferManagerStateMonitor(),
 															  appProperties);
 		
-		masterRepositoryScheduler = new MasterRepositoryScheduler(appProperties);
-		
 		inboundTransferManager = new InboundTransferManager(getHealthCheckOperation(), 
 															getFullFileTransferOperation(), 
 															getTransferManagerStateMonitor(), 
@@ -204,9 +193,6 @@ public class AppContext {
 		//Repository operations
 		repositoryStatusMapper = new RepositoryStatusMapper();
 		repositoryVisitor = new RepositoryVisitor(getBaseRepositoryOperations(), appProperties);
-		slaveRepositoryManager = new SlaveRepositoryManager(getBaseRepositoryOperations(), 
-															getRepositoryStatusMapper());
-//		slaveRepositoryManager.init();
 		
 		//Transfer operations
 		baseTransferOperations = new BaseTransferOperations(getIntegerTransformer(),
@@ -216,13 +202,24 @@ public class AppContext {
 		fileTransferOperation = new FileTransferOperation(getBaseTransferOperations(), 
 														  getBaseRepositoryOperations(),
 														  appProperties);
+		
+		asynchronySearcherManager = new AsynchronySearcherManager(getBaseRepositoryOperations(), 
+			      												  getFilesContextTransformer(), 
+			      												  getRepositoryStatusMapper(), 
+			      												  appProperties);
+		repositoryConsistencyChecker = 
+				new RepositoryConsistencyChecker(getBaseRepositoryOperations(), 
+												 getLongTransformer(), 
+												 getFilesContextTransformer());
+		
 		statusTransferOperation = new StatusTransferOperation(getBaseTransferOperations());
 		healthCheckOperation = new HealthCheckOperation(getBaseTransferOperations());
 		batchTransferOperation = new BatchFilesTransferOperation(getBaseTransferOperations(),
 				 												 getFileTransferOperation(),
 				 												 getStatusTransferOperation(),
-				 												 getSlaveRepositoryManager(),
 				 												 getFilesContextTransformer(),
+				 												 getAsynchronySearcherManager(),
+				 												 getRepositoryConsistencyChecker(),
 				 												 appProperties);
 		fullFileTransferOperation = new FullFileTransferOperation(getBaseTransferOperations(),
 																  getBaseRepositoryOperations(),
@@ -233,7 +230,9 @@ public class AppContext {
 																  appProperties);
 		
 		//autodiscovering
-		ipValidator = new IpValidator(healthCheckOperation, appProperties.getMasterPort(), appProperties.getSocketSoTimeout());
+		ipValidator = new IpValidator(healthCheckOperation, 
+									  appProperties.getMasterPort(), 
+									  appProperties.getSocketSoTimeout());
 		
 		/// autodiscovering ///
 		ipAutodiscoverer = new IpAutodiscoverer(getMemberIpMonitor(), 
@@ -269,7 +268,6 @@ public class AppContext {
 		longTransformer = new LongTransformer();
 		filesContextTransformer = new FilesContextTransformer(getLongTransformer());
 		baseRepositoryOperations = new BaseRepositoryOperations(getLongTransformer(), 
-																getFilesContextTransformer(),
 																appProperties);
 		
 		appInitializer = new AppInitializer(getBaseRepositoryOperations(), appProperties);
@@ -354,16 +352,8 @@ public class AppContext {
 		return repositoryManager;
 	}
 
-	public SlaveRepositoryManager getSlaveRepositoryManager() {
-		return slaveRepositoryManager;
-	}
-
 	public RepositoryStatusMapper getRepositoryStatusMapper() {
 		return repositoryStatusMapper;
-	}
-
-	public MasterRepositoryScheduler getMasterRepositoryScheduler() {
-		return masterRepositoryScheduler;
 	}
 
 	public HealthCheckOperation getHealthCheckOperation() {
@@ -392,6 +382,14 @@ public class AppContext {
 
 	public TransferManagerStateMonitor getTransferManagerStateMonitor() {
 		return transferManagerStateMonitor;
+	}
+
+	public AsynchronySearcherManager getAsynchronySearcherManager() {
+		return asynchronySearcherManager;
+	}
+
+	public RepositoryConsistencyChecker getRepositoryConsistencyChecker() {
+		return repositoryConsistencyChecker;
 	}
 	
 }

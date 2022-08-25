@@ -19,6 +19,7 @@ public class RecordConstants {
 	
 	public static final int FILE_CREATION_DATETIME = 8;
 	
-	public static final int FULL_SIZE = ID_SIZE + NAME_LENGTH_SIZE + NAME_SIZE + STATUS_SIZE + FILE_SIZE + FILE_CREATION_DATETIME;
+	public static final int FULL_SIZE = ID_SIZE + NAME_LENGTH_SIZE + NAME_SIZE + STATUS_SIZE 
+												+ FILE_SIZE + FILE_CREATION_DATETIME;
 
 }

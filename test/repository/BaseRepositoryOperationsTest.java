@@ -50,7 +50,7 @@ public class BaseRepositoryOperationsTest {
 		ds.add(new MemberDescriptor("member5", MemberType.SOURCE, null));
 		
 		AppProperties appPropertiesMock = mock(AppProperties.class);
-		BaseRepositoryOperations bro = new BaseRepositoryOperations(null, null, appPropertiesMock);
+		BaseRepositoryOperations bro = new BaseRepositoryOperations(null, appPropertiesMock);
 		bro.createMembersFileIfNotExist(pathMembers, memberId, ds);
 		
 		Path expectedPathMembers = Paths.get("").resolve("test-resources")
@@ -99,7 +99,7 @@ public class BaseRepositoryOperationsTest {
 		}
 		
 		AppProperties appPropertiesMock = mock(AppProperties.class);
-		BaseRepositoryOperations bro = new BaseRepositoryOperations(null, null, appPropertiesMock);
+		BaseRepositoryOperations bro = new BaseRepositoryOperations(null, appPropertiesMock);
 		String memberId = bro.loadLocalMemberId(pathMembers);
 		
 		assertEquals("member1", memberId);
@@ -108,7 +108,7 @@ public class BaseRepositoryOperationsTest {
 	@Test
 	public void testLoadLocalMemberId2() throws IOException, URISyntaxException {
 		AppProperties appPropertiesMock = mock(AppProperties.class);
-		BaseRepositoryOperations bro = new BaseRepositoryOperations(null, null, appPropertiesMock);
+		BaseRepositoryOperations bro = new BaseRepositoryOperations(null, appPropertiesMock);
 		String memberId = bro.loadLocalMemberId("members-test.properties");
 		
 		assertEquals("member1", memberId);
@@ -142,7 +142,7 @@ public class BaseRepositoryOperationsTest {
 		}
 		
 		AppProperties appPropertiesMock = mock(AppProperties.class);
-		BaseRepositoryOperations bro = new BaseRepositoryOperations(null, null, appPropertiesMock);
+		BaseRepositoryOperations bro = new BaseRepositoryOperations(null, appPropertiesMock);
 		List<MemberDescriptor> ds = bro.loadRemoteMembers(pathMembers);
 		
 		assertAll("memberDescriptors",
@@ -164,7 +164,7 @@ public class BaseRepositoryOperationsTest {
 	@Test
 	public void loadRemoteMembers2() throws URISyntaxException, IOException {
 		AppProperties appPropertiesMock = mock(AppProperties.class);
-		BaseRepositoryOperations bro = new BaseRepositoryOperations(null, null, appPropertiesMock);
+		BaseRepositoryOperations bro = new BaseRepositoryOperations(null, appPropertiesMock);
 		List<MemberDescriptor> ds = bro.loadRemoteMembers("members-test.properties");
 		
 		assertAll("memberDescriptors",
@@ -204,7 +204,7 @@ public class BaseRepositoryOperationsTest {
 		Path pathMembers = pathSys.resolve("members.txt");
 		
 		AppProperties appPropertiesMock = mock(AppProperties.class);
-		BaseRepositoryOperations bro = new BaseRepositoryOperations(null, null, appPropertiesMock);
+		BaseRepositoryOperations bro = new BaseRepositoryOperations(null, appPropertiesMock);
 		
 		List<MemberDescriptor> ds0 = new ArrayList<>();
 		ds0.add(new MemberDescriptor("member2", MemberType.CLOUD, null));

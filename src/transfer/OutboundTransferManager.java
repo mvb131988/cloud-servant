@@ -101,12 +101,12 @@ public class OutboundTransferManager implements Runnable {
 					lockLogger.info("Lock releasing for memberId=" + md.getMemberId());
 					
 					tmsm.unlock();
-
+					
 					// random delay between 1 and smallTimeout in millis
 					Thread.sleep(random.nextInt(10) * smallTimeout);
 				}
 			} catch (Exception ex) {
-				logger.error(ex);
+				logger.error("Exception: ", ex);
 
 				lockLogger.info("Lock releasing due to exception happened");
 
@@ -114,7 +114,7 @@ public class OutboundTransferManager implements Runnable {
 
 				tmsm.unlock();
 			} catch (Throwable th) {
-				logger.error("Throwable", th);
+				logger.error("Throwable: ", th);
 			}
 		}
 	}

@@ -14,8 +14,9 @@ import exception.BatchFileTransferException;
 import exception.MasterNotReadyDuringBatchTransfer;
 import exception.WrongOperationException;
 import main.AppProperties;
+import repository.AsynchronySearcherManager;
+import repository.RepositoryConsistencyChecker;
 import repository.RepositoryRecord;
-import repository.SlaveRepositoryManager;
 import repository.status.SlaveRepositoryManagerStatus;
 import transfer.constant.MemberStatus;
 import transfer.constant.OperationType;
@@ -36,23 +37,27 @@ public class BatchFilesTransferOperation {
 	
 	private FilesContextTransformer fct;
 	
-	private SlaveRepositoryManager srm;
-	
 	private StatusTransferOperation sto;
 
+	private AsynchronySearcherManager asm;
+	
+	private RepositoryConsistencyChecker rcc;
+	
 	public BatchFilesTransferOperation(BaseTransferOperations bto, 
 									   FileTransferOperation fto, 
 									   StatusTransferOperation sto, 
-									   SlaveRepositoryManager srm,
 									   FilesContextTransformer fct,
+									   AsynchronySearcherManager asm,
+									   RepositoryConsistencyChecker rcc,
 									   AppProperties appProperties) 
 	{
 		super();
 		this.fto = fto;
 		this.bto = bto;
 		this.fct = fct;
-		this.srm = srm;
 		this.sto = sto;
+		this.asm = asm;
+		this.rcc = rcc;
 		this.smallTimeout = appProperties.getSmallPoolingTimeout();
 	}
 
@@ -119,9 +124,9 @@ public class BatchFilesTransferOperation {
 		// 2. Get next file path (for corresponding file) that is needed to be transferred and
 		// send file transfer request to master
 		try {
-			srm.reset(memberId);
-			while(srm.getStatus() != SlaveRepositoryManagerStatus.TERMINATED) {
-				RepositoryRecord rr = srm.next();
+			asm.startRepoAsyncSearcherThread(memberId);
+			while(asm.repoAsyncSearcherThreadStatus() != SlaveRepositoryManagerStatus.TERMINATED) {
+				RepositoryRecord rr = asm.next();
 				if (rr != null) {
 					fto.outbound(os, is, fct.transform(rr));
 				} else {
@@ -142,14 +147,14 @@ public class BatchFilesTransferOperation {
 				}
 			}
 			//consistency check
-			srm.checkScan(memberId);
+			rcc.checkScan(memberId);
 		}
 		catch(Exception e) {
 			//Catch IOException, that happened during file transfer and terminate 
 			//SlaveRepositoryManager (asynchrony thread)
-			while(srm.getStatus() != SlaveRepositoryManagerStatus.TERMINATED) {
+			while(asm.repoAsyncSearcherThreadStatus() != SlaveRepositoryManagerStatus.TERMINATED) {
 				//Read all. When no more records available asynchrony thread terminates
-				srm.next();
+				asm.next();
 			}
 			throw new BatchFileTransferException();
 		}

@@ -12,18 +12,14 @@ import java.io.RandomAccessFile;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileTime;
 import java.time.Instant;
 import java.time.ZoneId;
-import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Queue;
-import java.util.concurrent.ArrayBlockingQueue;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -32,16 +28,11 @@ import autodiscovery.MemberDescriptor;
 import autodiscovery.MemberType;
 import exception.FilePathMaxLengthException;
 import main.AppProperties;
-import repository.status.AsynchronySearcherStatus;
-import repository.status.FileErrorStatus;
 import repository.status.RepositoryFileStatus;
-import transformer.FilesContextTransformer;
 import transformer.LongTransformer;
 
 public class BaseRepositoryOperations {
 
-	private final int smallTimeout;
-	
 	private Logger logger = LogManager.getRootLogger();
 	
 	private Path repositoryRoot;
@@ -52,26 +43,20 @@ public class BaseRepositoryOperations {
 
 	private LongTransformer longTransformer;
 
-	private FilesContextTransformer fct;
 	
 	private String memberId;
 
-	public BaseRepositoryOperations(LongTransformer frameProcessor, 
-									FilesContextTransformer fct, 
+	public BaseRepositoryOperations(LongTransformer frameProcessor,
 									AppProperties appProperties) {
 		super();
 		this.longTransformer = frameProcessor;
-		this.fct = fct;
-
 		this.repositoryRoot = appProperties.getRepositoryRoot();
-		this.smallTimeout = appProperties.getSmallPoolingTimeout();
-		
 		this.memberId = appProperties.getMemberId();
 	}
 
-	// --------------------------------------------------------------------------------------------------------------------------------
+	// --------------------------------------------------------------------------------------------
 	// Set of unused methods which are suitable for investigation purpose
-	// --------------------------------------------------------------------------------------------------------------------------------
+	// --------------------------------------------------------------------------------------------
 
 	@SuppressWarnings("unused")
 	@Deprecated
@@ -93,7 +78,9 @@ public class BaseRepositoryOperations {
 
 	@SuppressWarnings("unused")
 	@Deprecated
-	public void write(int baseAddr, int id, String name, byte status) throws FileNotFoundException, IOException {
+	public void write(int baseAddr, int id, String name, byte status) 
+			throws FileNotFoundException, IOException 
+	{
 		Path configPath = repositoryRoot.resolve("master.repo");
 		try (RandomAccessFile file = new RandomAccessFile(configPath.toString(), "rw")) {
 
@@ -130,7 +117,9 @@ public class BaseRepositoryOperations {
 	 * @throws IOException
 	 */
 	@SuppressWarnings("unused")
-	public RepositoryRecord read(int baseAddr) throws FileNotFoundException, IOException {
+	public RepositoryRecord read(int baseAddr) 
+			throws FileNotFoundException, IOException 
+	{
 		RepositoryRecord repositoryRecord = new RepositoryRecord();
 
 		int offset = baseAddr;
@@ -172,7 +161,7 @@ public class BaseRepositoryOperations {
 
 			repositoryRecord.setId(id);
 			repositoryRecord.setFileName(name);
-			repositoryRecord.setFileameSize(length);
+			repositoryRecord.setFileNameSize(length);
 			repositoryRecord.setStatus((byte) status);
 			repositoryRecord.setSize(size);
 			repositoryRecord.setMillisCreationDate(millisCreationDateTime);
@@ -182,15 +171,15 @@ public class BaseRepositoryOperations {
 		return repositoryRecord;
 	}
 
-	// --------------------------------------------------------------------------------------------------------------------------------
+	// -------------------------------------------------------------------------------------------
 	// Unused finished
-	// --------------------------------------------------------------------------------------------------------------------------------
+	// -------------------------------------------------------------------------------------------
 	
 	/**
-	 * Persists repository status descriptor on disc (in /.sys).
-	 * Compares local state of the repo for the given member with repo state from received file
-	 * memberId_data.repo
-	 * Determines structure of file where repository status descriptor will be stored. 
+	 * Persists repository status descriptor on disc (in /.sys). Checks neighbour member 
+	 * repository state identified by it's memberId (identifies which data.repo file to traverse) 
+	 * with local member repository. Reports difference in file properties (between local and
+	 * remote member) 
 	 * @throws IOException 
 	 */
 	public void writeRepositoryStatusDescriptor(RepositoryStatusDescriptor descriptor, 
@@ -201,20 +190,20 @@ public class BaseRepositoryOperations {
 			bw.write(memberId + "_data.repo file status: " 
 					+ descriptor.getRepositoryFileStatus().toString());
 			bw.newLine();
-			bw.write("Slave repository check/scan date: " 
+			bw.write("Local member repository check/scan date: " 
 					+ descriptor.getCheckDateTime());
 			bw.newLine();
 			bw.write(memberId + "_data.repo file creation date: " 
 					+ descriptor.getDataRepoDateTime());
 			bw.newLine();
-			bw.write("Total number of files in slave repository: " 
+			bw.write("Total number of files in " + memberId + " repository: " 
 					+ descriptor.getNumberOfFiles());
 			bw.newLine();
-			bw.write("Total files size in slave repository: " 
+			bw.write("Total files size in " + memberId + " repository: " 
 					+ descriptor.getTotalSize() + " bytes");
 			bw.newLine();
-			bw.write("Total number of corrupted files in slave repository: " 
-					+ descriptor.getNumberOfCorruptedFiles());
+			bw.write("Total number of corrupted files in local member repository comparing to "
+					+ memberId + " repository: " + descriptor.getNumberOfCorruptedFiles());
 			bw.newLine();
 			
 			bw.write("====================================================");
@@ -245,11 +234,15 @@ public class BaseRepositoryOperations {
 						
 					case CREATION_DATE_MISMATH:
 						ZonedDateTime expectedDateTime = 
-							ZonedDateTime.ofInstant(Instant.ofEpochMilli(fd.getRepositoryRecord().getMillisCreationDate()), 
-													ZoneId.systemDefault());
+							ZonedDateTime.ofInstant(
+									Instant.ofEpochMilli(
+											fd.getRepositoryRecord().getMillisCreationDate()),
+									ZoneId.systemDefault());
 						ZonedDateTime actualDateTime = 
-								ZonedDateTime.ofInstant(Instant.ofEpochMilli(fd.getMillisActualCreationDateTime()), 
-														ZoneId.systemDefault());
+							ZonedDateTime.ofInstant(
+									Instant.ofEpochMilli(
+											fd.getMillisActualCreationDateTime()), 
+									ZoneId.systemDefault());
 						bw.write("file name: " + fd.getRepositoryRecord().getFileName());
 						bw.newLine();
 						bw.write("expected creation date time: " + expectedDateTime);
@@ -268,6 +261,7 @@ public class BaseRepositoryOperations {
 		}
 	}
 	
+	//TODO: pass memberId as parameter
 	/**
 	 * Writes the list of files into the data.repo Much faster than random
 	 * access file
@@ -280,7 +274,7 @@ public class BaseRepositoryOperations {
 	 * -----------------------------------------------------------------------------------------
 	 *
 	 * @param rrs
-	 *            - list of repository records, corresponded to master repository file system
+	 *            - list of repository records, corresponded to member's repository file system
 	 *            (relative names, sizes, creation dates) to be written into data.repo
 	 * @param startId
 	 *            - number used as starting to generate(increment sequence)
@@ -288,7 +282,9 @@ public class BaseRepositoryOperations {
 	 * @throws IOException
 	 * @throws FilePathMaxLengthException
 	 */
-	public void writeAll(List<RepositoryRecord> rrs, int startId) throws IOException, FilePathMaxLengthException {
+	public void writeAll(List<RepositoryRecord> rrs, int startId) 
+			throws IOException, FilePathMaxLengthException 
+	{
 		byte[] buffer = new byte[RecordConstants.FULL_SIZE * BATCH_SIZE];
 		int offset = 0;
 
@@ -341,7 +337,11 @@ public class BaseRepositoryOperations {
 				// file creation date time
 				long creationDateTime = rr.getMillisCreationDate();
 				byteArray = longTransformer.packLong(creationDateTime);
-				System.arraycopy(byteArray, 0, buffer, offset, RecordConstants.FILE_CREATION_DATETIME);
+				System.arraycopy(byteArray, 
+								 0, 
+								 buffer, 
+								 offset, 
+								 RecordConstants.FILE_CREATION_DATETIME);
 				offset += RecordConstants.FILE_CREATION_DATETIME;
 
 				if (offset == buffer.length) {
@@ -370,7 +370,11 @@ public class BaseRepositoryOperations {
 		byte[] header = new byte[HEADER_SIZE];
 		
 		long creationTimestamp = ZonedDateTime.now().toInstant().toEpochMilli();
-		System.arraycopy(longTransformer.packLong(creationTimestamp), 0, header, offset, RecordConstants.TIMESTAMP);
+		System.arraycopy(longTransformer.packLong(creationTimestamp), 
+						 0, 
+						 header, 
+						 offset, 
+						 RecordConstants.TIMESTAMP);
 		offset += RecordConstants.TIMESTAMP;
 		
 		byte fileStatus = (byte) RepositoryFileStatus.RECEIVE_START.getValue(); 
@@ -378,29 +382,6 @@ public class BaseRepositoryOperations {
 		
 		os.write(header);
 		os.flush();
-	}
-	
-	/**
-	 * Extracts data.repo file creation date time from data.repo header 
-	 * 
-	 * @return data.repo file creation date time
-	 */
-	private ZonedDateTime getHeaderCreationTimestamp(byte[] header) {
-		byte[] bTimestamp = new byte[RecordConstants.TIMESTAMP];
-		System.arraycopy(header, 0, bTimestamp, 0, RecordConstants.TIMESTAMP);
-		long timestamp = longTransformer.extractLong(bTimestamp);
-		Instant i = Instant.ofEpochMilli(timestamp);
-		return ZonedDateTime.ofInstant(i, ZoneOffset.systemDefault());
-	}
-	
-	/**
-	 * Extracts data.repo file status from data.repo header 
-	 * 
-	 * @return data.repo file status
-	 */
-	private RepositoryFileStatus getHeaderCreationStatus(byte[] header) {
-		RepositoryFileStatus status = RepositoryFileStatus.to(header[RecordConstants.TIMESTAMP]);
-		return status;
 	}
 	
 	/**
@@ -467,7 +448,7 @@ public class BaseRepositoryOperations {
 	 */
 	public void createMembersFileIfNotExist(Path path, 
 											String memberId, 
-											List<MemberDescriptor> ds) throws IOException 
+											List<MemberDescriptor> ds) throws IOException
 	{
 		if (path != null) {
 			if (!Files.exists(path)) {
@@ -644,8 +625,10 @@ public class BaseRepositoryOperations {
 	// TODO(NORMAL): os dependent operation. Execute only on windows. On linux
 	// dir started with '.' is already hidden.
 	public void hideDirectory(Path relativePath) throws IOException {
-		Files.setAttribute(repositoryRoot.resolve(relativePath), "dos:hidden", Boolean.TRUE,
-																			   LinkOption.NOFOLLOW_LINKS);
+		Files.setAttribute(repositoryRoot.resolve(relativePath), 
+						   "dos:hidden", 
+						   Boolean.TRUE,
+						   LinkOption.NOFOLLOW_LINKS);
 	}
 
 	/**
@@ -657,7 +640,9 @@ public class BaseRepositoryOperations {
 	 * @param creationDateTime
 	 * @throws IOException 
 	 */
-	public void fromTempToRepository(Path relativeFilePath, long creationDateTime) throws IOException {
+	public void fromTempToRepository(Path relativeFilePath, long creationDateTime) 
+			throws IOException 
+	{
 		Path src = repositoryRoot.resolve(".temp").resolve(relativeFilePath.getFileName());
 		Path dstn = repositoryRoot.resolve(relativeFilePath).normalize();
 		Files.copy(src, dstn, StandardCopyOption.REPLACE_EXISTING);
@@ -697,10 +682,6 @@ public class BaseRepositoryOperations {
 		return header;
 	}
 	
-	public void readDataRepoStatus(RepositoryFileStatus status) {
-		
-	}
-	
 	/**
 	 * Updates status of data.repo file 
 	 * @param status - data.repo file status to be set
@@ -722,7 +703,7 @@ public class BaseRepositoryOperations {
 	 * Open input stream associated with data.repo main repository config.
 	 * @throws IOException 
 	 */
-	private void closeDataRepo(InputStream is) throws IOException {
+	public void closeDataRepo(InputStream is) throws IOException {
 		is.close();
 	}
 
@@ -734,123 +715,18 @@ public class BaseRepositoryOperations {
 	 * Returns number of read bytes or -1 if end of stream reached
 	 * @throws IOException 
 	 */
-	private int next(InputStream is, byte[] buffer) throws IOException {
+	public int next(InputStream is, byte[] buffer) throws IOException {
 		int readBytes = 0;
 		readBytes = is.read(buffer);
 		return readBytes;
 	}
 
-	/**
-	 * asynchrony - is a file that exists in data.repo and doesn't in slave file
-	 * system or vice versa.
-	 */
-	// TODO(FUTURE): Delete operation isn't implemented
-	public class AsynchronySearcher implements Runnable {
 
-		// Records that don't have corresponding file in the repository
-		private Queue<RepositoryRecord> asynchronyBuffer;
-
-		// max asynchrony buffer size
-		private final int asynchronyBufferMaxSize = 500;
-
-		private AsynchronySearcherStatus asynchronySearcherStatus;
-
-		private String memberId;
-		
-		private AsynchronySearcher(String memberId) {
-			asynchronyBuffer = new ArrayBlockingQueue<>(asynchronyBufferMaxSize);
-			asynchronySearcherStatus = AsynchronySearcherStatus.READY;
-			
-			this.memberId = memberId;
-		}
-
-		@Override
-		public void run() {
-			try{
-				asynchronySearcherStatus = AsynchronySearcherStatus.BUSY;
-	
-				byte[] buffer = new byte[RecordConstants.FULL_SIZE * BATCH_SIZE];
-	
-				InputStream is = openDataRepo(memberId);
-				readDataRepoHeader(is);
-				int readBytes = 0;
-				while ((readBytes = next(is, buffer)) != -1) {
-					List<RepositoryRecord> records = fct.transform(buffer, readBytes);
-					for (RepositoryRecord rr : records) {
-	
-						// Set current record path to be used for file transfer
-						if (!existsFile(Paths.get(rr.getFileName()))) {
-							
-							// if previous read asynchrony isn't consumed wait until
-							// it is consumed
-							while (bufferFull()) {
-								//Waiting for SlaveMasterCommunicationThread to consume a record from a buffer.
-								//Wait 1 second to avoid resources overconsumption.
-								Thread.sleep(smallTimeout);
-							}
-							setAsynchrony(rr);
-						}
-	
-						// If file for record exists skip it move to next one
-						if (existsFile(Paths.get(rr.getFileName()))) {
-							// log as existed one
-						}
-					}
-				}
-				closeDataRepo(is);
-	
-				// Last read. Wait until last read record isn't consumed.
-				while (!bufferEmpty()) {
-					
-					//Waiting for SlaveMasterCommunicationThread to consume all records from a buffer.
-					//Wait 1 second to avoid resources overconsumption.
-					Thread.sleep(smallTimeout);
-				}
-	
-				asynchronySearcherStatus = AsynchronySearcherStatus.TERMINATED;
-			} 
-			catch(Exception e) {
-				logger.error("[" + this.getClass().getSimpleName() + "] thread fail", e);
-			}
-		}
-
-		/**
-		 * @return true if buffer size exceeds asynchronyBufferMaxSize
-		 */
-		private boolean bufferFull() {
-			return asynchronyBuffer.size() == asynchronyBufferMaxSize;
-		}
-
-		/**
-		 * @return true when buffer size is zero
-		 */
-		private boolean bufferEmpty() {
-			return asynchronyBuffer.size() == 0;
-		}
-
-		public RepositoryRecord nextAsynchrony() {
-			return asynchronyBuffer.poll();
-		}
-
-		private void setAsynchrony(RepositoryRecord rr) {
-			asynchronyBuffer.offer(rr);
-		}
-
-		public AsynchronySearcherStatus getStatus() {
-			return asynchronySearcherStatus;
-		}
-
-	}
-
-	public AsynchronySearcher getAsynchronySearcher(String memberId) {
-		return new AsynchronySearcher(memberId);
-	}
-
-	/**********************************************************************************************
-	 * ============================================================================================
+	/*****************************************************************************************
+	 * =======================================================================================
 	 *	unused
-	 * ============================================================================================
-	 **********************************************************************************************/
+	 * =======================================================================================
+	 ****************************************************************************************/
 	public class IpsChunkWriter {
 		
 		private Path filePath;
@@ -863,7 +739,8 @@ public class BaseRepositoryOperations {
 		
 		public void open() {
 			try {
-				writer = new BufferedWriter(new OutputStreamWriter(Files.newOutputStream(filePath)));
+				writer = new BufferedWriter(
+						new OutputStreamWriter(Files.newOutputStream(filePath)));
 			} catch (IOException e) {
 				logger.error("[" + this.getClass().getSimpleName() + "] thread fail", e);
 			}
@@ -893,154 +770,6 @@ public class BaseRepositoryOperations {
 		ipsChunkWriter.open();
 		return ipsChunkWriter;
 	}
-	/**********************************************************************************************/
-	
-	/**********************************************************************************************
-	 *	Iterates throughout data.repo and returns next record if available until end of
-	 *	data.repo is not reached
-	 **********************************************************************************************/
-	public class DataRepoIterator {
-		
-		private List<RepositoryRecord> records;
-		
-		//position of the current record in the array records
-		private int iRecord;
-		
-		private InputStream is;
-		
-		private byte[] header;
-		
-		private byte[] buffer = new byte[RecordConstants.FULL_SIZE * BATCH_SIZE];
-		
-		public DataRepoIterator(String memberId) throws IOException {
-			is = openDataRepo(memberId);
-			header = readDataRepoHeader(is);
-		}
-		
-		public RepositoryRecord nextRecord() throws IOException {
-			return records.get(iRecord++); 
-		}
-		
-		public boolean hasNextRecord() throws IOException {
-			if (records == null || iRecord == records.size()) {
-				int readBytes = next(is, buffer);
-
-				if (readBytes == -1) {
-					closeDataRepo(is);
-					return false;
-				}
-
-				records = fct.transform(buffer, readBytes);
-				iRecord = 0;
-			}
-
-			return true;
-		}
-		
-		public void close() throws IOException {
-			closeDataRepo(is);
-		}
-
-		public byte[] getHeader() {
-			return header;
-		}
-		
-	}
-	
-	public DataRepoIterator dataRepoIterator(String memberId) throws IOException {
-		return new DataRepoIterator(memberId);
-	}
-	
-	/**********************************************************************************************
-	 * For each record from data.repo looks up for a corresponding file in the slave
-	 * repository and checks whether all properties(size, creation date) from the record are identical
-	 * to all properties of the file. Returns RepositoryDescriptor with list of files that don't math this 
-	 * rule plus some additional info about current repository state(like scan date, current repository date, 
-	 * number of files in the repository, their size and so on...)  
-	 **********************************************************************************************/
-	public class RepositoryConsistencyChecker {
-		
-		public RepositoryStatusDescriptor check(String memberId) {
-			int recordsCounter = 0;
-			long totalSize = 0;
-			//TODO(FUTURE): In scan is done on empty repo and data.repo list is huge can lead 
-			//to memory over consumption. Needs to be implemented lazily.
-			List<FileDescriptor> corruptedFiles = new ArrayList<>();
-			RepositoryStatusDescriptor repoDescriptor = new RepositoryStatusDescriptor();
-			DataRepoIterator iterator = null;
-			
-			try {
-				iterator = dataRepoIterator(memberId);
-				RepositoryFileStatus repoFileStatus = getHeaderCreationStatus(iterator.getHeader());
-				repoDescriptor.setRepositoryFileStatus(repoFileStatus);
-				
-				if (repoFileStatus == RepositoryFileStatus.RECEIVE_END) {
-					while (iterator.hasNextRecord()) {
-						RepositoryRecord rr = iterator.nextRecord();
-
-						// check record
-						FileDescriptor fd = check(rr);
-						if (fd != null) {
-							corruptedFiles.add(fd);
-						} else {
-							recordsCounter++;
-							totalSize += getSize(Paths.get(rr.getFileName()));
-						}
-					}
-
-					repoDescriptor.setCheckDateTime(ZonedDateTime.now());
-					repoDescriptor.setDataRepoDateTime(getHeaderCreationTimestamp(iterator.getHeader()));
-					repoDescriptor.setNumberOfFiles(recordsCounter);
-					repoDescriptor.setTotalSize(totalSize);
-					repoDescriptor.setNumberOfCorruptedFiles(corruptedFiles.size());
-					repoDescriptor.setCorruptedFiles(corruptedFiles);
-				}
-			} catch (IOException e) {
-				logger.error("[" + this.getClass().getSimpleName()+ "] i/o exception during slave repository scan", e);
-			}
-			finally {
-				try {
-					if(iterator != null) {
-						iterator.close();
-					}
-				} catch (IOException e) {
-					logger.error("[" + this.getClass().getSimpleName()+ "] i/o exception during slave repository scan", e);
-				}
-			}
-			
-			return repoDescriptor;
-		}
-		
-		/**
-		 * 
-		 * @return null - if file is valid
-		 * 		   FileDescriptor - if file is invalid
-		 * @throws IOException 
-		 */
-		private FileDescriptor check(RepositoryRecord rr) throws IOException {
-			FileDescriptor fd = null;
-			Path p = Paths.get(rr.getFileName());
-			long size = -1;
-			long creationDateTime = -1;
-			
-			if(!existsFile(p)) {
-				fd = new FileDescriptor(rr, FileErrorStatus.NOT_EXIST);
-			} 
-			else if((size = getSize(p)) != rr.getSize()) {
-				fd = new FileDescriptor(rr, FileErrorStatus.SIZE_MISMATCH);
-				fd.setActualSize(size);
-			}
-			else if((creationDateTime = getCreationDateTime(p)) != rr.getMillisCreationDate()){
-				fd = new FileDescriptor(rr, FileErrorStatus.CREATION_DATE_MISMATH);
-				fd.setMillisActualCretionDateTime(creationDateTime);
-			}
-			return fd;
-		}
-		
-	}
-	
-	public RepositoryConsistencyChecker repositoryConsistencyChecker() {
-		return new RepositoryConsistencyChecker();
-	}
+	/*******************************************************************************************/
 	
 }

@@ -3,7 +3,7 @@ package repository;
 public class RepositoryRecord {
 
 	private long id;
-	private long fileameSize;
+	private long fileNameSize;
 	private String fileName;
 	private byte status;
 	
@@ -18,12 +18,12 @@ public class RepositoryRecord {
 		this.id = id;
 	}
 
-	public long getFileameSize() {
-		return fileameSize;
+	public long getFileNameSize() {
+		return fileNameSize;
 	}
 
-	public void setFileameSize(long fileameSize) {
-		this.fileameSize = fileameSize;
+	public void setFileNameSize(long fileNameSize) {
+		this.fileNameSize = fileNameSize;
 	}
 
 	public String getFileName() {
