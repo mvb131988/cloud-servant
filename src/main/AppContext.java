@@ -16,6 +16,7 @@ import autodiscovery.ipscanner.IpValidator;
 import exception.InitializationException;
 import repository.AsynchronySearcherManager;
 import repository.BaseRepositoryOperations;
+import repository.RepoInitializer;
 import repository.RepositoryConsistencyChecker;
 import repository.RepositoryManager;
 import repository.RepositoryManager.RepositoryScaner;
@@ -70,7 +71,7 @@ public class AppContext {
 	
 	private MasterShutdownThread masterShutdownThread;
 	
-	private AppInitializer appInitializer;
+	private RepoInitializer repoInitializer;
 	
 	private IpValidator ipValidator;
 	
@@ -270,8 +271,8 @@ public class AppContext {
 		baseRepositoryOperations = new BaseRepositoryOperations(getLongTransformer(), 
 																appProperties);
 		
-		appInitializer = new AppInitializer(getBaseRepositoryOperations(), appProperties);
-		appInitializer.initSysDirectory();	
+		repoInitializer = new RepoInitializer(getBaseRepositoryOperations(), appProperties);
+		repoInitializer.initSysDirectory();	
 		
 		memberIpMonitor = new MemberIpMonitor(getBaseRepositoryOperations(), appProperties);
 		/////////////////////////////////////////////////////////////////////////////////////
@@ -360,8 +361,8 @@ public class AppContext {
 		return healthCheckOperation;
 	}
 
-	public AppInitializer getAppInitializer() {
-		return appInitializer;
+	public RepoInitializer getRepoInitializer() {
+		return repoInitializer;
 	}
 
 	public IpValidator getIpValidator() {

@@ -1,4 +1,4 @@
-package main;
+package repository;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -8,12 +8,12 @@ import java.nio.file.Path;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import repository.BaseRepositoryOperations;
+import main.AppProperties;
 
 /**
  * Initializes application working directories
  */
-public class AppInitializer {
+public class RepoInitializer {
 
 	private Logger logger = LogManager.getRootLogger();
 	
@@ -29,7 +29,7 @@ public class AppInitializer {
 	
 	private String memberId;
 	
-	public AppInitializer(BaseRepositoryOperations bro, AppProperties appProperties) {
+	public RepoInitializer(BaseRepositoryOperations bro, AppProperties appProperties) {
 		super();
 		this.bro = bro;
 		this.pathRoot = appProperties.getRepositoryRoot();
