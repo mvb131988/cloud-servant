@@ -162,7 +162,7 @@ public class InboundTransferManagerTest {
 		
 		when(tmsm.lock()).thenReturn(false);
 		when(ap.getSocketSoTimeout()).thenReturn(1000);
-		when(ap.getMasterPort()).thenReturn(8080);
+		when(ap.getTransferPort()).thenReturn(8080);
 		
 		InboundTransferManager itm = new InboundTransferManager(hco, 
 																ffto, 

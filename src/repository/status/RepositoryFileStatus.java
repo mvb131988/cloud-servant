@@ -1,8 +1,9 @@
 package repository.status;
 
 /**
- * When slave creates data.repo file it sets status RECEIVE_START, when file transfer terminates it
- * changes status to RECEIVE_END 
+ * When SOURCE or CLOUD member scans its own repository it creates memberId_data.repo file and 
+ * sets its status RECEIVE_START, when memberId_data.repo file is transfered to external member,
+ * external member sets its status to RECEIVE_END.
  */
 public enum RepositoryFileStatus {
 

@@ -33,7 +33,8 @@ public class HealthCheckOperation implements MemberIdFinder {
 					"Expected: " + OperationType.REQUEST_HEALTHCHECK_START + " Actual: " + ot);
 		}
 		
-		logger.info("[" + this.getClass().getSimpleName() + "] slave requested healthcheck");
+		logger.info("[" + this.getClass().getSimpleName() + "] outbound member requested "
+				  + "healthcheck");
 		bto.sendOperationType(os, OperationType.REQUEST_HEALTHCHECK_END);
 		
 		bto.sendMemberStatus(os, ms);

@@ -8,8 +8,8 @@ public class StatusTransferContext {
 	
 	private String memberId;
 
-	public StatusTransferContext(MemberStatus masterStatus, String memberId) {
-		this.outboundMemberStatus = masterStatus;
+	public StatusTransferContext(MemberStatus memberStatus, String memberId) {
+		this.outboundMemberStatus = memberStatus;
 		this.memberId = memberId;
 	}
 	

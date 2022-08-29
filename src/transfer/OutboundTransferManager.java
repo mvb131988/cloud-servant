@@ -14,7 +14,7 @@ import autodiscovery.MemberDescriptor;
 import autodiscovery.MemberIpIterator;
 import autodiscovery.MemberIpMonitor;
 import exception.BatchFileTransferException;
-import exception.MasterNotReadyDuringBatchTransfer;
+import exception.OutboundMemberNotReadyDuringBatchTransfer;
 import exception.WrongOperationException;
 import main.AppProperties;
 import transfer.constant.MemberStatus;
@@ -37,7 +37,7 @@ public class OutboundTransferManager implements Runnable {
 	
 	private final int socketSoTimeout;
 	
-	private final int masterPort;
+	private final int transferPort;
 	
 	private MemberIpMonitor mim;
 	
@@ -60,7 +60,7 @@ public class OutboundTransferManager implements Runnable {
 		this.ffto = ffto;
 		this.tmsm = tmsm;
 		this.socketSoTimeout = ap.getSocketSoTimeout();
-		this.masterPort = ap.getMasterPort();
+		this.transferPort = ap.getTransferPort();
 		this.random = new Random();
 		this.smallTimeout = ap.getSmallPoolingTimeout();
 	}
@@ -89,7 +89,7 @@ public class OutboundTransferManager implements Runnable {
 
 					lockLogger.info("Lock acquired for memberId=" + md.getMemberId());
 
-					Socket connection = connect(md.getIpAddress(), masterPort);
+					Socket connection = connect(md.getIpAddress(), transferPort);
 
 					mim.resetFailureCounter(md);
 					
@@ -151,20 +151,17 @@ public class OutboundTransferManager implements Runnable {
 	 * @param is
 	 * @throws InterruptedException
 	 * @throws IOException
-	 * @throws MasterNotReadyDuringBatchTransfer
+	 * @throws OutboundMemberNotReadyDuringBatchTransfer
 	 * @throws WrongOperationException
 	 * @throws BatchFileTransferException
 	 */
 	private void transfer(OutputStream os, InputStream is, String memberId) 
 			throws InterruptedException, 
 				   IOException, 
-				   MasterNotReadyDuringBatchTransfer, 
+				   OutboundMemberNotReadyDuringBatchTransfer, 
 				   WrongOperationException, 
 				   BatchFileTransferException 
 	{	
-		// status READY is received only when external member(inbound communication) acquires
-		// lock for the given healthcheck request. This could only when transfermanagerstate
-		// monitor is free on the external member healthcheck returns MASTER status
 		MemberStatus status = hco.outbound(os, is).getOutboundMemberStatus();
 		
 		logger.info("Neighbour member status: " + status);

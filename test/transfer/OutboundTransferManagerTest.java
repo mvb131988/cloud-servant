@@ -23,7 +23,7 @@ import autodiscovery.MemberIpIterator;
 import autodiscovery.MemberIpMonitor;
 import autodiscovery.MemberType;
 import exception.BatchFileTransferException;
-import exception.MasterNotReadyDuringBatchTransfer;
+import exception.OutboundMemberNotReadyDuringBatchTransfer;
 import exception.WrongOperationException;
 import main.AppProperties;
 import transfer.constant.MemberStatus;
@@ -41,7 +41,7 @@ public class OutboundTransferManagerTest {
 										   IOException, 
 										   WrongOperationException, 
 										   InterruptedException, 
-										   MasterNotReadyDuringBatchTransfer,
+										   OutboundMemberNotReadyDuringBatchTransfer,
 										   BatchFileTransferException 
 	{
 		MemberIpMonitor mim = mock(MemberIpMonitor.class);
@@ -73,7 +73,7 @@ public class OutboundTransferManagerTest {
 		
 		when(tmsm.lock()).thenReturn(true);
 		when(ap.getSocketSoTimeout()).thenReturn(1000);
-		when(ap.getMasterPort()).thenReturn(8888);
+		when(ap.getTransferPort()).thenReturn(8888);
 		when(hco.outbound(any(OutputStream.class), any(InputStream.class)))
 			.thenReturn(new StatusTransferContext(MemberStatus.READY, null));
 		
@@ -98,7 +98,7 @@ public class OutboundTransferManagerTest {
 										   IOException, 
 										   WrongOperationException, 
 										   InterruptedException, 
-										   MasterNotReadyDuringBatchTransfer,
+										   OutboundMemberNotReadyDuringBatchTransfer,
 										   BatchFileTransferException 
 	{
 		MemberIpMonitor mim = mock(MemberIpMonitor.class);
@@ -130,7 +130,7 @@ public class OutboundTransferManagerTest {
 		
 		when(tmsm.lock()).thenReturn(true);
 		when(ap.getSocketSoTimeout()).thenReturn(1000);
-		when(ap.getMasterPort()).thenReturn(8888);
+		when(ap.getTransferPort()).thenReturn(8888);
 		when(hco.outbound(any(OutputStream.class), any(InputStream.class)))
 			.thenReturn(new StatusTransferContext(MemberStatus.READY, null));
 		

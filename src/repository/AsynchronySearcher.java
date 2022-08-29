@@ -13,8 +13,7 @@ import repository.status.AsynchronySearcherStatus;
 import transformer.FilesContextTransformer;
 
 /**
- * asynchrony - is a file that exists in data.repo and doesn't in slave file
- * system or vice versa.
+ * asynchrony - is a file that exists in memberId_data.repo and doesn't in member local repository.
  */
 // TODO(FUTURE): Delete operation isn't implemented
 public class AsynchronySearcher implements Runnable {
@@ -74,8 +73,7 @@ public class AsynchronySearcher implements Runnable {
 						// if previous read asynchrony isn't consumed wait until
 						// it is consumed
 						while (bufferFull()) {
-							//Waiting for SlaveMasterCommunicationThread to consume a record from
-							//a buffer. Wait 1 second to avoid resources overconsumption.
+							// Waiting until messages are consumed from a full buffer.
 							Thread.sleep(smallTimeout);
 						}
 						setAsynchrony(rr);
@@ -92,8 +90,7 @@ public class AsynchronySearcher implements Runnable {
 			// Last read. Wait until last read record isn't consumed.
 			while (!bufferEmpty()) {
 				
-				//Waiting for SlaveMasterCommunicationThread to consume all records from a buffer.
-				//Wait 1 second to avoid resources overconsumption.
+				// Waiting until all messages are consumed from a buffer.
 				Thread.sleep(smallTimeout);
 			}
 

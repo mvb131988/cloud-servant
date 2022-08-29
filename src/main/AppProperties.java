@@ -6,8 +6,6 @@ import java.util.ResourceBundle;
 
 public class AppProperties {
 	
-	private boolean isMaster;
-	
 	private Path repositoryRoot;
 	
 	private Path pathSys;
@@ -16,16 +14,10 @@ public class AppProperties {
 	
 	private Path pathTemp;
 	
-	private Integer masterPort;
-	
-	//Admin port is common both for master and slave side.
+	private Integer transferPort;
+
+	@Deprecated
 	private Integer adminPort;
-	
-	private Integer masterRepositoryScheduleInterval;
-	
-	private Integer slaveTransferScheduleInterval;
-	
-	private Integer slaveRepositoryScheduleInterval;
 	
 	private Integer smallPoolingTimeout;
 	
@@ -60,13 +52,9 @@ public class AppProperties {
 		pathLog = Paths.get(ResourceBundle.getBundle("app").getString("path.log"));
 		pathTemp = Paths.get(ResourceBundle.getBundle("app").getString("path.temp"));
 		memberId = ResourceBundle.getBundle("app").getString("memberId");
-		isMaster = Boolean.parseBoolean(ResourceBundle.getBundle("app").getString("master"));
-		masterPort = Integer.parseInt(ResourceBundle.getBundle("app").getString("master.port"));
+		transferPort = Integer.parseInt(
+				ResourceBundle.getBundle("app").getString("member.transfer.port"));
 		adminPort = Integer.parseInt(ResourceBundle.getBundle("app").getString("admin.port"));
-		
-		masterRepositoryScheduleInterval = Integer.parseInt(ResourceBundle.getBundle("app").getString("schedule.master.repository"));
-		slaveTransferScheduleInterval = Integer.parseInt(ResourceBundle.getBundle("app").getString("schedule.slave.transfer"));
-		slaveRepositoryScheduleInterval = Integer.parseInt(ResourceBundle.getBundle("app").getString("schedule.slave.repository"));
 		
 		smallPoolingTimeout = Integer.parseInt(ResourceBundle.getBundle("app").getString("timeout.pooling.small"));
 		bigPoolingTimeout = Integer.parseInt(ResourceBundle.getBundle("app").getString("timeout.pooling.big"));
@@ -83,28 +71,16 @@ public class AppProperties {
 		globalRanges = ResourceBundle.getBundle("ipranges").getString(ISP_MOLDTELECOM);
 	}
 
-	public boolean isMaster() {
-		return isMaster;
-	}
-
 	public Path getRepositoryRoot() {
 		return repositoryRoot;
 	}
 
-	public Integer getMasterPort() {
-		return masterPort;
+	public Integer getTransferPort() {
+		return transferPort;
 	}
 
 	public Integer getAdminPort() {
 		return adminPort;
-	}
-
-	public Integer getMasterRepositoryScheduleInterval() {
-		return masterRepositoryScheduleInterval;
-	}
-
-	public Integer getSlaveTransferScheduleInterval() {
-		return slaveTransferScheduleInterval;
 	}
 
 	public Integer getSmallPoolingTimeout() {
@@ -145,10 +121,6 @@ public class AppProperties {
 
 	public Integer getGlobalAutodetectionPeriod() {
 		return globalAutodetectionPeriod;
-	}
-
-	public int getSlaveRepositoryScheduleInterval() {
-		return slaveRepositoryScheduleInterval;
 	}
 
 	public Path getPathSys() {

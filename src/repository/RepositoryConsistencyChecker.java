@@ -205,24 +205,24 @@ public class RepositoryConsistencyChecker {
 	}
 	
 	/**
-	 * Scans slave repository and looks for divergency between record in data.repo file and actual
-	 * file stored in file system. 
+	 * Scans member local repository and looks for divergency between record in memberId_data.repo 
+	 * (memberId id of the external member) file and actual file stored in member local repository.
 	 * 
 	 * @throws IOException
 	 */
 	public void checkScan(String memberId) throws IOException {
-		logger.info("[" + this.getClass().getSimpleName() + "] slave repo check started");
+		logger.info("[" + this.getClass().getSimpleName() + "] member local repo check started");
 		RepositoryStatusDescriptor repoDescriptor = check(memberId);
 		logger.info("[" + this.getClass().getSimpleName() 
-				  + "] slave repo check started terminated");
+				  + "] member local repo check terminated");
 		
 		RepositoryFileStatus status = repoDescriptor.getRepositoryFileStatus();
 		if(status == RepositoryFileStatus.RECEIVE_END) {
 			logger.info("[" + this.getClass().getSimpleName() 
-					  + "] slave repo report generation started");
+					  + "] member local repo report generation started");
 			bro.writeRepositoryStatusDescriptor(repoDescriptor, memberId);
 			logger.info("[" + this.getClass().getSimpleName() 
-					  + "] slave repo report generation terminated");
+					  + "] member local repo report generation terminated");
 			
 			//TODO: step 3
 			//remove corrupted files

@@ -1,7 +1,8 @@
 package exception;
 
 /**
- * Exception happened on slave side during batch file transfer leads to BatchFileTransferException be thrown.
+ * Exception happened on outbound member side during batch file transfer leads to 
+ * BatchFileTransferException be thrown.
  */
 public class BatchFileTransferException extends Exception {
 

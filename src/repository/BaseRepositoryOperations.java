@@ -63,7 +63,7 @@ public class BaseRepositoryOperations {
 	public long countRecords() throws Exception {
 		long counter = -1;
 
-		Path configPath = repositoryRoot.resolve("master.repo");
+		Path configPath = repositoryRoot.resolve("data.repo");
 		long size = Files.readAttributes(configPath, BasicFileAttributes.class).size();
 		counter = size / RecordConstants.FULL_SIZE;
 		long remainder = size % RecordConstants.FULL_SIZE;
@@ -81,7 +81,7 @@ public class BaseRepositoryOperations {
 	public void write(int baseAddr, int id, String name, byte status) 
 			throws FileNotFoundException, IOException 
 	{
-		Path configPath = repositoryRoot.resolve("master.repo");
+		Path configPath = repositoryRoot.resolve("data.repo");
 		try (RandomAccessFile file = new RandomAccessFile(configPath.toString(), "rw")) {
 
 			// offset = cursor pos

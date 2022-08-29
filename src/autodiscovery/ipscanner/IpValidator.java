@@ -3,7 +3,6 @@ package autodiscovery.ipscanner;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.InetSocketAddress;
 import java.net.Socket;
 
 import org.apache.logging.log4j.LogManager;
@@ -20,15 +19,9 @@ public class IpValidator {
   
 	private MemberIdFinder mif;
   
-	private int masterPort;
-  
-	private int soTimeout;
-  
-	public IpValidator(MemberIdFinder mif, int masterPort, int soTimeout) {
+	public IpValidator(MemberIdFinder mif) {
 		super();
 		this.mif = mif;
-		this.masterPort = masterPort;
-		this.soTimeout = soTimeout;
 	}
 	
 	public IpValidatorResult isValid(Socket s, String ip) {

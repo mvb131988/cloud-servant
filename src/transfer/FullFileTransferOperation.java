@@ -13,7 +13,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import exception.BatchFileTransferException;
-import exception.MasterNotReadyDuringBatchTransfer;
+import exception.OutboundMemberNotReadyDuringBatchTransfer;
 import exception.WrongOperationException;
 import main.AppProperties;
 import repository.BaseRepositoryOperations;
@@ -112,7 +112,7 @@ public class FullFileTransferOperation {
 	public void outbound(OutputStream os, InputStream is, String memberId) 
 			throws InterruptedException, 
 				   IOException, 
-				   MasterNotReadyDuringBatchTransfer, 
+				   OutboundMemberNotReadyDuringBatchTransfer, 
 				   WrongOperationException, 
 				   BatchFileTransferException 
 	{

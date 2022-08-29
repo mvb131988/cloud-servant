@@ -11,19 +11,19 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import exception.BatchFileTransferException;
-import exception.MasterNotReadyDuringBatchTransfer;
+import exception.OutboundMemberNotReadyDuringBatchTransfer;
 import exception.WrongOperationException;
 import main.AppProperties;
 import repository.AsynchronySearcherManager;
 import repository.RepositoryConsistencyChecker;
 import repository.RepositoryRecord;
-import repository.status.SlaveRepositoryManagerStatus;
+import repository.status.AsynchronySearcherStatus;
 import transfer.constant.MemberStatus;
 import transfer.constant.OperationType;
 import transformer.FilesContextTransformer;
 
 /**
- * Implements transfer protocol for a batch of files. Both master and slave sides.
+ * Implements transfer protocol for a batch of files. Both inbound and outbound sides.
  */
 public class BatchFilesTransferOperation {
 
@@ -78,7 +78,7 @@ public class BatchFilesTransferOperation {
 				case REQUEST_BATCH_START:
 					bto.receiveOperationType(pushbackInputStream);
 					logger.info("[" + this.getClass().getSimpleName() 
-							  + "] slave requested batch transfer start operation");
+							  + "] outbound member requested batch transfer start operation");
 	
 					bto.sendOperationType(os, OperationType.RESPONSE_BATCH_START);
 					logger.info("[" + this.getClass().getSimpleName() 
@@ -104,7 +104,7 @@ public class BatchFilesTransferOperation {
 	public void outbound(OutputStream os, InputStream is, String memberId) 
 			throws InterruptedException, 
 				   IOException, 
-				   MasterNotReadyDuringBatchTransfer, 
+				   OutboundMemberNotReadyDuringBatchTransfer, 
 				   WrongOperationException, 
 				   BatchFileTransferException 
 	{
@@ -122,10 +122,10 @@ public class BatchFilesTransferOperation {
 				  + "] outbound member responded batch transfer start");
 
 		// 2. Get next file path (for corresponding file) that is needed to be transferred and
-		// send file transfer request to master
+		// send file transfer request to outbound member
 		try {
 			asm.startRepoAsyncSearcherThread(memberId);
-			while(asm.repoAsyncSearcherThreadStatus() != SlaveRepositoryManagerStatus.TERMINATED) {
+			while(asm.repoAsyncSearcherThreadStatus() != AsynchronySearcherStatus.TERMINATED) {
 				RepositoryRecord rr = asm.next();
 				if (rr != null) {
 					fto.outbound(os, is, fct.transform(rr));
@@ -137,7 +137,7 @@ public class BatchFilesTransferOperation {
 					// must be READY at any time  
 					MemberStatus status = sto.executeAsSlave(os, is).getOutboundMemberStatus();
 					if(MemberStatus.READY != status) {
-						throw new MasterNotReadyDuringBatchTransfer();
+						throw new OutboundMemberNotReadyDuringBatchTransfer();
 					}
 					
 					//If all records from the buffer of AsynchronySearcher are consumed and
@@ -151,8 +151,8 @@ public class BatchFilesTransferOperation {
 		}
 		catch(Exception e) {
 			//Catch IOException, that happened during file transfer and terminate 
-			//SlaveRepositoryManager (asynchrony thread)
-			while(asm.repoAsyncSearcherThreadStatus() != SlaveRepositoryManagerStatus.TERMINATED) {
+			//repository searcher (asynchrony thread)
+			while(asm.repoAsyncSearcherThreadStatus() != AsynchronySearcherStatus.TERMINATED) {
 				//Read all. When no more records available asynchrony thread terminates
 				asm.next();
 			}

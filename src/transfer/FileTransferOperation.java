@@ -15,7 +15,7 @@ import transfer.constant.OperationType;
 import transfer.context.FileContext;
 
 /**
- *	Implements transfer protocol for a single file. Both master and slave sides.
+ *	Implements transfer protocol for a single file. Both inbound and outbound sides.
  */
 public class FileTransferOperation {
 	

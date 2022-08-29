@@ -4,8 +4,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import main.AppProperties;
-import repository.status.RepositoryStatusMapper;
-import repository.status.SlaveRepositoryManagerStatus;
+import repository.status.AsynchronySearcherStatus;
 import transformer.FilesContextTransformer;
 
 public class AsynchronySearcherManager {
@@ -14,7 +13,6 @@ public class AsynchronySearcherManager {
 	
 	private AsynchronySearcher as;
 	
-	private RepositoryStatusMapper sm;
 	
 	private BaseRepositoryOperations bro;
 	
@@ -24,16 +22,14 @@ public class AsynchronySearcherManager {
 	
 	public AsynchronySearcherManager(BaseRepositoryOperations bro,
 			  						 FilesContextTransformer fct,
-			  						 RepositoryStatusMapper sm,
 			  						 AppProperties ap) {
 		this.bro = bro;
 		this.fct = fct;
-		this.sm = sm;
 		this.smallTimeout = ap.getSmallPoolingTimeout();
 	}
 	
 	/**
-	 * Creates thread that identifies difference between member's local repository and neighbour 
+	 * Creates thread that identifies difference between member's local repository and neighbour
 	 * member repository, that is identified by it's data.repo file (memberId identifies what 
 	 * data.repo file is subject to scan).
 	 * 
@@ -48,21 +44,21 @@ public class AsynchronySearcherManager {
 	}
 	
 	/**
-	 * Returns next repository record that doesn't have corresponding file in slave repository.
-	 * Non-blocking
+	 * Returns next repository record that doesn't have corresponding file in member local 
+	 * repository. Non-blocking.
 	 */
 	public RepositoryRecord next() {
 		RepositoryRecord rr = null;
 		
-		if(repoAsyncSearcherThreadStatus() == SlaveRepositoryManagerStatus.BUSY) {
+		if(as.getStatus() == AsynchronySearcherStatus.BUSY) {
 			rr = as.nextAsynchrony();
 		}
 		
 		return rr;
 	}
 	
-	public SlaveRepositoryManagerStatus repoAsyncSearcherThreadStatus() {
-		return sm.map(as.getStatus());
+	public AsynchronySearcherStatus repoAsyncSearcherThreadStatus() {
+		return as.getStatus();
 	}	
 	
 }

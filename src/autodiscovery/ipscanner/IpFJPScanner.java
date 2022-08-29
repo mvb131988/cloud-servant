@@ -33,7 +33,7 @@ public class IpFJPScanner {
 	
 	private IpRangesAnalyzer ipRangesAnalyzer;
 	
-	private int masterPort;
+	private int transferPort;
 	
 	public IpFJPScanner(BaseRepositoryOperations bro, 
 						IpValidator ipValidator, 
@@ -44,7 +44,7 @@ public class IpFJPScanner {
 		this.bro = bro;
 		this.ipValidator = ipValidator;
 		this.ipRangesAnalyzer = ipRangesAnalyzer;
-		this.masterPort = appProperties.getMasterPort();
+		this.transferPort = appProperties.getTransferPort();
 		this.workPerThread = workPerThread;
 		this.fjpSize = appProperties.getFjpSize();
 	}
@@ -84,7 +84,6 @@ public class IpFJPScanner {
 		private List<String> ips;
 		
 		//result list of ips where connection was established. 
-		//only one master is possible, hence no more that one element must be added.
 		private List<IpScannerResult> activeIps;
 		
 		public IpAction(IpValidator ipValidator) {
@@ -137,7 +136,7 @@ public class IpFJPScanner {
 					try {
 						autodiscoveryLogger.trace("[" + this.getClass().getSimpleName() + "] checking " + ip);
 						
-						s.connect(new InetSocketAddress(ip, masterPort), 1000);
+						s.connect(new InetSocketAddress(ip, transferPort), 1000);
 						IpValidatorResult result = ipValidator.isValid(s, ip);
 						if(result.isResult()) {
 							activeIps.add(new IpScannerResult(ip, result.getMemberId()));

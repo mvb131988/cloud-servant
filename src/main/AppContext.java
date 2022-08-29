@@ -21,7 +21,6 @@ import repository.RepositoryConsistencyChecker;
 import repository.RepositoryManager;
 import repository.RepositoryManager.RepositoryScaner;
 import repository.RepositoryVisitor;
-import repository.status.RepositoryStatusMapper;
 import transfer.BaseTransferOperations;
 import transfer.BatchFilesTransferOperation;
 import transfer.FileTransferOperation;
@@ -42,8 +41,6 @@ public class AppContext {
 	private AppProperties appProperties;
 	
 	private AsynchronySearcherManager asynchronySearcherManager;
-	
-	private RepositoryStatusMapper repositoryStatusMapper;
 	
 	private StatusTransferOperation statusTransferOperation;
 	
@@ -69,7 +66,7 @@ public class AppContext {
 	
 	private LongTransformer longTransformer;
 	
-	private MasterShutdownThread masterShutdownThread;
+	private MemberShutdownThread memberShutdownThread;
 	
 	private RepoInitializer repoInitializer;
 	
@@ -114,23 +111,23 @@ public class AppContext {
 								appProperties);
 	}
 	
-	public MemberAutodiscoveryScheduler getSlaveLocalScheduler() {
+	public MemberAutodiscoveryScheduler getSourceMemberLocalScheduler() {
 		return new MemberAutodiscoveryScheduler(appProperties.getLocalAutodetectionPeriod());
 	}
 	
-	public MemberAutodiscoveryScheduler getSlaveGlobalScheduler() {
+	public MemberAutodiscoveryScheduler getSourceMemberGlobalScheduler() {
 		return new MemberAutodiscoveryScheduler(appProperties.getGlobalAutodetectionPeriod());
 	}
 	
 	public CloudMemberAutodiscoverer getGlobalDiscoverer() {
-		return new CloudMemberAutodiscoverer(getSlaveGlobalScheduler(), 
+		return new CloudMemberAutodiscoverer(getSourceMemberGlobalScheduler(), 
 											 getGlobalIpFJPScanner(), 
 											 getMemberIpMonitor(),
 											 appProperties);
 	}
 	
 	public SourceMemberAutodiscoverer getLocalDiscoverer() {
-		return new SourceMemberAutodiscoverer(getSlaveLocalScheduler(), 
+		return new SourceMemberAutodiscoverer(getSourceMemberLocalScheduler(), 
 											getLocalIpFJPScanner(), 
 											getMemberIpMonitor(),
 											appProperties);
@@ -138,10 +135,10 @@ public class AppContext {
 
 	//============================================================
 	
-	public void initAsMaster() throws InitializationException {
-		//Separate thread intended for (master-side) application shutdown
-		masterShutdownThread = new MasterShutdownThread(appProperties);
-		masterShutdownThread.start();
+	public void initAsSourceMember() throws InitializationException {
+		//Separate thread intended for member application shutdown
+		memberShutdownThread = new MemberShutdownThread(appProperties);
+		memberShutdownThread.start();
 		
 		//Others
 		integerTransformer = new IntegerTransformer();
@@ -187,12 +184,11 @@ public class AppContext {
 															appProperties);
 	}
 	
-	public void initAsSlave() throws InitializationException {
+	public void initAsCloudMember() throws InitializationException {
 		//Others
 		integerTransformer = new IntegerTransformer();
 		
 		//Repository operations
-		repositoryStatusMapper = new RepositoryStatusMapper();
 		repositoryVisitor = new RepositoryVisitor(getBaseRepositoryOperations(), appProperties);
 		
 		//Transfer operations
@@ -206,7 +202,6 @@ public class AppContext {
 		
 		asynchronySearcherManager = new AsynchronySearcherManager(getBaseRepositoryOperations(), 
 			      												  getFilesContextTransformer(), 
-			      												  getRepositoryStatusMapper(), 
 			      												  appProperties);
 		repositoryConsistencyChecker = 
 				new RepositoryConsistencyChecker(getBaseRepositoryOperations(), 
@@ -231,9 +226,7 @@ public class AppContext {
 																  appProperties);
 		
 		//autodiscovering
-		ipValidator = new IpValidator(healthCheckOperation, 
-									  appProperties.getMasterPort(), 
-									  appProperties.getSocketSoTimeout());
+		ipValidator = new IpValidator(healthCheckOperation);
 		
 		/// autodiscovering ///
 		ipAutodiscoverer = new IpAutodiscoverer(getMemberIpMonitor(), 
@@ -279,7 +272,7 @@ public class AppContext {
 		
 		MemberType mt = getMemberIpMonitor().memberTypeByMemberId(appProperties.getMemberId());
 		if(MemberType.SOURCE == mt) {
-			initAsMaster();
+			initAsSourceMember();
 			
 			Thread inTh = new Thread(getInboundTransferManager());
 			inTh.setName(getInboundTransferManager().getClass().getSimpleName());
@@ -291,7 +284,7 @@ public class AppContext {
 		}
 		
 		if(MemberType.CLOUD == mt) {
-			initAsSlave();
+			initAsCloudMember();
 			
 			Thread inTh = new Thread(getInboundTransferManager());
 			Thread outTh = new Thread(getOutboundTransferManager());
@@ -351,10 +344,6 @@ public class AppContext {
 	
 	public RepositoryManager getRepositoryManager() {
 		return repositoryManager;
-	}
-
-	public RepositoryStatusMapper getRepositoryStatusMapper() {
-		return repositoryStatusMapper;
 	}
 
 	public HealthCheckOperation getHealthCheckOperation() {

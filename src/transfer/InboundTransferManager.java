@@ -55,7 +55,7 @@ public class InboundTransferManager implements Runnable {
 		this.smallTimeout = ap.getSmallPoolingTimeout();
 		
 		try {
-			this.server = new ServerSocket(ap.getMasterPort());
+			this.server = new ServerSocket(ap.getTransferPort());
 		} catch (IOException e) {
 			logger.error("[" + this.getClass().getSimpleName() + "] initialization fail", e);
 		}
@@ -87,10 +87,11 @@ public class InboundTransferManager implements Runnable {
 	 */
 	private Socket acceptInbound() throws IOException {
 		Socket in;
-		logger.info("[" + this.getClass().getSimpleName() + "] waiting for slave to connect");
+		logger.info("[" + this.getClass().getSimpleName() + "] waiting for inbound member to "
+				  + "connect");
 		in = server.accept();
 		in.setSoTimeout(socketSoTimeout);
-		logger.info("[" + this.getClass().getSimpleName() + "] slave connected");
+		logger.info("[" + this.getClass().getSimpleName() + "] inbound member connected");
 		return in;
 	}
 	

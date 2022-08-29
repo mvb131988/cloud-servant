@@ -7,13 +7,14 @@ import java.net.Socket;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-public class MasterShutdownThread implements Runnable {
+@SuppressWarnings("unused")
+public class MemberShutdownThread implements Runnable {
 
 	private Logger logger = LogManager.getRootLogger();
 	
 	private int adminPort;
 	
-	public MasterShutdownThread(AppProperties appProperties) {
+	public MemberShutdownThread(AppProperties appProperties) {
 		adminPort = appProperties.getAdminPort();
 	}
 	
