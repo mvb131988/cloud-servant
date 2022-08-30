@@ -47,7 +47,7 @@ public class AppProperties {
 	private String memberId;
 	
 	public AppProperties() {
-		repositoryRoot = Paths.get(ResourceBundle.getBundle("app").getString("root"));
+		repositoryRoot = Paths.get(ResourceBundle.getBundle("app").getString("path.root"));
 		pathSys = Paths.get(ResourceBundle.getBundle("app").getString("path.sys"));
 		pathLog = Paths.get(ResourceBundle.getBundle("app").getString("path.log"));
 		pathTemp = Paths.get(ResourceBundle.getBundle("app").getString("path.temp"));

@@ -76,52 +76,55 @@
 		</plugins>
 	</build>
 	<profiles>
+		<!-- SOURCE windows machine -->
 		<profile>
-			<id>master</id>
+			<id>member1</id>
 			<properties>
-				<master>true</master>
-				<root>D:\photo_files</root>
+				<path.root>D:\photo_files</path.root>
 				<path.log>D:\photo_files\.log</path.log>
 				<path.sys>D:\photo_files\.sys</path.sys>
 				<path.temp>D:\photo_files\.temp</path.temp>
+				<memberId>member1</memberId>
 			</properties>
 		</profile>
+		<!-- CLOUD raspberry pi machine -->
 		<profile>
-			<id>slave</id>
+			<id>member2</id>
 			<properties>
-				<master>false</master>
 				<root>/media/pi/seagate/repo</root>
 				<path.log>/media/pi/seagate/repo/.log</path.log>
 				<path.sys>/media/pi/seagate/repo/.sys</path.sys>
 				<path.temp>/media/pi/seagate/repo/.temp</path.temp>
+				<memberId>member2</memberId>
+			</properties>
+		</profile>
+		<!-- CLOUD raspberry pi machine -->
+		<profile>
+			<id>member3</id>
+			<properties>
+				<root>/media/pi/seagate/repo</root>
+				<path.log>/media/pi/seagate/repo/.log</path.log>
+				<path.sys>/media/pi/seagate/repo/.sys</path.sys>
+				<path.temp>/media/pi/seagate/repo/.temp</path.temp>
+				<memberId>member3</memberId>
+			</properties>
+		</profile>
+		<!-- CLOUD raspberry pi machine -->
+		<profile>
+			<id>member4</id>
+			<properties>
+				<root>/media/pi/seagate/repo</root>
+				<path.log>/media/pi/seagate/repo/.log</path.log>
+				<path.sys>/media/pi/seagate/repo/.sys</path.sys>
+				<path.temp>/media/pi/seagate/repo/.temp</path.temp>
+				<memberId>member4</memberId>
 			</properties>
 		</profile>
 		<!-- test profiles -->
 		<profile>
-			<id>master_windows</id>
-			<properties>
-				<master>true</master>
-				<root>C:\endava\workspace\cloud-servant\master_repo</root>
-				<path.log>C:\endava\workspace\cloud-servant\master_repo\.log</path.log>
-				<path.sys>C:\endava\workspace\cloud-servant\master_repo\.sys</path.sys>
-				<path.temp>C:\endava\workspace\cloud-servant\master_repo\.temp</path.temp>
-			</properties>
-		</profile>
-		<profile>
-			<id>slave_windows</id>
-			<properties>
-				<master>false</master>
-				<root>C:\endava\workspace\cloud-servant\slave_repo</root>
-				<path.log>C:\endava\workspace\cloud-servant\slave_repo\.log</path.log>
-				<path.sys>C:\endava\workspace\cloud-servant\slave_repo\.sys</path.sys>
-				<path.temp>C:\endava\workspace\cloud-servant\slave_repo\.temp</path.temp>
-			</properties>
-		</profile>
-		<profile>
 			<id>member1_test</id>
 			<properties>
-				<master>true</master>
-				<root>/tmp/master_repo</root>
+				<path.root>/tmp/master_repo</path.root>
 				<path.log>/tmp/master_repo/.log</path.log>
 				<path.sys>/tmp/master_repo/.sys</path.sys>
 				<path.temp>/tmp/master_repo/.temp</path.temp>
@@ -131,8 +134,7 @@
 		<profile>
 			<id>member2_test</id>
 			<properties>
-				<master>false</master>
-				<root>/tmp/slave_repo</root>
+				<path.root>/tmp/slave_repo</path.root>
 				<path.log>/tmp/slave_repo/.log</path.log>
 				<path.sys>/tmp/slave_repo/.sys</path.sys>
 				<path.temp>/tmp/slave_repo/.temp</path.temp>
@@ -142,8 +144,7 @@
 		<profile>
 			<id>member3_test</id>
 			<properties>
-				<master>false</master>
-				<root>/tmp/slave_repo</root>
+				<path.root>/tmp/slave_repo</path.root>
 				<path.log>/tmp/slave_repo/.log</path.log>
 				<path.sys>/tmp/slave_repo/.sys</path.sys>
 				<path.temp>/tmp/slave_repo/.temp</path.temp>
