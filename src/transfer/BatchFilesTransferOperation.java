@@ -35,17 +35,17 @@ public class BatchFilesTransferOperation {
 
 	private BaseTransferOperations bto;
 	
+	private HealthCheckOperation hco;
+	
 	private FilesContextTransformer fct;
 	
-	private StatusTransferOperation sto;
-
 	private AsynchronySearcherManager asm;
 	
 	private RepositoryConsistencyChecker rcc;
 	
 	public BatchFilesTransferOperation(BaseTransferOperations bto, 
 									   FileTransferOperation fto, 
-									   StatusTransferOperation sto, 
+									   HealthCheckOperation hco, 
 									   FilesContextTransformer fct,
 									   AsynchronySearcherManager asm,
 									   RepositoryConsistencyChecker rcc,
@@ -55,7 +55,7 @@ public class BatchFilesTransferOperation {
 		this.fto = fto;
 		this.bto = bto;
 		this.fct = fct;
-		this.sto = sto;
+		this.hco = hco;
 		this.asm = asm;
 		this.rcc = rcc;
 		this.smallTimeout = appProperties.getSmallPoolingTimeout();
@@ -72,8 +72,8 @@ public class BatchFilesTransferOperation {
 			}
 			
 			switch (ot) {
-				case REQUEST_MASTER_STATUS_START: 
-					sto.executeAsMaster(os, pushbackInputStream, MemberStatus.READY);
+				case REQUEST_HEALTHCHECK_START: 
+					hco.inbound(os, pushbackInputStream, MemberStatus.READY);
 					break;
 				case REQUEST_BATCH_START:
 					bto.receiveOperationType(pushbackInputStream);
@@ -130,15 +130,12 @@ public class BatchFilesTransferOperation {
 				if (rr != null) {
 					fto.outbound(os, is, fct.transform(rr));
 				} else {
-					// TODO: send healthcheck here instead, necessary to avoid connection timeout
-					// when scan takes too long
+					// TODO: When scan takes too long it's necessary to avoid connection timeout.
+					// Not clear if this case is possible. How big delay caused by local repo 
+					// scan might be? 
 					
-					// send status check message
-					// must be READY at any time  
-					MemberStatus status = sto.executeAsSlave(os, is).getOutboundMemberStatus();
-					if(MemberStatus.READY != status) {
-						throw new OutboundMemberNotReadyDuringBatchTransfer();
-					}
+					//send healthcheck to keep connection alive 
+					hco.outbound(os, is).getOutboundMemberStatus();
 					
 					//If all records from the buffer of AsynchronySearcher are consumed and
 					//buffer is empty, but AsynchronySearcher isn't terminated wait until it adds

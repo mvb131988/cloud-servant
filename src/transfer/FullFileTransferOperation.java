@@ -38,8 +38,6 @@ public class FullFileTransferOperation {
 	
 	private FileTransferOperation fto;
 	
-	private StatusTransferOperation sto;
-	
 	private BatchFilesTransferOperation bfto;
 	
 	private HealthCheckOperation hco;
@@ -47,7 +45,6 @@ public class FullFileTransferOperation {
 	public FullFileTransferOperation(BaseTransferOperations bto, 
 									 BaseRepositoryOperations bro,
 									 FileTransferOperation fto, 
-									 StatusTransferOperation sto,
 									 HealthCheckOperation hco,
 									 BatchFilesTransferOperation bfto,
 									 AppProperties appProperties) 
@@ -56,7 +53,6 @@ public class FullFileTransferOperation {
 		this.bto = bto;
 		this.bro = bro;
 		this.fto = fto;
-		this.sto = sto;
 		this.bfto = bfto;
 		this.hco = hco;
 	}
@@ -72,8 +68,8 @@ public class FullFileTransferOperation {
 			}
 
 			switch (ot) {
-				case REQUEST_MASTER_STATUS_START: 
-					sto.executeAsMaster(os, pushbackInputStream, MemberStatus.READY);
+				case REQUEST_HEALTHCHECK_START: 
+					hco.inbound(os, pushbackInputStream, MemberStatus.READY);
 					break;
 				case REQUEST_TRANSFER_START:
 					bto.receiveOperationType(pushbackInputStream);

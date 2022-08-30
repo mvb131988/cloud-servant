@@ -28,7 +28,6 @@ import transfer.FullFileTransferOperation;
 import transfer.HealthCheckOperation;
 import transfer.InboundTransferManager;
 import transfer.OutboundTransferManager;
-import transfer.StatusTransferOperation;
 import transfer.TransferManagerStateMonitor;
 import transformer.FilesContextTransformer;
 import transformer.IntegerTransformer;
@@ -41,8 +40,6 @@ public class AppContext {
 	private AppProperties appProperties;
 	
 	private AsynchronySearcherManager asynchronySearcherManager;
-	
-	private StatusTransferOperation statusTransferOperation;
 	
 	private HealthCheckOperation healthCheckOperation;
 	
@@ -154,11 +151,10 @@ public class AppContext {
 		fileTransferOperation = new FileTransferOperation(getBaseTransferOperations(), 
 														  getBaseRepositoryOperations(),
 														  appProperties);
-		statusTransferOperation = new StatusTransferOperation(getBaseTransferOperations());
 		healthCheckOperation = new HealthCheckOperation(getBaseTransferOperations());
 		batchTransferOperation = new BatchFilesTransferOperation(getBaseTransferOperations(),
 																 getFileTransferOperation(),
-																 getStatusTransferOperation(),
+																 getHealthCheckOperation(),
 																 getFilesContextTransformer(),
 																 null,
 																 null,
@@ -166,7 +162,6 @@ public class AppContext {
 		fullFileTransferOperation = new FullFileTransferOperation(getBaseTransferOperations(),
 																  getBaseRepositoryOperations(),
 																  getFileTransferOperation(),
-																  getStatusTransferOperation(),
 																  getHealthCheckOperation(),
 																  getBatchFilesTransferOperation(),
 																  appProperties);
@@ -208,11 +203,10 @@ public class AppContext {
 												 getLongTransformer(), 
 												 getFilesContextTransformer());
 		
-		statusTransferOperation = new StatusTransferOperation(getBaseTransferOperations());
 		healthCheckOperation = new HealthCheckOperation(getBaseTransferOperations());
 		batchTransferOperation = new BatchFilesTransferOperation(getBaseTransferOperations(),
 				 												 getFileTransferOperation(),
-				 												 getStatusTransferOperation(),
+				 												 getHealthCheckOperation(),
 				 												 getFilesContextTransformer(),
 				 												 getAsynchronySearcherManager(),
 				 												 getRepositoryConsistencyChecker(),
@@ -220,7 +214,6 @@ public class AppContext {
 		fullFileTransferOperation = new FullFileTransferOperation(getBaseTransferOperations(),
 																  getBaseRepositoryOperations(),
 																  getFileTransferOperation(),
-																  getStatusTransferOperation(),
 																  getHealthCheckOperation(),
 																  getBatchFilesTransferOperation(),
 																  appProperties);
@@ -324,10 +317,6 @@ public class AppContext {
 	
 	private BaseTransferOperations getBaseTransferOperations() {
 		return baseTransferOperations;
-	}
-	
-	public StatusTransferOperation getStatusTransferOperation() {
-		return statusTransferOperation;
 	}
 
 	private FileTransferOperation getFileTransferOperation() {
