@@ -1,3 +1,5 @@
+#Deprecated
+
 #
 # Initial setup. Before running this script install ssh certificates on
 # each remote member/node:
@@ -24,10 +26,10 @@ printf "######\n\n"
 #ssh pi@92.115.183.17 -p 51313
 #printf "######\n\n"
 
-printf "### Connecting to remote host2 ###\n\n"
-ssh pi@95.65.61.110 -p 51313 "pwd; cd /usr/cloud-servant; ls -la; top"
-printf "######\n\n"
-
-#printf "### Connecting to remote host3 ###\n\n"
-#ssh pi@188.237.1.27 -p 51313
+#printf "### Connecting to remote host2 ###\n\n"
+#ssh pi@95.65.61.110 -p 51313 "pwd; cd /usr/cloud-servant; ls -la; top"
 #printf "######\n\n"
+
+printf "### Connecting to remote host3 ###\n\n"
+ssh pi@188.237.1.27 -p 51313
+printf "######\n\n"
