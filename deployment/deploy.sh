@@ -19,7 +19,7 @@ printf "######\n\n"
 
 printf "### Copy .jar to remote ###\n"
 cp ../target/cloud-servant.jar cloud-servant.jar
-scp -P 51313 cloud-servant.jar pi@$2:/usr/cloud-servant/cloud-servant-new.jar
+scp -P 51313 cloud-servant.jar pi@$2:/usr/cloud-servant/cloud-servant.jar
 
 printf "### Remote reboot ###\n"
 ssh pi@$2 -p 51313 "sudo reboot"

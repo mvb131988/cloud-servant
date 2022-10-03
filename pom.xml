@@ -91,7 +91,7 @@
 		<profile>
 			<id>member2</id>
 			<properties>
-				<root>/media/pi/seagate/repo</root>
+				<path.root>/media/pi/seagate/repo</path.root>
 				<path.log>/media/pi/seagate/repo/.log</path.log>
 				<path.sys>/media/pi/seagate/repo/.sys</path.sys>
 				<path.temp>/media/pi/seagate/repo/.temp</path.temp>
@@ -102,7 +102,7 @@
 		<profile>
 			<id>member3</id>
 			<properties>
-				<root>/media/pi/seagate/repo</root>
+				<path.root>/media/pi/seagate/repo</path.root>
 				<path.log>/media/pi/seagate/repo/.log</path.log>
 				<path.sys>/media/pi/seagate/repo/.sys</path.sys>
 				<path.temp>/media/pi/seagate/repo/.temp</path.temp>
@@ -113,7 +113,7 @@
 		<profile>
 			<id>member4</id>
 			<properties>
-				<root>/media/pi/seagate/repo</root>
+				<path.root>/media/pi/seagate/repo</path.root>
 				<path.log>/media/pi/seagate/repo/.log</path.log>
 				<path.sys>/media/pi/seagate/repo/.sys</path.sys>
 				<path.temp>/media/pi/seagate/repo/.temp</path.temp>

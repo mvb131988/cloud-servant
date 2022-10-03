@@ -40,6 +40,8 @@ public class AppProperties {
 	
 	private String ISP_MOLDTELECOM = "moldtelecom";
 	
+	private String ISP_STARNET = "starnet";
+	
 	private String localRanges;
 	
 	private String globalRanges;
@@ -68,7 +70,8 @@ public class AppProperties {
 		fjpSize = Integer.parseInt(ResourceBundle.getBundle("app").getString("autodiscovery.pool.size"));
 		
 		localRanges = ResourceBundle.getBundle("ipranges").getString(ISP_HOME);
-		globalRanges = ResourceBundle.getBundle("ipranges").getString(ISP_MOLDTELECOM);
+		globalRanges = ResourceBundle.getBundle("ipranges").getString(ISP_MOLDTELECOM) + ";" +
+					   ResourceBundle.getBundle("ipranges").getString(ISP_STARNET);
 	}
 
 	public Path getRepositoryRoot() {

@@ -16,19 +16,20 @@ public class MemberAutodiscoveryScheduler {
 	
 	public MemberAutodiscoveryScheduler(int autodetectionPeriod) {
 		this.autodetectionPeriod = autodetectionPeriod;
+		this.baseTime = ZonedDateTime.now();
 	}
 	
 	public boolean isScheduled(IpContext sic) {
 		
 		// when no ip is found immediately schedule a scan
-		if(!sic.areAllIpsFound()) {
+		if(!sic.areAllIpsFound() && 
+				ZonedDateTime.now().toInstant().isAfter(baseTime.toInstant())) {
 			return true;
 		}
 		
 		// baseTime must not be null
 		if(sic.getFailureCounter() > 1 && 
-				ZonedDateTime.now().toInstant().isAfter(
-						baseTime.plusSeconds(autodetectionPeriod).toInstant())) {
+				ZonedDateTime.now().toInstant().isAfter(baseTime.toInstant())) {
 			return true;
 		}
 		

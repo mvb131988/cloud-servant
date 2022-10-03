@@ -35,6 +35,8 @@ public class IpFJPScanner {
 	
 	private int transferPort;
 	
+	private final int socketSoTimeout;
+	
 	public IpFJPScanner(BaseRepositoryOperations bro, 
 						IpValidator ipValidator, 
 						IpRangesAnalyzer ipRangesAnalyzer, 
@@ -47,6 +49,7 @@ public class IpFJPScanner {
 		this.transferPort = appProperties.getTransferPort();
 		this.workPerThread = workPerThread;
 		this.fjpSize = appProperties.getFjpSize();
+		this.socketSoTimeout = appProperties.getSocketSoTimeout();
 	}
 
 	public List<IpScannerResult> scan(String ipRanges) {
@@ -136,13 +139,14 @@ public class IpFJPScanner {
 					try {
 						autodiscoveryLogger.trace("[" + this.getClass().getSimpleName() + "] checking " + ip);
 						
+						s.setSoTimeout(socketSoTimeout);
 						s.connect(new InetSocketAddress(ip, transferPort), 1000);
 						IpValidatorResult result = ipValidator.isValid(s, ip);
+						
 						if(result.isResult()) {
 							activeIps.add(new IpScannerResult(ip, result.getMemberId()));
+							autodiscoveryLogger.trace("[" + this.getClass().getSimpleName() + "] connected to " + ip);
 						}
-						
-						autodiscoveryLogger.trace("[" + this.getClass().getSimpleName() + "] connecting to " + ip);
 					} catch (UnknownHostException e) {
 						//Don't log, prevent too many expected exceptions to be logged  
 					} catch (IOException e) {
