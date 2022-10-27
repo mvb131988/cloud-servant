@@ -95,33 +95,35 @@ public class RepositoryManager {
 		
 		@Override
 		public void run() {
-			try {
-				for(;;) {
-					try {
-						if(tmsm.lock()) {
-							
-							logger.info("[" + this.getClass().getSimpleName() + "] scan started");
+			for(;;) {
+				try {
+					if(tmsm.lock()) {
 						
-							writeAll(scan());
-						
-							logger.info("[" + this.getClass().getSimpleName() + "] scan ended");
-						}
-					} finally {
-						tmsm.unlock();
+						logger.info("[" + this.getClass().getSimpleName() + "] scan started");
+					
+						writeAll(scan());
+					
+						logger.info("[" + this.getClass().getSimpleName() + "] scan ended");
 					}
-					
-					//TODO: Check and remove
-					//RepositoryRecord rr = bro.read(BaseRepositoryOperations.HEADER_SIZE + 
-					//								 13*RecordConstants.FULL_SIZE);
-					//rr.getId();
-					
-					//Thread idle timeout.
-					//Wait 1 second to avoid resources overconsumption.
-					Thread.sleep(smallTimeout);
+				} catch (Exception e) {
+					logger.error("[" + this.getClass().getSimpleName() + "] thread fail", e);
+				} finally {
+					tmsm.unlock();
 				}
-			}
-			catch (Exception e) {
-				logger.error("[" + this.getClass().getSimpleName() + "] thread fail", e);
+				
+				//TODO: Check and remove
+				//RepositoryRecord rr = bro.read(BaseRepositoryOperations.HEADER_SIZE + 
+				//								 13*RecordConstants.FULL_SIZE);
+				//rr.getId();
+				
+				//Thread idle timeout.
+				//Wait 1 second to avoid resources overconsumption.
+				
+				try {
+					Thread.sleep(smallTimeout);
+				} catch (Exception e) {
+					logger.error("[" + this.getClass().getSimpleName() + "] thread fail", e);
+				}
 			}
 		}
 		
