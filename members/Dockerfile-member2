@@ -1,7 +1,7 @@
 #docker build -t member2 -f Dockerfile .
 #docker run -d member2
 
-FROM ubuntu:21.10
+FROM ubuntu:22.10
 
 RUN  apt-get update \
   && apt-get install -y wget \
