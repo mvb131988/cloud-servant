@@ -1,7 +1,9 @@
 package autodiscovery;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -53,17 +55,22 @@ public class CloudMemberAutodiscoverer implements Autodiscovery {
 		if(isScheduled) {
 			logger.info("[" + this.getClass().getSimpleName() + "] global scan start");
 			
+			// duplicates are possible, due to ip ranges overlapping
 			cloudIps = ipScanner.scan(globalRanges);
 			
 			logger.info("Number of found ips: " + cloudIps.size());
+			
+			// keep track of the member ids already added in the final result
+			Set<String> filter = new HashSet<>();
 			
 			for(IpScannerResult cloudIp: cloudIps) {
 				String memberId = cloudIp.getMemberId();
 				MemberType memberType = mim.memberTypeByMemberId(memberId);
 				
 				MemberDescriptor md0 = new MemberDescriptor(memberId, memberType, cloudIp.getIp());
-				if (!this.memberId.equals(md0.getMemberId())) {
+				if (!this.memberId.equals(md0.getMemberId()) && !filter.contains(memberId)) {
 					mds.add(md0);
+					filter.add(memberId); 
 				}
 			}
 			

@@ -670,6 +670,63 @@ public class MemberIpMonitorTest {
 				  () -> assertEquals(null, actualDs.get(3).getIpAddress()));
 	}
 	
+	/**
+	 * The only difference with testSetCloudIps1 is that updateDs (list of discovered memberIds)
+	 * contains duplicates
+	 */
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testSetCloudIps2()  throws InitializationException, 
+										   NoSuchFieldException, 
+										   SecurityException, 
+										   IllegalArgumentException, 
+										   IllegalAccessException, 
+										   NotUniqueSourceMemberException, 
+										   WrongSourceMemberId, 
+										   IOException 
+	{
+		List<EnhancedMemberDescriptor> ds = new ArrayList<>();
+		ds.add(new EnhancedMemberDescriptor(
+				new MemberDescriptor("member2", MemberType.CLOUD, null), 0));
+		ds.add(new EnhancedMemberDescriptor(
+				new MemberDescriptor("member3", MemberType.CLOUD, null), 0));
+		ds.add(new EnhancedMemberDescriptor(
+				new MemberDescriptor("member4", MemberType.CLOUD, null), 0));
+		ds.add(new EnhancedMemberDescriptor(
+				new MemberDescriptor("member5", MemberType.SOURCE, null), 0));
+		
+		BaseRepositoryOperations bro = mock(BaseRepositoryOperations.class);
+		
+		MemberIpMonitor mim = new MemberIpMonitor();
+		
+		Field f = mim.getClass().getDeclaredField("ds");
+		f.setAccessible(true);
+		f.set(mim, ds);
+		f.setAccessible(false);
+		
+		f = mim.getClass().getDeclaredField("bro");
+		f.setAccessible(true);
+		f.set(mim, bro);
+		f.setAccessible(false);
+		
+		f = mim.getClass().getDeclaredField("memberId");
+		f.setAccessible(true);
+		f.set(mim, "member1");
+		f.setAccessible(false);
+		
+		f = mim.getClass().getDeclaredField("pathTxt");
+		f.setAccessible(true);
+		f.set(mim, Paths.get("/path/to/members.txt"));
+		f.setAccessible(false);
+		
+		List<MemberDescriptor> updateDs = new ArrayList<>();
+		updateDs.add(new MemberDescriptor("member2", MemberType.CLOUD, "192.168.0.11"));
+		updateDs.add(new MemberDescriptor("member4", MemberType.CLOUD, "192.168.0.12"));
+		updateDs.add(new MemberDescriptor("member4", MemberType.CLOUD, "192.168.0.12"));
+		
+		assertThrows(IllegalStateException.class, () -> mim.setCloudIps(updateDs));
+	}
+	
 	@Test
 	public void testCloudFailureCounter1() throws InitializationException, 
 											 	  NoSuchFieldException, 

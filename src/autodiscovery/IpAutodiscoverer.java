@@ -20,9 +20,9 @@ public class IpAutodiscoverer implements Runnable {
 	
 	private CloudMemberAutodiscoverer cma;
 	
-	private Thread localT;
+	private volatile Thread localT;
 	
-	private Thread globalT;
+	private volatile Thread globalT;
 	
 	public IpAutodiscoverer(MemberIpMonitor mim, 
 							SourceMemberAutodiscoverer sma,
@@ -86,6 +86,7 @@ public class IpAutodiscoverer implements Runnable {
 	
 	private void runGlobally() throws IOException {
 		// previously started global autodiscovery thread finished
+		//TODO: this is the wrong approach to rely on thread state. Review it
 		if(globalT != null && State.TERMINATED.equals(globalT.getState())) {
 			globalT = null;
 			List<MemberDescriptor> mds = cma.getMds();
