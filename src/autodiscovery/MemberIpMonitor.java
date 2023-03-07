@@ -186,6 +186,7 @@ public class MemberIpMonitor {
 	 * @return true if all CLOUD members are active (ip address not null and failure counter limit
 	 * 		   not reached) and false otherwise
 	 */ 
+	//TODO: skip this check for itself (eliminate self member id from the search)
 	public synchronized boolean areActiveCloudMembers() {
 		Predicate<EnhancedMemberDescriptor> isCloud =
 				d -> MemberType.CLOUD.equals(d.getMd().getMemberType());

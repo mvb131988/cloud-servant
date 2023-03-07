@@ -12,6 +12,7 @@ import java.io.RandomAccessFile;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileTime;
@@ -19,7 +20,9 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -44,7 +47,7 @@ public class BaseRepositoryOperations {
 	private LongTransformer longTransformer;
 
 	
-	private String memberId;
+	public String memberId;
 
 	public BaseRepositoryOperations(LongTransformer frameProcessor,
 									AppProperties appProperties) {
@@ -124,6 +127,8 @@ public class BaseRepositoryOperations {
 
 		int offset = baseAddr;
 
+		this.repositoryRoot = Paths.get("C:\\endava\\temp\\89.28.113.140");
+		//this.memberId = "member4";
 		Path configPath = repositoryRoot.resolve(memberId + "_data.repo");
 		try (RandomAccessFile file = new RandomAccessFile(configPath.toString(), "r")) {
 			// file id
@@ -171,6 +176,49 @@ public class BaseRepositoryOperations {
 		return repositoryRecord;
 	}
 
+	public static void main(String[] args) {
+		try {
+			String[] membersId = {"member3", "member2"};
+			List<Set<String>> res = new ArrayList<>();
+			res.add(new HashSet<>()); res.add(new HashSet<>());
+			for(int i=0; i<2; i++) {
+				BaseRepositoryOperations bro = new BaseRepositoryOperations(new LongTransformer(), new AppProperties());
+				bro.memberId = membersId[i];
+				int offset = 9;
+				int counter = 0;
+				for(;;) {
+					RepositoryRecord rr = bro.read(offset);
+					offset+=533;
+					counter++;
+					System.out.println(counter + " " + rr.getFileName());
+					
+					res.get(i).add(rr.getFileName());
+					
+					if(rr.getId() == 0) break; 
+				}
+			}
+			
+			System.out.println(res.get(0).size());
+			System.out.println(res.get(1).size());
+			
+			res.get(0).removeAll(res.get(1));
+			
+			System.out.println(res.get(0).size());
+			
+			System.out.println("----------------------------");
+			
+			for(String s: res.get(0))
+				System.out.println(s);
+			
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
 	// -------------------------------------------------------------------------------------------
 	// Unused finished
 	// -------------------------------------------------------------------------------------------
